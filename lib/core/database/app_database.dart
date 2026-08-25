@@ -1,0 +1,353 @@
+import 'dart:io';
+
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+
+part 'app_database.g.dart';
+
+/// 📁 قاعدة البيانات الرئيسية - Drift (SQLite)
+
+// ============== جدول الطلاب ==============
+@DataClassName('Student')
+class Students extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get guardianId => integer().nullable()();
+  TextColumn get studentCode => text().unique()();
+  TextColumn get firstName => text().withLength(min: 1, max: 150)();
+  TextColumn get lastName => text().withLength(min: 1, max: 150)();
+  DateTimeColumn get dateOfBirth => dateTime().nullable()();
+  TextColumn get gender => text().nullable()();
+  TextColumn get address => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('active'))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول المدارس ==============
+@DataClassName('School')
+class Schools extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 255)();
+  TextColumn get address => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get logoPath => text().nullable()();
+  TextColumn get defaultLanguage => text().withDefault(const Constant('ar'))();
+  TextColumn get timezone =>
+      text().withDefault(const Constant('Africa/Algiers'))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول السنوات الدراسية ==============
+@DataClassName('AcademicYear')
+class AcademicYears extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get name => text().withLength(min: 1, max: 50)();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime()();
+  BoolColumn get isCurrent => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {schoolId, name},
+  ];
+}
+
+// ============== جدول المواد الدراسية ==============
+@DataClassName('Subject')
+class Subjects extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get name => text().withLength(min: 1, max: 150)();
+  TextColumn get code => text().nullable()();
+  TextColumn get description => text().nullable()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول المعلمين ==============
+@DataClassName('Teacher')
+class Teachers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get fullName => text().withLength(min: 1, max: 255)();
+  TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get address => text().nullable()();
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get specialization => text().nullable()();
+  DateTimeColumn get hireDate => dateTime().nullable()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول أولياء الأمور ==============
+@DataClassName('Guardian')
+class Guardians extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get fullName => text().withLength(min: 1, max: 255)();
+  TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get relationship => text().nullable()();
+  TextColumn get address => text().nullable()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الأفواج ==============
+@DataClassName('Group')
+class Groups extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get academicYearId => integer().nullable()();
+  IntColumn get subjectId => integer().nullable()();
+  IntColumn get teacherId => integer().nullable()();
+  TextColumn get name => text().withLength(min: 1, max: 255)();
+  IntColumn get maxStudents => integer().withDefault(const Constant(30))();
+  RealColumn get monthlyFee => real().withDefault(const Constant(0))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول التسجيلات ==============
+@DataClassName('Enrollment')
+class Enrollments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get studentId => integer()();
+  IntColumn get academicYearId => integer()();
+  DateTimeColumn get enrollmentDate =>
+      dateTime().withDefault(currentDateAndTime)();
+  RealColumn get registrationFee => real().withDefault(const Constant(0))();
+  TextColumn get status => text().withDefault(const Constant('active'))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الحصص ==============
+@DataClassName('Session')
+class Sessions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get groupId => integer()();
+  DateTimeColumn get sessionDate => dateTime()();
+  DateTimeColumn get startTime => dateTime()();
+  DateTimeColumn get endTime => dateTime()();
+  TextColumn get type => text().withDefault(const Constant('regular'))();
+  TextColumn get status => text().withDefault(const Constant('scheduled'))();
+  TextColumn get lessonTopic => text().nullable()();
+  TextColumn get teacherNotes => text().nullable()();
+  TextColumn get homework => text().nullable()();
+  BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
+  RealColumn get price => real().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الحضور ==============
+@DataClassName('AttendanceRecord')
+class Attendance extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get sessionId => integer()();
+  IntColumn get studentId => integer()();
+  TextColumn get status => text()(); // present, late, excused, unexcused
+  DateTimeColumn get checkInTime => dateTime().nullable()();
+  IntColumn get recordedBy => integer().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {sessionId, studentId},
+  ];
+}
+
+// ============== جدول المستحقات ==============
+@DataClassName('Invoice')
+class Invoices extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get invoiceNumber => text().unique()();
+  IntColumn get studentId => integer()();
+  IntColumn get groupId => integer().nullable()();
+  IntColumn get sessionId => integer().nullable()();
+  TextColumn get type =>
+      text()(); // registration, monthly, extra_session, custom
+  TextColumn get description => text()();
+  RealColumn get amount => real()();
+  DateTimeColumn get dueDate => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('unpaid'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الدفعات ==============
+@DataClassName('Payment')
+class Payments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get receiptNumber => text().unique()();
+  IntColumn get studentId => integer()();
+  RealColumn get amount => real()();
+  DateTimeColumn get paymentDate =>
+      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get method => text().withDefault(const Constant('cash'))();
+  IntColumn get recordedBy => integer().nullable()();
+  BoolColumn get isAdvance => boolean().withDefault(const Constant(false))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الخصومات ==============
+@DataClassName('Discount')
+class Discounts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get name => text().withLength(min: 1, max: 150)();
+  TextColumn get description => text().nullable()();
+  RealColumn get percentage => real()();
+  TextColumn get conditions => text().nullable()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الإعفاءات ==============
+@DataClassName('Exemption')
+class Exemptions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get studentId => integer()();
+  IntColumn get invoiceId => integer()();
+  RealColumn get amount => real()();
+  TextColumn get reason => text()();
+  IntColumn get authorizedBy => integer().nullable()();
+  DateTimeColumn get exemptionDate =>
+      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الاختبارات ==============
+@DataClassName('Exam')
+class Exams extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get groupId => integer()();
+  TextColumn get name => text().withLength(min: 1, max: 255)();
+  DateTimeColumn get examDate => dateTime()();
+  DateTimeColumn get startTime => dateTime().nullable()();
+  IntColumn get durationMinutes => integer().nullable()();
+  TextColumn get type => text()();
+  RealColumn get totalMarks => real().nullable()();
+  BoolColumn get isExternal => boolean().withDefault(const Constant(false))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول نتائج الاختبارات ==============
+@DataClassName('ExamResult')
+class ExamResults extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get examId => integer()();
+  IntColumn get studentId => integer()();
+  RealColumn get score => real().nullable()();
+  TextColumn get notes => text().nullable()();
+  IntColumn get recordedBy => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {examId, studentId},
+  ];
+}
+
+// ============== جدول الإشعارات ==============
+@DataClassName('Notification')
+class Notifications extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  TextColumn get recipientType => text()();
+  IntColumn get recipientId => integer().nullable()();
+  TextColumn get channel => text()();
+  TextColumn get title => text().withLength(min: 1, max: 255)();
+  TextColumn get body => text()();
+  TextColumn get triggerEvent => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get sentAt => dateTime().nullable()();
+  DateTimeColumn get readAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول سجل العمليات ==============
+@DataClassName('AuditLog')
+class AuditLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get schoolId => integer().withDefault(const Constant(1))();
+  IntColumn get userId => integer().nullable()();
+  TextColumn get action => text().withLength(min: 1, max: 100)();
+  TextColumn get entityType => text().withLength(min: 1, max: 100)();
+  IntColumn get entityId => integer().nullable()();
+  TextColumn get oldValues => text().nullable()();
+  TextColumn get newValues => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== قاعدة البيانات ==============
+@DriftDatabase(
+  tables: [
+    Schools,
+    AcademicYears,
+    Subjects,
+    Teachers,
+    Guardians,
+    Students,
+    Groups,
+    Enrollments,
+    Sessions,
+    Attendance,
+    Invoices,
+    Payments,
+    Discounts,
+    Exemptions,
+    Exams,
+    ExamResults,
+    Notifications,
+    AuditLogs,
+  ],
+)
+class AppDatabase extends _$AppDatabase {
+  AppDatabase() : super(_openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  static QueryExecutor _openConnection() {
+    return LazyDatabase(() async {
+      final dbFolder = await getApplicationDocumentsDirectory();
+      final file = File(p.join(dbFolder.path, 'school_management_db.sqlite'));
+      return NativeDatabase.createInBackground(file);
+    });
+  }
+}

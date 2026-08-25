@@ -1,0 +1,49 @@
+# ================================================
+# إعدادات Native Splash Screen
+# ================================================
+flutter_native_splash:
+  # ====== الإعدادات العامة ======
+  # لون الخلفية للوضع الفاتح
+  color: "#FAF8F5"
+  
+  # لون الخلفية للوضع الداكن (اختياري)
+  color_dark: "#1A252C"
+  
+  # صورة الشعار (يجب أن تكون في مجلد assets)
+  image: assets/images/splash_logo.png
+  
+  # صورة الشعار للوضع الداكن (اختياري)
+  image_dark: assets/images/splash_logo_dark.png
+  
+  # ====== إعدادات Android ======
+  android: true
+  android_gravity: center  # center, fill, top, bottom, start, end
+  
+  # ====== إعدادات Android 12+ ======
+  android_12:
+    # لون الخلفية للوضع الفاتح
+    color: "#FAF8F5"
+    # لون الخلفية للوضع الداكن
+    color_dark: "#1A252C"
+    # صورة الشعار (Android 12 يتطلب صورة أصغر)
+    image: assets/images/splash_logo_android12.png
+    image_dark: assets/images/splash_logo_dark_android12.png
+    # موضع الشعار
+    android_gravity: center
+    # حجم منطقة الأيقونة
+    #icon_background_color: "#F8F9FA"
+    #icon_background_color_dark: "#1F1F1F"
+  
+  # ====== إعدادات iOS ======
+  ios: true
+  ios_content_mode: center  # center, scaleToFill, scaleAspectFit, scaleAspectFill
+  
+  # ====== إعدادات الويب ======
+  #web: true
+  
+  # ====== إعدادات إضافية ======
+  # لون الخلفية الكامل (ملء الشاشة)
+  fullscreen: true
+  
+  # إخفاء شريط الحالة
+  #enable_android_branding: false  # إزالة شعار "powered by Flutter"
