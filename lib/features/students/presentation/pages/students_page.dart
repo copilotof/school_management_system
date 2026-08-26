@@ -5,9 +5,11 @@ import 'package:school_management_system/features/students/domain/entities/stude
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
+import 'package:school_management_system/features/students/presentation/pages/add_student_page.dart';
+import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
 import 'package:school_management_system/injection_container.dart';
 
-/// 📁 صفحة إدارة الطلاب - باستخدام BLoC
+/// 📁 صفحة إدارة الطلاب - النسخة النهائية
 
 class StudentsPage extends StatelessWidget {
   const StudentsPage({super.key});
@@ -29,17 +31,7 @@ class StudentsView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('إدارة الطلاب'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // إظهار شريط البحث
-            },
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('إدارة الطلاب')),
       body: Column(
         children: [
           // شريط البحث
@@ -64,11 +56,8 @@ class StudentsView extends StatelessWidget {
           // قائمة الطلاب
           Expanded(
             child: BlocBuilder<StudentsBloc, StudentsState>(
-              // buildWhen: لمنع إعادة البناء غير الضرورية
-              buildWhen: (previous, current) {
-                return previous.studentsState != current.studentsState ||
-                    previous.isSearching != current.isSearching;
-              },
+              buildWhen: (previous, current) =>
+                  previous.studentsState != current.studentsState,
               builder: (context, state) {
                 return switch (state.studentsState) {
                   Initial() => const SizedBox.shrink(),
@@ -90,8 +79,15 @@ class StudentsView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // فتح صفحة إضافة طالب
+        onPressed: () async {
+          // ✅ فتح صفحة الإضافة
+          final result = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(builder: (_) => const AddStudentPage()),
+          );
+          // إذا تمت الإضافة بنجاح، أعد تحميل القائمة
+          if (result == true && context.mounted) {
+            context.read<StudentsBloc>().add(const FetchStudents());
+          }
         },
         child: const Icon(Icons.add),
       ),
@@ -143,14 +139,70 @@ class _StudentCard extends StatelessWidget {
         ),
         title: Text(student.fullName),
         subtitle: Text('الرقم: ${student.studentCode}'),
-        trailing: IconButton(
-          icon: Icon(Icons.delete_outline, color: colors.error),
-          onPressed: () {
-            context.read<StudentsBloc>().add(DeleteStudentEvent(student.id!));
-          },
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // زر التعديل
+            IconButton(
+              icon: Icon(Icons.edit_outlined, color: colors.primary),
+              onPressed: () async {
+                final result = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => EditStudentPage(student: student),
+                  ),
+                );
+                if (result == true && context.mounted) {
+                  context.read<StudentsBloc>().add(const FetchStudents());
+                }
+              },
+            ),
+            // زر الحذف
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: colors.error),
+              onPressed: () {
+                _showDeleteDialog(context, student);
+              },
+            ),
+          ],
         ),
+        onTap: () {
+          // يمكن فتح صفحة التفاصيل هنا
+        },
       ),
     );
+  }
+
+  /// إظهار حوار تأكيد الحذف
+  Future<void> _showDeleteDialog(
+    BuildContext context,
+    StudentEntity student,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: Text('هل أنت متأكد من حذف الطالب ${student.fullName}؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              child: const Text('حذف'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<StudentsBloc>().add(DeleteStudentEvent(student.id!));
+    }
   }
 }
 
@@ -167,7 +219,10 @@ class _EmptyStudents extends StatelessWidget {
         children: [
           Icon(Icons.people_outline, size: 64, color: colors.onSurfaceVariant),
           const SizedBox(height: 16),
-          Text('لا يوجد طلاب مسجلون'),
+          Text(
+            'لا يوجد طلاب مسجلون',
+            style: TextStyle(color: colors.onSurfaceVariant),
+          ),
         ],
       ),
     );
@@ -189,7 +244,10 @@ class _ErrorStudents extends StatelessWidget {
         children: [
           Icon(Icons.error_outline, size: 64, color: colors.error),
           const SizedBox(height: 16),
-          Text(message),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(message, textAlign: TextAlign.center),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: onRetry,

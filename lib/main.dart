@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/theme/app_theme.dart';
@@ -40,7 +41,25 @@ class SchoolManagementApp extends StatelessWidget {
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
                 themeMode: themeMode,
-                home: const SplashGate(),
+
+                // ====== دعم RTL/LTR ======
+                locale: const Locale('ar'), // اللغة الافتراضية: العربية
+                supportedLocales: const [
+                  Locale('ar'), // العربية
+                  Locale('en'), // الإنجليزية
+                  Locale('fr'), // الفرنسية
+                ],
+                localizationsDelegates: const [
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                // ✅ تلقائياً يعكس الاتجاه حسب اللغة
+                // ar → RTL
+                // en/fr → LTR
+
+              //  home: const SplashGate(),
+              home: const LoginPage(),
               );
             },
           ),
@@ -116,6 +135,73 @@ class _SplashGateState extends State<SplashGate> {
           },
         ),
       ),
+    );
+  }
+}
+ */
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:school_management_system/core/services/language_cubit.dart';
+import 'package:school_management_system/core/theme/app_theme.dart';
+import 'package:school_management_system/core/theme/theme_cubit.dart';
+import 'package:school_management_system/features/auth/presentation/pages/login_page.dart';
+import 'package:school_management_system/injection_container.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await configureDependencies();
+  runApp(const SchoolManagementApp());
+}
+
+class SchoolManagementApp extends StatelessWidget {
+  const SchoolManagementApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      builder: (context, child) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => ThemeCubit()),
+            BlocProvider(create: (_) => LanguageCubit()),
+          ],
+          child: BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              return BlocBuilder<LanguageCubit, Locale>(
+                builder: (context, locale) {
+                  return MaterialApp(
+                    title: 'نظام إدارة المدارس',
+                    debugShowCheckedModeBanner: false,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    themeMode: themeMode,
+
+                    // ====== اللغة والاتجاه ======
+                    locale: locale,
+                    supportedLocales: const [
+                      Locale('ar'),
+                      Locale('en'),
+                      Locale('fr'),
+                    ],
+                    localizationsDelegates: const [
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+
+                    home: const LoginPage(),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
