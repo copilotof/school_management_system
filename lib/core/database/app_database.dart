@@ -21,6 +21,7 @@ class Students extends Table {
   DateTimeColumn get dateOfBirth => dateTime().nullable()();
   TextColumn get gender => text().nullable()();
   TextColumn get address => text().nullable()();
+  TextColumn get phone => text().nullable()();
   TextColumn get photoPath => text().nullable()();
   TextColumn get status => text().withDefault(const Constant('active'))();
   TextColumn get notes => text().nullable()();

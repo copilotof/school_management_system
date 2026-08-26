@@ -3069,6 +3069,15 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _photoPathMeta = const VerificationMeta(
     'photoPath',
   );
@@ -3134,6 +3143,7 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     dateOfBirth,
     gender,
     address,
+    phone,
     photoPath,
     status,
     notes,
@@ -3215,6 +3225,12 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         address.isAcceptableOrUnknown(data['address']!, _addressMeta),
       );
     }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
     if (data.containsKey('photo_path')) {
       context.handle(
         _photoPathMeta,
@@ -3290,6 +3306,10 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         DriftSqlType.string,
         data['${effectivePrefix}address'],
       ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
       photoPath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}photo_path'],
@@ -3329,6 +3349,7 @@ class Student extends DataClass implements Insertable<Student> {
   final DateTime? dateOfBirth;
   final String? gender;
   final String? address;
+  final String? phone;
   final String? photoPath;
   final String status;
   final String? notes;
@@ -3344,6 +3365,7 @@ class Student extends DataClass implements Insertable<Student> {
     this.dateOfBirth,
     this.gender,
     this.address,
+    this.phone,
     this.photoPath,
     required this.status,
     this.notes,
@@ -3369,6 +3391,9 @@ class Student extends DataClass implements Insertable<Student> {
     }
     if (!nullToAbsent || address != null) {
       map['address'] = Variable<String>(address);
+    }
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
     }
     if (!nullToAbsent || photoPath != null) {
       map['photo_path'] = Variable<String>(photoPath);
@@ -3401,6 +3426,9 @@ class Student extends DataClass implements Insertable<Student> {
       address: address == null && nullToAbsent
           ? const Value.absent()
           : Value(address),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
       photoPath: photoPath == null && nullToAbsent
           ? const Value.absent()
           : Value(photoPath),
@@ -3428,6 +3456,7 @@ class Student extends DataClass implements Insertable<Student> {
       dateOfBirth: serializer.fromJson<DateTime?>(json['dateOfBirth']),
       gender: serializer.fromJson<String?>(json['gender']),
       address: serializer.fromJson<String?>(json['address']),
+      phone: serializer.fromJson<String?>(json['phone']),
       photoPath: serializer.fromJson<String?>(json['photoPath']),
       status: serializer.fromJson<String>(json['status']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -3448,6 +3477,7 @@ class Student extends DataClass implements Insertable<Student> {
       'dateOfBirth': serializer.toJson<DateTime?>(dateOfBirth),
       'gender': serializer.toJson<String?>(gender),
       'address': serializer.toJson<String?>(address),
+      'phone': serializer.toJson<String?>(phone),
       'photoPath': serializer.toJson<String?>(photoPath),
       'status': serializer.toJson<String>(status),
       'notes': serializer.toJson<String?>(notes),
@@ -3466,6 +3496,7 @@ class Student extends DataClass implements Insertable<Student> {
     Value<DateTime?> dateOfBirth = const Value.absent(),
     Value<String?> gender = const Value.absent(),
     Value<String?> address = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
     Value<String?> photoPath = const Value.absent(),
     String? status,
     Value<String?> notes = const Value.absent(),
@@ -3481,6 +3512,7 @@ class Student extends DataClass implements Insertable<Student> {
     dateOfBirth: dateOfBirth.present ? dateOfBirth.value : this.dateOfBirth,
     gender: gender.present ? gender.value : this.gender,
     address: address.present ? address.value : this.address,
+    phone: phone.present ? phone.value : this.phone,
     photoPath: photoPath.present ? photoPath.value : this.photoPath,
     status: status ?? this.status,
     notes: notes.present ? notes.value : this.notes,
@@ -3504,6 +3536,7 @@ class Student extends DataClass implements Insertable<Student> {
           : this.dateOfBirth,
       gender: data.gender.present ? data.gender.value : this.gender,
       address: data.address.present ? data.address.value : this.address,
+      phone: data.phone.present ? data.phone.value : this.phone,
       photoPath: data.photoPath.present ? data.photoPath.value : this.photoPath,
       status: data.status.present ? data.status.value : this.status,
       notes: data.notes.present ? data.notes.value : this.notes,
@@ -3524,6 +3557,7 @@ class Student extends DataClass implements Insertable<Student> {
           ..write('dateOfBirth: $dateOfBirth, ')
           ..write('gender: $gender, ')
           ..write('address: $address, ')
+          ..write('phone: $phone, ')
           ..write('photoPath: $photoPath, ')
           ..write('status: $status, ')
           ..write('notes: $notes, ')
@@ -3544,6 +3578,7 @@ class Student extends DataClass implements Insertable<Student> {
     dateOfBirth,
     gender,
     address,
+    phone,
     photoPath,
     status,
     notes,
@@ -3563,6 +3598,7 @@ class Student extends DataClass implements Insertable<Student> {
           other.dateOfBirth == this.dateOfBirth &&
           other.gender == this.gender &&
           other.address == this.address &&
+          other.phone == this.phone &&
           other.photoPath == this.photoPath &&
           other.status == this.status &&
           other.notes == this.notes &&
@@ -3580,6 +3616,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
   final Value<DateTime?> dateOfBirth;
   final Value<String?> gender;
   final Value<String?> address;
+  final Value<String?> phone;
   final Value<String?> photoPath;
   final Value<String> status;
   final Value<String?> notes;
@@ -3595,6 +3632,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.dateOfBirth = const Value.absent(),
     this.gender = const Value.absent(),
     this.address = const Value.absent(),
+    this.phone = const Value.absent(),
     this.photoPath = const Value.absent(),
     this.status = const Value.absent(),
     this.notes = const Value.absent(),
@@ -3611,6 +3649,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.dateOfBirth = const Value.absent(),
     this.gender = const Value.absent(),
     this.address = const Value.absent(),
+    this.phone = const Value.absent(),
     this.photoPath = const Value.absent(),
     this.status = const Value.absent(),
     this.notes = const Value.absent(),
@@ -3629,6 +3668,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Expression<DateTime>? dateOfBirth,
     Expression<String>? gender,
     Expression<String>? address,
+    Expression<String>? phone,
     Expression<String>? photoPath,
     Expression<String>? status,
     Expression<String>? notes,
@@ -3645,6 +3685,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       if (dateOfBirth != null) 'date_of_birth': dateOfBirth,
       if (gender != null) 'gender': gender,
       if (address != null) 'address': address,
+      if (phone != null) 'phone': phone,
       if (photoPath != null) 'photo_path': photoPath,
       if (status != null) 'status': status,
       if (notes != null) 'notes': notes,
@@ -3663,6 +3704,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Value<DateTime?>? dateOfBirth,
     Value<String?>? gender,
     Value<String?>? address,
+    Value<String?>? phone,
     Value<String?>? photoPath,
     Value<String>? status,
     Value<String?>? notes,
@@ -3679,6 +3721,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
       address: address ?? this.address,
+      phone: phone ?? this.phone,
       photoPath: photoPath ?? this.photoPath,
       status: status ?? this.status,
       notes: notes ?? this.notes,
@@ -3717,6 +3760,9 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     if (address.present) {
       map['address'] = Variable<String>(address.value);
     }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
     if (photoPath.present) {
       map['photo_path'] = Variable<String>(photoPath.value);
     }
@@ -3747,6 +3793,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
           ..write('dateOfBirth: $dateOfBirth, ')
           ..write('gender: $gender, ')
           ..write('address: $address, ')
+          ..write('phone: $phone, ')
           ..write('photoPath: $photoPath, ')
           ..write('status: $status, ')
           ..write('notes: $notes, ')
@@ -13017,6 +13064,7 @@ typedef $$StudentsTableCreateCompanionBuilder =
       Value<DateTime?> dateOfBirth,
       Value<String?> gender,
       Value<String?> address,
+      Value<String?> phone,
       Value<String?> photoPath,
       Value<String> status,
       Value<String?> notes,
@@ -13034,6 +13082,7 @@ typedef $$StudentsTableUpdateCompanionBuilder =
       Value<DateTime?> dateOfBirth,
       Value<String?> gender,
       Value<String?> address,
+      Value<String?> phone,
       Value<String?> photoPath,
       Value<String> status,
       Value<String?> notes,
@@ -13092,6 +13141,11 @@ class $$StudentsTableFilterComposer
 
   ColumnFilters<String> get address => $composableBuilder(
     column: $table.address,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13175,6 +13229,11 @@ class $$StudentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get photoPath => $composableBuilder(
     column: $table.photoPath,
     builder: (column) => ColumnOrderings(column),
@@ -13243,6 +13302,9 @@ class $$StudentsTableAnnotationComposer
   GeneratedColumn<String> get address =>
       $composableBuilder(column: $table.address, builder: (column) => column);
 
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
   GeneratedColumn<String> get photoPath =>
       $composableBuilder(column: $table.photoPath, builder: (column) => column);
 
@@ -13296,6 +13358,7 @@ class $$StudentsTableTableManager
                 Value<DateTime?> dateOfBirth = const Value.absent(),
                 Value<String?> gender = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
                 Value<String?> photoPath = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -13311,6 +13374,7 @@ class $$StudentsTableTableManager
                 dateOfBirth: dateOfBirth,
                 gender: gender,
                 address: address,
+                phone: phone,
                 photoPath: photoPath,
                 status: status,
                 notes: notes,
@@ -13328,6 +13392,7 @@ class $$StudentsTableTableManager
                 Value<DateTime?> dateOfBirth = const Value.absent(),
                 Value<String?> gender = const Value.absent(),
                 Value<String?> address = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
                 Value<String?> photoPath = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -13343,6 +13408,7 @@ class $$StudentsTableTableManager
                 dateOfBirth: dateOfBirth,
                 gender: gender,
                 address: address,
+                phone: phone,
                 photoPath: photoPath,
                 status: status,
                 notes: notes,

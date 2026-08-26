@@ -1,201 +1,201 @@
 import 'package:flutter/material.dart';
-import 'package:school_management_system/features/students/data/models/student_mapper.dart';
-import 'package:school_management_system/features/students/data/sources/student_local_source.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 import 'package:school_management_system/injection_container.dart';
 
-/// 📁 صفحة إدارة الطلاب - نسخة بسيطة للاختبار
+/// 📁 صفحة إدارة الطلاب - باستخدام BLoC
 
-class StudentsPage extends StatefulWidget {
+class StudentsPage extends StatelessWidget {
   const StudentsPage({super.key});
 
   @override
-  State<StudentsPage> createState() => _StudentsPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<StudentsBloc>()..add(const FetchStudents()),
+      child: const StudentsView(),
+    );
+  }
 }
 
-class _StudentsPageState extends State<StudentsPage> {
-  late final StudentLocalDataSource _dataSource;
-  List<StudentEntity> _students = [];
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _dataSource = getIt<StudentLocalDataSource>();
-    _loadStudents();
-  }
-
-  Future<void> _loadStudents() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final rows = await _dataSource.getAllStudents();
-      setState(() {
-        _students = rows.map((r) => r.toEntity()).toList();
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _addTestStudent() async {
-    final student = StudentEntity(
-      studentCode: 'STU${DateTime.now().millisecondsSinceEpoch}',
-      firstName: 'أحمد',
-      lastName: 'محمد',
-      dateOfBirth: DateTime(2010, 5, 15),
-      gender: 'male',
-      address: 'الجزائر',
-      phone: '0550000000',
-    );
-
-    try {
-      final companion = StudentMapper.fromEntity(student);
-      await _dataSource.createStudent(companion);
-      await _loadStudents();
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('تمت إضافة الطالب بنجاح')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطأ: $e')));
-      }
-    }
-  }
-
-  Future<void> _deleteStudent(int id) async {
-    try {
-      await _dataSource.deleteStudent(id);
-      await _loadStudents();
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('تم حذف الطالب')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('خطأ: $e')));
-      }
-    }
-  }
+class StudentsView extends StatelessWidget {
+  const StudentsView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // استخدام Theme.of(context) بدلاً من AppColors
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة الطلاب')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 64, color: colors.error),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(
-                      _error!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: colors.onBackground),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _loadStudents,
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
+      appBar: AppBar(
+        title: const Text('إدارة الطلاب'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // إظهار شريط البحث
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // شريط البحث
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              onChanged: (query) {
+                context.read<StudentsBloc>().add(SearchStudentsEvent(query));
+              },
+              decoration: InputDecoration(
+                hintText: 'ابحث عن طالب...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    context.read<StudentsBloc>().add(const FetchStudents());
+                  },
+                ),
               ),
-            )
-          : _students.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.people_outline,
-                    size: 64,
-                    color: colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'لا يوجد طلاب مسجلون',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'اضغط على + لإضافة طالب',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: _students.length,
-              itemBuilder: (context, index) {
-                final student = _students[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: colors.primary.withOpacity(0.1),
-                      child: Text(
-                        student.firstName.isNotEmpty
-                            ? student.firstName.substring(0, 1)
-                            : '؟',
-                        style: TextStyle(
-                          color: colors.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      student.fullName,
-                      style: TextStyle(color: colors.onSurface),
-                    ),
-                    subtitle: Text(
-                      'الرقم: ${student.studentCode}',
-                      style: TextStyle(color: colors.onSurfaceVariant),
-                    ),
-                    trailing: IconButton(
-                      icon: Icon(Icons.delete_outline, color: colors.error),
-                      onPressed: () => _deleteStudent(student.id!),
-                    ),
-                    onTap: () {
-                      // سنضيف صفحة التفاصيل لاحقاً
+            ),
+          ),
+          // قائمة الطلاب
+          Expanded(
+            child: BlocBuilder<StudentsBloc, StudentsState>(
+              // buildWhen: لمنع إعادة البناء غير الضرورية
+              buildWhen: (previous, current) {
+                return previous.studentsState != current.studentsState ||
+                    previous.isSearching != current.isSearching;
+              },
+              builder: (context, state) {
+                return switch (state.studentsState) {
+                  Initial() => const SizedBox.shrink(),
+                  Loading() => const Center(child: CircularProgressIndicator()),
+                  Empty() => const _EmptyStudents(),
+                  Error(message: final msg) => _ErrorStudents(
+                    message: msg,
+                    onRetry: () {
+                      context.read<StudentsBloc>().add(const FetchStudents());
                     },
                   ),
-                );
+                  Success(data: final students) => _StudentsList(
+                    students: students,
+                  ),
+                };
               },
             ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addTestStudent,
+        onPressed: () {
+          // فتح صفحة إضافة طالب
+        },
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+/// 📁 قائمة الطلاب
+class _StudentsList extends StatelessWidget {
+  final List<StudentEntity> students;
+  const _StudentsList({required this.students});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: students.length,
+      itemBuilder: (context, index) {
+        final student = students[index];
+        return _StudentCard(student: student);
+      },
+    );
+  }
+}
+
+/// 📁 بطاقة طالب
+class _StudentCard extends StatelessWidget {
+  final StudentEntity student;
+  const _StudentCard({required this.student});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: colors.primary.withOpacity(0.1),
+          child: Text(
+            student.firstName.isNotEmpty
+                ? student.firstName.substring(0, 1)
+                : '؟',
+            style: TextStyle(
+              color: colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(student.fullName),
+        subtitle: Text('الرقم: ${student.studentCode}'),
+        trailing: IconButton(
+          icon: Icon(Icons.delete_outline, color: colors.error),
+          onPressed: () {
+            context.read<StudentsBloc>().add(DeleteStudentEvent(student.id!));
+          },
+        ),
+      ),
+    );
+  }
+}
+
+/// 📁 حالة فارغة
+class _EmptyStudents extends StatelessWidget {
+  const _EmptyStudents();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.people_outline, size: 64, color: colors.onSurfaceVariant),
+          const SizedBox(height: 16),
+          Text('لا يوجد طلاب مسجلون'),
+        ],
+      ),
+    );
+  }
+}
+
+/// 📁 حالة خطأ
+class _ErrorStudents extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+  const _ErrorStudents({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, size: 64, color: colors.error),
+          const SizedBox(height: 16),
+          Text(message),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: const Text('إعادة المحاولة'),
+          ),
+        ],
       ),
     );
   }
