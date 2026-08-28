@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
+import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 
 /// 📁 نموذج الطالب المشترك
 /// يستخدم في صفحتي الإضافة والتعديل
@@ -73,13 +74,11 @@ class _StudentFormState extends State<StudentForm> {
   /// اختيار تاريخ الميلاد
   Future<void> _pickDateOfBirth() async {
     final now = DateTime.now();
-    final initialDate = _dateOfBirth ?? DateTime(now.year - 10, 1, 1);
-    final picked = await showDatePicker(
+    final picked = await CustomDatePicker.showBottomSheet(
       context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(now.year - 30),
-      lastDate: DateTime(now.year - 3),
-      initialDatePickerMode: DatePickerMode.year,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 10, 1, 1),
+      minDate: DateTime(now.year - 30),
+      maxDate: DateTime(now.year - 3),
     );
     if (picked != null) {
       setState(() => _dateOfBirth = picked);

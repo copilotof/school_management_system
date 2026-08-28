@@ -9,6 +9,8 @@ import 'package:school_management_system/features/students/presentation/pages/ad
 import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import 'student_details_page.dart';
+
 /// 📁 صفحة إدارة الطلاب - النسخة النهائية
 
 class StudentsPage extends StatelessWidget {
@@ -165,8 +167,15 @@ class _StudentCard extends StatelessWidget {
             ),
           ],
         ),
-        onTap: () {
-          // يمكن فتح صفحة التفاصيل هنا
+        onTap: () async {
+          final result = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) => StudentDetailsPage(student: student),
+            ),
+          );
+          if (result == true && context.mounted) {
+            context.read<StudentsBloc>().add(const FetchStudents());
+          }
         },
       ),
     );

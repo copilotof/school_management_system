@@ -6,6 +6,7 @@ import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
 import '../../../../core/services/language_cubit.dart';
+import '../../../home/presentation/pages/home_page.dart';
 import '../../../students/presentation/pages/students_page.dart';
 
 /// 📁 صفحة تسجيل الدخول - مثال عملي للتصميم المتجاوب
@@ -36,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
   void _handleLogin() {
     Navigator.of(
       context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => const StudentsPage()));
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
   }
 
   @override
