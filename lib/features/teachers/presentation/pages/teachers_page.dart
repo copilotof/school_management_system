@@ -10,6 +10,8 @@ import 'package:school_management_system/features/teachers/presentation/bloc/tea
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_state.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/widgets/confirm_dialog.dart';
+
 /// 📁 صفحة إدارة المعلمين
 
 class TeachersPage extends StatelessWidget {
@@ -155,7 +157,7 @@ class TeachersView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('المعلمون'),
-        automaticallyImplyLeading: false,
+        // automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [
@@ -234,7 +236,7 @@ class TeachersView extends StatelessWidget {
                                   color: colors.primary,
                                 ),
                                 onPressed: () =>
-                                    _showAddDialog(context, teacher: teacher),
+                                    _deleteTeacher(context, teacher),
                               ),
                               IconButton(
                                 icon: Icon(
@@ -260,9 +262,24 @@ class TeachersView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => _showAddDialog(context),
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _deleteTeacher(
+    BuildContext context,
+    TeacherEntity teacher,
+  ) async {
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من حذف المعلم "${teacher.fullName}"؟',
+    );
+    if (confirmed && context.mounted) {
+      context.read<TeachersBloc>().add(DeleteTeacherEvent(teacher.id!));
+    }
   }
 }

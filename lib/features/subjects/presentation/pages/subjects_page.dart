@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/widgets/confirm_dialog.dart';
 import 'package:school_management_system/features/subjects/domain/entities/subject_entity.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_state.dart';
 import 'package:school_management_system/injection_container.dart';
-
-/// 📁 صفحة إدارة المواد الدراسية
 
 class SubjectsPage extends StatelessWidget {
   const SubjectsPage({super.key});
@@ -26,7 +25,7 @@ class SubjectsView extends StatelessWidget {
   const SubjectsView({super.key});
 
   void _showAddDialog(BuildContext context, {SubjectEntity? subject}) {
-    // ✅ إنشاء controllers
+    final subjectsBloc = context.read<SubjectsBloc>();
     final nameController = TextEditingController(text: subject?.name ?? '');
     final codeController = TextEditingController(text: subject?.code ?? '');
     final descriptionController = TextEditingController(
@@ -72,7 +71,6 @@ class SubjectsView extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isEmpty) return;
-
                 final entity = SubjectEntity(
                   id: subject?.id,
                   name: nameController.text.trim(),
@@ -84,15 +82,12 @@ class SubjectsView extends StatelessWidget {
                       : descriptionController.text.trim(),
                   isActive: subject?.isActive ?? true,
                 );
-
                 if (subject == null) {
-                  context.read<SubjectsBloc>().add(CreateSubjectEvent(entity));
+                  subjectsBloc.add(CreateSubjectEvent(entity));
                 } else {
-                  context.read<SubjectsBloc>().add(UpdateSubjectEvent(entity));
+                  subjectsBloc.add(UpdateSubjectEvent(entity));
                 }
-
                 Navigator.of(dialogContext).pop();
-                // ✅ لا تستدعي dispose() هنا
               },
               child: Text(subject == null ? 'إضافة' : 'حفظ'),
             ),
@@ -102,6 +97,20 @@ class SubjectsView extends StatelessWidget {
     );
   }
 
+  Future<void> _deleteSubject(
+    BuildContext context,
+    SubjectEntity subject,
+  ) async {
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من حذف المادة "${subject.name}"؟',
+    );
+    if (confirmed && context.mounted) {
+      context.read<SubjectsBloc>().add(DeleteSubjectEvent(subject.id!));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -109,7 +118,7 @@ class SubjectsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('المواد الدراسية'),
-        automaticallyImplyLeading: false,
+        // ✅ سهم رجوع
       ),
       body: Column(
         children: [
@@ -187,11 +196,8 @@ class SubjectsView extends StatelessWidget {
                                   Icons.delete_outline,
                                   color: colors.error,
                                 ),
-                                onPressed: () {
-                                  context.read<SubjectsBloc>().add(
-                                    DeleteSubjectEvent(subject.id!),
-                                  );
-                                },
+                                onPressed: () =>
+                                    _deleteSubject(context, subject),
                               ),
                             ],
                           ),
@@ -206,6 +212,7 @@ class SubjectsView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'add_subject_fab',
         onPressed: () => _showAddDialog(context),
         child: const Icon(Icons.add),
       ),

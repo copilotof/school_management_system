@@ -139,18 +139,45 @@ class _SplashGateState extends State<SplashGate> {
   }
 }
  */
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:school_management_system/core/services/language_cubit.dart';
 import 'package:school_management_system/core/theme/app_theme.dart';
 import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/features/auth/presentation/pages/login_page.dart';
+import 'package:school_management_system/features/grades/presentation/bloc/grades_bloc.dart';
+import 'package:school_management_system/features/groups/presentation/bloc/groups_bloc.dart';
+import 'package:school_management_system/features/levels/presentation/bloc/levels_bloc.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
+import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
+import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import 'features/enrollment/presentation/bloc/enrollment_bloc.dart';
+
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  /* 
+  // ✅ حذف قاعدة البيانات القديمة (مؤقت - للتطوير فقط)
+  try {
+    final dir = await getApplicationDocumentsDirectory();
+    final dbFile = File('${dir.path}/school_management_db.sqlite');
+    if (await dbFile.exists()) {
+      await dbFile.delete();
+      debugPrint('🗑️ تم حذف قاعدة البيانات القديمة');
+    }
+  } catch (e) {
+    debugPrint('خطأ في حذف قاعدة البيانات: $e');
+  }
+ */
+  await configureDependencies();
+  runApp(const SchoolManagementApp());
+
   WidgetsFlutterBinding.ensureInitialized();
   await configureDependencies();
   runApp(const SchoolManagementApp());
@@ -169,6 +196,13 @@ class SchoolManagementApp extends StatelessWidget {
           providers: [
             BlocProvider(create: (_) => ThemeCubit()),
             BlocProvider(create: (_) => LanguageCubit()),
+            // ✅ رفع كل الـ Blocs هنا ليكونوا متاحين في كل مكان
+            BlocProvider(create: (_) => getIt<StudentsBloc>()),
+            BlocProvider(create: (_) => getIt<SubjectsBloc>()),
+            BlocProvider(create: (_) => getIt<TeachersBloc>()),
+            BlocProvider(create: (_) => getIt<EnrollmentBloc>()),
+            BlocProvider(create: (_) => getIt<GradesBloc>()),
+            BlocProvider(create: (_) => getIt<GroupsBloc>()),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {
@@ -180,8 +214,6 @@ class SchoolManagementApp extends StatelessWidget {
                     theme: AppTheme.lightTheme,
                     darkTheme: AppTheme.darkTheme,
                     themeMode: themeMode,
-
-                    // ====== اللغة والاتجاه ======
                     locale: locale,
                     supportedLocales: const [
                       Locale('ar'),
@@ -193,7 +225,6 @@ class SchoolManagementApp extends StatelessWidget {
                       GlobalWidgetsLocalizations.delegate,
                       GlobalCupertinoLocalizations.delegate,
                     ],
-
                     home: const LoginPage(),
                   );
                 },

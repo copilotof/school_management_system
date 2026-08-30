@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
+import '../../../enrollment/presentation/pages/enrollment_page.dart';
 import '../../../subjects/presentation/pages/subjects_page.dart';
 import '../../../teachers/presentation/pages/teachers_page.dart';
 
@@ -106,6 +107,18 @@ class DashboardPage extends StatelessWidget {
                     color: const Color(0xFF1A73E8),
                     onTap: () {
                       // التنقل لإضافة طالب
+                    },
+                  ),
+                  _QuickActionCard(
+                    title: 'تسجيل طالب',
+                    icon: Icons.link,
+                    color: const Color(0xFF34A853),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EnrollmentPage(),
+                        ),
+                      );
                     },
                   ),
                   _QuickActionCard(

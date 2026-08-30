@@ -5,6 +5,8 @@ import 'package:school_management_system/core/services/language_cubit.dart';
 import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
+import '../../../grades/presentation/pages/grades_page.dart';
+import '../../../levels/presentation/pages/levels_page.dart';
 import '../../../subjects/presentation/pages/subjects_page.dart';
 
 /// 📁 صفحة الإعدادات
@@ -92,6 +94,16 @@ class SettingsPage extends StatelessWidget {
             Card(
               child: Column(
                 children: [
+                  ListTile(
+                    leading: Icon(Icons.class_outlined, color: colors.primary),
+                    title: const Text('الصفوف الدراسية'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const GradesPage()),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: Icon(Icons.book_outlined, color: colors.primary),
                     title: const Text('المواد الدراسية'),

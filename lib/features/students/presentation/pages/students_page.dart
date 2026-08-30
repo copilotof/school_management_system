@@ -81,6 +81,7 @@ class StudentsView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () async {
           // ✅ فتح صفحة الإضافة
           final result = await Navigator.of(context).push<bool>(

@@ -109,14 +109,53 @@ class Guardians extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// ============== جدول الأفواج ==============
+// ============== جدول المستويات الدراسية ==============
+@DataClassName('AcademicLevel')
+class AcademicLevels extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الصفوف الدراسية ==============
+@DataClassName('Grade')
+class Grades extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get academicLevelId =>
+      integer().nullable().references(AcademicLevels, #id)();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول علاقة الصفوف والمواد ==============
+@DataClassName('GradeSubject')
+class GradeSubjects extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get gradeId => integer().references(Grades, #id)();
+  IntColumn get subjectId => integer().references(Subjects, #id)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {gradeId, subjectId}, // لا يمكن تكرار نفس المادة لنفس الصف
+  ];
+}
+
+// ============== جدول الأفواج (محدث) ==============
 @DataClassName('Group')
 class Groups extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
-  IntColumn get academicYearId => integer().nullable()();
   IntColumn get subjectId => integer().nullable()();
   IntColumn get teacherId => integer().nullable()();
+  IntColumn get academicLevelId =>
+      integer().nullable()(); // ✅ المستوى (اختياري)
+  IntColumn get gradeId => integer().nullable()(); // ✅ الصف (اختياري)
   TextColumn get name => text().withLength(min: 1, max: 255)();
   IntColumn get maxStudents => integer().withDefault(const Constant(30))();
   RealColumn get monthlyFee => real().withDefault(const Constant(0))();
@@ -131,7 +170,7 @@ class Enrollments extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get schoolId => integer().withDefault(const Constant(1))();
   IntColumn get studentId => integer()();
-  IntColumn get academicYearId => integer()();
+  IntColumn get groupId => integer()();
   DateTimeColumn get enrollmentDate =>
       dateTime().withDefault(currentDateAndTime)();
   RealColumn get registrationFee => real().withDefault(const Constant(0))();
@@ -320,6 +359,9 @@ class AuditLogs extends Table {
   tables: [
     Schools,
     AcademicYears,
+    AcademicLevels,
+    Grades,
+    GradeSubjects,
     Subjects,
     Teachers,
     Guardians,
@@ -342,7 +384,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        // إضافة عمود group_id إذا لم يكن موجوداً
+        await m.addColumn(enrollments, enrollments.groupId);
+      }
+    },
+  );
 
   static QueryExecutor _openConnection() {
     return LazyDatabase(() async {

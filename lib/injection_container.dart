@@ -1,5 +1,23 @@
 import 'package:get_it/get_it.dart';
 import 'package:school_management_system/core/database/app_database.dart';
+import 'package:school_management_system/features/enrollment/data/repositories/enrollment_repository_impl.dart';
+import 'package:school_management_system/features/enrollment/data/sources/enrollment_local_source.dart';
+import 'package:school_management_system/features/enrollment/domain/repositories/enrollment_repository.dart';
+import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
+import 'package:school_management_system/features/grades/data/repositories/grade_repository_impl.dart';
+import 'package:school_management_system/features/grades/data/sources/grade_local_source.dart';
+import 'package:school_management_system/features/grades/data/sources/grade_subject_local_source.dart';
+import 'package:school_management_system/features/grades/domain/repositories/grade_repository.dart';
+import 'package:school_management_system/features/grades/presentation/bloc/grades_bloc.dart';
+import 'package:school_management_system/features/groups/data/repositories/group_repository_impl.dart';
+import 'package:school_management_system/features/groups/data/sources/group_local_source.dart';
+import 'package:school_management_system/features/groups/domain/repositories/group_repository.dart';
+import 'package:school_management_system/features/groups/domain/usecases/create_group.dart';
+import 'package:school_management_system/features/groups/domain/usecases/delete_group.dart';
+import 'package:school_management_system/features/groups/domain/usecases/get_all_groups.dart';
+import 'package:school_management_system/features/groups/domain/usecases/search_groups.dart';
+import 'package:school_management_system/features/groups/domain/usecases/update_group.dart';
+import 'package:school_management_system/features/groups/presentation/bloc/groups_bloc.dart';
 import 'package:school_management_system/features/students/data/repositories/student_repository_impl.dart';
 import 'package:school_management_system/features/students/data/sources/student_local_source.dart';
 import 'package:school_management_system/features/students/domain/repositories/student_repository.dart';
@@ -9,17 +27,15 @@ import 'package:school_management_system/features/students/domain/usecases/get_a
 import 'package:school_management_system/features/students/domain/usecases/search_students.dart';
 import 'package:school_management_system/features/students/domain/usecases/update_student.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
-
-import 'features/subjects/data/repositories/subject_repository_impl.dart';
-import 'features/subjects/data/sources/subject_local_source.dart';
-import 'features/subjects/domain/repositories/subject_repository.dart';
-import 'features/subjects/domain/usecases/create_subject.dart';
-import 'features/subjects/domain/usecases/delete_subject.dart';
-import 'features/subjects/domain/usecases/get_all_subjects.dart';
-import 'features/subjects/domain/usecases/search_subjects.dart';
-import 'features/subjects/domain/usecases/update_subject.dart';
-import 'features/subjects/presentation/bloc/subjects_bloc.dart';
-
+import 'package:school_management_system/features/subjects/data/repositories/subject_repository_impl.dart';
+import 'package:school_management_system/features/subjects/data/sources/subject_local_source.dart';
+import 'package:school_management_system/features/subjects/domain/repositories/subject_repository.dart';
+import 'package:school_management_system/features/subjects/domain/usecases/create_subject.dart';
+import 'package:school_management_system/features/subjects/domain/usecases/delete_subject.dart';
+import 'package:school_management_system/features/subjects/domain/usecases/get_all_subjects.dart';
+import 'package:school_management_system/features/subjects/domain/usecases/search_subjects.dart';
+import 'package:school_management_system/features/subjects/domain/usecases/update_subject.dart';
+import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:school_management_system/features/teachers/data/repositories/teacher_repository_impl.dart';
 import 'package:school_management_system/features/teachers/data/sources/teacher_local_source.dart';
 import 'package:school_management_system/features/teachers/domain/repositories/teacher_repository.dart';
@@ -33,83 +49,201 @@ import 'package:school_management_system/features/teachers/presentation/bloc/tea
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
-  // قاعدة البيانات
-  final database = AppDatabase();
-  getIt.registerSingleton<AppDatabase>(database);
+  // ====== قاعدة البيانات ======
+  if (!getIt.isRegistered<AppDatabase>()) {
+    getIt.registerSingleton<AppDatabase>(AppDatabase());
+  }
 
-  // مصدر البيانات
-  final studentLocalDataSource = StudentLocalDataSource(db: database);
-  getIt.registerSingleton<StudentLocalDataSource>(studentLocalDataSource);
+  // ====== الطلاب ======
+  if (!getIt.isRegistered<StudentLocalDataSource>()) {
+    getIt.registerSingleton<StudentLocalDataSource>(
+      StudentLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<StudentRepository>()) {
+    getIt.registerSingleton<StudentRepository>(
+      StudentRepositoryImpl(localDataSource: getIt<StudentLocalDataSource>()),
+    );
+  }
+  // ✅ UseCases
+  if (!getIt.isRegistered<GetAllStudents>()) {
+    getIt.registerFactory(() => GetAllStudents(repository: getIt()));
+  }
+  if (!getIt.isRegistered<SearchStudents>()) {
+    getIt.registerFactory(() => SearchStudents(repository: getIt()));
+  }
+  if (!getIt.isRegistered<CreateStudent>()) {
+    getIt.registerFactory(() => CreateStudent(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateStudent>()) {
+    getIt.registerFactory(() => UpdateStudent(repository: getIt()));
+  }
+  if (!getIt.isRegistered<DeleteStudent>()) {
+    getIt.registerFactory(() => DeleteStudent(repository: getIt()));
+  }
+  if (!getIt.isRegistered<StudentsBloc>()) {
+    getIt.registerFactory(
+      () => StudentsBloc(
+        getAllStudents: getIt(),
+        searchStudents: getIt(),
+        createStudent: getIt(),
+        updateStudent: getIt(),
+        deleteStudent: getIt(),
+      ),
+    );
+  }
 
-  // المستودع
-  final studentRepository = StudentRepositoryImpl(
-    localDataSource: studentLocalDataSource,
-  );
-  getIt.registerSingleton<StudentRepository>(studentRepository);
+  // ====== المواد ======
+  if (!getIt.isRegistered<SubjectLocalDataSource>()) {
+    getIt.registerSingleton<SubjectLocalDataSource>(
+      SubjectLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<SubjectRepository>()) {
+    getIt.registerSingleton<SubjectRepository>(
+      SubjectRepositoryImpl(localDataSource: getIt<SubjectLocalDataSource>()),
+    );
+  }
+  if (!getIt.isRegistered<GetAllSubjects>()) {
+    getIt.registerFactory(() => GetAllSubjects(repository: getIt()));
+  }
+  if (!getIt.isRegistered<SearchSubjects>()) {
+    getIt.registerFactory(() => SearchSubjects(repository: getIt()));
+  }
+  if (!getIt.isRegistered<CreateSubject>()) {
+    getIt.registerFactory(() => CreateSubject(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateSubject>()) {
+    getIt.registerFactory(() => UpdateSubject(repository: getIt()));
+  }
+  if (!getIt.isRegistered<DeleteSubject>()) {
+    getIt.registerFactory(() => DeleteSubject(repository: getIt()));
+  }
+  if (!getIt.isRegistered<SubjectsBloc>()) {
+    getIt.registerFactory(
+      () => SubjectsBloc(
+        getAllSubjects: getIt(),
+        searchSubjects: getIt(),
+        createSubject: getIt(),
+        updateSubject: getIt(),
+        deleteSubject: getIt(),
+      ),
+    );
+  }
 
-  // حالات الاستخدام - ✅ استخدام named parameters
-  getIt.registerFactory(() => GetAllStudents(repository: getIt()));
-  getIt.registerFactory(() => SearchStudents(repository: getIt()));
-  getIt.registerFactory(() => CreateStudent(repository: getIt()));
-  getIt.registerFactory(() => UpdateStudent(repository: getIt()));
-  getIt.registerFactory(() => DeleteStudent(repository: getIt()));
+  // ====== المعلمين ======
+  if (!getIt.isRegistered<TeacherLocalDataSource>()) {
+    getIt.registerSingleton<TeacherLocalDataSource>(
+      TeacherLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<TeacherRepository>()) {
+    getIt.registerSingleton<TeacherRepository>(
+      TeacherRepositoryImpl(localDataSource: getIt<TeacherLocalDataSource>()),
+    );
+  }
+  if (!getIt.isRegistered<GetAllTeachers>()) {
+    getIt.registerFactory(() => GetAllTeachers(repository: getIt()));
+  }
+  if (!getIt.isRegistered<SearchTeachers>()) {
+    getIt.registerFactory(() => SearchTeachers(repository: getIt()));
+  }
+  if (!getIt.isRegistered<CreateTeacher>()) {
+    getIt.registerFactory(() => CreateTeacher(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateTeacher>()) {
+    getIt.registerFactory(() => UpdateTeacher(repository: getIt()));
+  }
+  if (!getIt.isRegistered<DeleteTeacher>()) {
+    getIt.registerFactory(() => DeleteTeacher(repository: getIt()));
+  }
+  if (!getIt.isRegistered<TeachersBloc>()) {
+    getIt.registerFactory(
+      () => TeachersBloc(
+        getAllTeachers: getIt(),
+        searchTeachers: getIt(),
+        createTeacher: getIt(),
+        updateTeacher: getIt(),
+        deleteTeacher: getIt(),
+      ),
+    );
+  }
 
-  // BLoC
-  getIt.registerFactory(
-    () => StudentsBloc(
-      getAllStudents: getIt(),
-      searchStudents: getIt(),
-      createStudent: getIt(),
-      updateStudent: getIt(),
-      deleteStudent: getIt(),
-    ),
-  );
+  // ====== الأفواج ======
+  if (!getIt.isRegistered<GroupLocalDataSource>()) {
+    getIt.registerSingleton<GroupLocalDataSource>(
+      GroupLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<GroupRepository>()) {
+    getIt.registerSingleton<GroupRepository>(
+      GroupRepositoryImpl(localDataSource: getIt<GroupLocalDataSource>()),
+    );
+  }
+  if (!getIt.isRegistered<GetAllGroups>()) {
+    getIt.registerFactory(() => GetAllGroups(repository: getIt()));
+  }
+  if (!getIt.isRegistered<SearchGroups>()) {
+    getIt.registerFactory(() => SearchGroups(repository: getIt()));
+  }
+  if (!getIt.isRegistered<CreateGroup>()) {
+    getIt.registerFactory(() => CreateGroup(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateGroup>()) {
+    getIt.registerFactory(() => UpdateGroup(repository: getIt()));
+  }
+  if (!getIt.isRegistered<DeleteGroup>()) {
+    getIt.registerFactory(() => DeleteGroup(repository: getIt()));
+  }
+  if (!getIt.isRegistered<GroupsBloc>()) {
+    getIt.registerFactory(
+      () => GroupsBloc(
+        getAllGroups: getIt(),
+        searchGroups: getIt(),
+        createGroup: getIt(),
+        updateGroup: getIt(),
+        deleteGroup: getIt(),
+      ),
+    );
+  }
 
-  final subjectLocalDataSource = SubjectLocalDataSource(db: database);
-  getIt.registerSingleton<SubjectLocalDataSource>(subjectLocalDataSource);
+  // ====== الصفوف ======
+  if (!getIt.isRegistered<GradeLocalDataSource>()) {
+    getIt.registerSingleton<GradeLocalDataSource>(
+      GradeLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<GradeSubjectLocalDataSource>()) {
+    getIt.registerSingleton<GradeSubjectLocalDataSource>(
+      GradeSubjectLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<GradeRepository>()) {
+    getIt.registerSingleton<GradeRepository>(
+      GradeRepositoryImpl(
+        localDataSource: getIt<GradeLocalDataSource>(),
+        gradeSubjectLocalDataSource: getIt<GradeSubjectLocalDataSource>(),
+      ),
+    );
+  }
+  if (!getIt.isRegistered<GradesBloc>()) {
+    getIt.registerFactory(() => GradesBloc(repository: getIt()));
+  }
 
-  final subjectRepository = SubjectRepositoryImpl(
-    localDataSource: subjectLocalDataSource,
-  );
-  getIt.registerSingleton<SubjectRepository>(subjectRepository);
-
-  getIt.registerFactory(() => GetAllSubjects(repository: getIt()));
-  getIt.registerFactory(() => SearchSubjects(repository: getIt()));
-  getIt.registerFactory(() => CreateSubject(repository: getIt()));
-  getIt.registerFactory(() => UpdateSubject(repository: getIt()));
-  getIt.registerFactory(() => DeleteSubject(repository: getIt()));
-
-  getIt.registerFactory(
-    () => SubjectsBloc(
-      getAllSubjects: getIt(),
-      searchSubjects: getIt(),
-      createSubject: getIt(),
-      updateSubject: getIt(),
-      deleteSubject: getIt(),
-    ),
-  );
-
-  final teacherLocalDataSource = TeacherLocalDataSource(db: database);
-  getIt.registerSingleton<TeacherLocalDataSource>(teacherLocalDataSource);
-
-  final teacherRepository = TeacherRepositoryImpl(
-    localDataSource: teacherLocalDataSource,
-  );
-  getIt.registerSingleton<TeacherRepository>(teacherRepository);
-
-  getIt.registerFactory(() => GetAllTeachers(repository: getIt()));
-  getIt.registerFactory(() => SearchTeachers(repository: getIt()));
-  getIt.registerFactory(() => CreateTeacher(repository: getIt()));
-  getIt.registerFactory(() => UpdateTeacher(repository: getIt()));
-  getIt.registerFactory(() => DeleteTeacher(repository: getIt()));
-
-  getIt.registerFactory(
-    () => TeachersBloc(
-      getAllTeachers: getIt(),
-      searchTeachers: getIt(),
-      createTeacher: getIt(),
-      updateTeacher: getIt(),
-      deleteTeacher: getIt(),
-    ),
-  );
+  // ====== التسجيل ======
+  if (!getIt.isRegistered<EnrollmentLocalDataSource>()) {
+    getIt.registerSingleton<EnrollmentLocalDataSource>(
+      EnrollmentLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<EnrollmentRepository>()) {
+    getIt.registerSingleton<EnrollmentRepository>(
+      EnrollmentRepositoryImpl(
+        localDataSource: getIt<EnrollmentLocalDataSource>(),
+      ),
+    );
+  }
+  if (!getIt.isRegistered<EnrollmentBloc>()) {
+    getIt.registerFactory(() => EnrollmentBloc(repository: getIt()));
+  }
 }
