@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
@@ -7,12 +8,22 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 import 'package:school_management_system/features/students/presentation/pages/add_student_page.dart';
 import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
+import 'package:school_management_system/features/students/presentation/pages/student_details_page.dart';
 import 'package:school_management_system/injection_container.dart';
 
-import 'student_details_page.dart';
+// ============================================================
+// 🎨 ثوابت التصميم الموحدة
+// ============================================================
+class _Gap {
+  static double get xs => 4.h;
+  static double get sm => 8.h;
+  static double get md => 12.h;
+  static double get lg => 16.h;
+}
 
-/// 📁 صفحة إدارة الطلاب - النسخة النهائية
+const double _kRadius = 14;
 
+/// 📁 صفحة إدارة الطلاب
 class StudentsPage extends StatelessWidget {
   const StudentsPage({super.key});
 
@@ -36,18 +47,25 @@ class StudentsView extends StatelessWidget {
       appBar: AppBar(title: const Text('إدارة الطلاب')),
       body: Column(
         children: [
-          // شريط البحث
-          Padding(
-            padding: const EdgeInsets.all(12),
+          // ====== بطاقة البحث ======
+          Container(
+            margin: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(_kRadius),
+              border: Border.all(color: colors.outlineVariant.withOpacity(0.4)),
+            ),
             child: TextField(
               onChanged: (query) {
                 context.read<StudentsBloc>().add(SearchStudentsEvent(query));
               },
               decoration: InputDecoration(
-                hintText: 'ابحث عن طالب...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'ابحث عن طالب بالاسم أو الرقم...',
+                prefixIcon: const Icon(Icons.search, size: 18),
+                isDense: true,
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear),
+                  icon: const Icon(Icons.clear, size: 16),
                   onPressed: () {
                     context.read<StudentsBloc>().add(const FetchStudents());
                   },
@@ -55,7 +73,8 @@ class StudentsView extends StatelessWidget {
               ),
             ),
           ),
-          // قائمة الطلاب
+
+          // ====== قائمة الطلاب ======
           Expanded(
             child: BlocBuilder<StudentsBloc, StudentsState>(
               buildWhen: (previous, current) =>
@@ -64,9 +83,10 @@ class StudentsView extends StatelessWidget {
                 return switch (state.studentsState) {
                   Initial() => const SizedBox.shrink(),
                   Loading() => const Center(child: CircularProgressIndicator()),
-                  Empty() => const _EmptyStudents(),
+                  Empty() => _EmptyStudents(colors: colors),
                   Error(message: final msg) => _ErrorStudents(
                     message: msg,
+                    colors: colors,
                     onRetry: () {
                       context.read<StudentsBloc>().add(const FetchStudents());
                     },
@@ -81,13 +101,11 @@ class StudentsView extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        heroTag: null,
+        heroTag: 'add_student_fab',
         onPressed: () async {
-          // ✅ فتح صفحة الإضافة
           final result = await Navigator.of(context).push<bool>(
             MaterialPageRoute(builder: (_) => const AddStudentPage()),
           );
-          // إذا تمت الإضافة بنجاح، أعد تحميل القائمة
           if (result == true && context.mounted) {
             context.read<StudentsBloc>().add(const FetchStudents());
           }
@@ -106,7 +124,7 @@ class _StudentsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 80.h),
       itemCount: students.length,
       itemBuilder: (context, index) {
         final student = students[index];
@@ -116,7 +134,7 @@ class _StudentsList extends StatelessWidget {
   }
 }
 
-/// 📁 بطاقة طالب
+/// 📁 بطاقة طالب - تصميم موحد
 class _StudentCard extends StatelessWidget {
   final StudentEntity student;
   const _StudentCard({required this.student});
@@ -126,28 +144,41 @@ class _StudentCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: 6.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+      elevation: 1,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: colors.primary.withOpacity(0.1),
+          radius: 18.r,
+          backgroundColor: colors.primaryContainer,
           child: Text(
             student.firstName.isNotEmpty
                 ? student.firstName.substring(0, 1)
                 : '؟',
             style: TextStyle(
-              color: colors.primary,
+              fontSize: 14.sp,
               fontWeight: FontWeight.bold,
+              color: colors.onPrimaryContainer,
             ),
           ),
         ),
-        title: Text(student.fullName),
-        subtitle: Text('الرقم: ${student.studentCode}'),
+        title: Text(
+          student.fullName,
+          style: TextStyle(fontSize: 13.5.sp, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          'الرقم: ${student.studentCode}',
+          style: TextStyle(fontSize: 11.sp, color: colors.onSurfaceVariant),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // زر التعديل
             IconButton(
-              icon: Icon(Icons.edit_outlined, color: colors.primary),
+              icon: Icon(
+                Icons.edit_outlined,
+                size: 18.sp,
+                color: colors.primary,
+              ),
               onPressed: () async {
                 final result = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
@@ -159,9 +190,12 @@ class _StudentCard extends StatelessWidget {
                 }
               },
             ),
-            // زر الحذف
             IconButton(
-              icon: Icon(Icons.delete_outline, color: colors.error),
+              icon: Icon(
+                Icons.delete_outline,
+                size: 18.sp,
+                color: colors.error,
+              ),
               onPressed: () {
                 _showDeleteDialog(context, student);
               },
@@ -182,11 +216,8 @@ class _StudentCard extends StatelessWidget {
     );
   }
 
-  /// إظهار حوار تأكيد الحذف
-  Future<void> _showDeleteDialog(
-    BuildContext context,
-    StudentEntity student,
-  ) async {
+  /// حوار تأكيد الحذف
+  void _showDeleteDialog(BuildContext context, StudentEntity student) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
@@ -218,20 +249,40 @@ class _StudentCard extends StatelessWidget {
 
 /// 📁 حالة فارغة
 class _EmptyStudents extends StatelessWidget {
-  const _EmptyStudents();
+  final ColorScheme colors;
+  const _EmptyStudents({required this.colors});
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people_outline, size: 64, color: colors.onSurfaceVariant),
-          const SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: colors.primaryContainer.withOpacity(0.5),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.people_outline,
+              size: 48.sp,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+          SizedBox(height: _Gap.md),
           Text(
             'لا يوجد طلاب مسجلون',
-            style: TextStyle(color: colors.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(height: _Gap.xs),
+          Text(
+            'اضغط على + لإضافة طالب جديد',
+            style: TextStyle(fontSize: 12.sp, color: colors.onSurfaceVariant),
           ),
         ],
       ),
@@ -242,26 +293,45 @@ class _EmptyStudents extends StatelessWidget {
 /// 📁 حالة خطأ
 class _ErrorStudents extends StatelessWidget {
   final String message;
+  final ColorScheme colors;
   final VoidCallback onRetry;
-  const _ErrorStudents({required this.message, required this.onRetry});
+
+  const _ErrorStudents({
+    required this.message,
+    required this.colors,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: colors.error),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(message, textAlign: TextAlign.center),
+          Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: colors.errorContainer,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.error_outline,
+              size: 48.sp,
+              color: colors.onErrorContainer,
+            ),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(
+          SizedBox(height: _Gap.md),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13.sp, color: colors.onSurfaceVariant),
+          ),
+          SizedBox(height: _Gap.md),
+          ElevatedButton.icon(
             onPressed: onRetry,
-            child: const Text('إعادة المحاولة'),
+            icon: const Icon(Icons.refresh, size: 16),
+            label: const Text('إعادة المحاولة'),
+            style: ElevatedButton.styleFrom(minimumSize: Size(150.w, 40.h)),
           ),
         ],
       ),

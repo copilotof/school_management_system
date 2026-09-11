@@ -27,6 +27,8 @@ class Students extends Table {
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  RealColumn get registrationFee =>
+      real().withDefault(const Constant(0))(); // ✅
 }
 
 // ============== جدول المدارس ==============
@@ -239,24 +241,6 @@ class Invoices extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// ============== جدول الدفعات ==============
-@DataClassName('Payment')
-class Payments extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
-  TextColumn get receiptNumber => text().unique()();
-  IntColumn get studentId => integer()();
-  RealColumn get amount => real()();
-  DateTimeColumn get paymentDate =>
-      dateTime().withDefault(currentDateAndTime)();
-  TextColumn get method => text().withDefault(const Constant('cash'))();
-  IntColumn get recordedBy => integer().nullable()();
-  BoolColumn get isAdvance => boolean().withDefault(const Constant(false))();
-  TextColumn get notes => text().nullable()();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-}
-
 // ============== جدول الخصومات ==============
 @DataClassName('Discount')
 class Discounts extends Table {
@@ -269,21 +253,6 @@ class Discounts extends Table {
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-}
-
-// ============== جدول الإعفاءات ==============
-@DataClassName('Exemption')
-class Exemptions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
-  IntColumn get studentId => integer()();
-  IntColumn get invoiceId => integer()();
-  RealColumn get amount => real()();
-  TextColumn get reason => text()();
-  IntColumn get authorizedBy => integer().nullable()();
-  DateTimeColumn get exemptionDate =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 // ============== جدول الاختبارات ==============
@@ -354,6 +323,72 @@ class AuditLogs extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+// ============== جدول الدفعات ==============
+@DataClassName('Payment')
+class Payments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get studentId => integer()();
+  IntColumn get groupId => integer().nullable()(); // ✅ الفوج
+
+  TextColumn get type => text()(); // monthly, registration, advance, extra
+  TextColumn get monthYear => text().nullable()(); // "2025-09" للشهرية
+  RealColumn get amount => real()(); // المبلغ المدفوع
+  RealColumn get originalAmount => real()(); // المبلغ الأصلي
+  RealColumn get remainingAmount =>
+      real().withDefault(const Constant(0))(); // المتبقي
+  DateTimeColumn get paymentDate =>
+      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get method => text().withDefault(const Constant('cash'))();
+  TextColumn get receiptNumber => text().unique()();
+  TextColumn get notes => text().nullable()();
+  IntColumn get recordedBy => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الدفعات الإضافية ==============
+@DataClassName('ExtraFee')
+class ExtraFees extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get studentId => integer()();
+  TextColumn get description => text()();
+  RealColumn get totalAmount => real()();
+  RealColumn get paidAmount => real().withDefault(const Constant(0))();
+  RealColumn get remainingAmount => real()();
+  TextColumn get status => text().withDefault(const Constant('unpaid'))();
+  DateTimeColumn get dueDate => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الإعفاءات ==============
+@DataClassName('Exemption')
+class Exemptions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get studentId => integer()();
+  TextColumn get type => text()(); // full, partial
+  RealColumn get amount => real()();
+  TextColumn get monthYear => text().nullable()();
+  IntColumn get extraFeeId => integer().nullable()();
+  TextColumn get reason => text()();
+  IntColumn get authorizedBy => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول إعدادات الرسوم ==============
+@DataClassName('FeeSetting')
+class FeeSettings extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  BoolColumn get registrationFeeEnabled =>
+      boolean().withDefault(const Constant(false))();
+  RealColumn get registrationFeeAmount =>
+      real().withDefault(const Constant(0))();
+  RealColumn get discount3Months => real().withDefault(const Constant(0))();
+  RealColumn get discount6Months => real().withDefault(const Constant(0))();
+  RealColumn get discount12Months => real().withDefault(const Constant(0))();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ============== قاعدة البيانات ==============
 @DriftDatabase(
   tables: [
@@ -378,6 +413,8 @@ class AuditLogs extends Table {
     ExamResults,
     Notifications,
     AuditLogs,
+    ExtraFees, // ✅
+    FeeSettings, // ✅
   ],
 )
 class AppDatabase extends _$AppDatabase {

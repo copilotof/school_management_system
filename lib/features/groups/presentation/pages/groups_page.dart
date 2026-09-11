@@ -9,6 +9,7 @@ import 'package:school_management_system/features/groups/domain/entities/group_e
 import 'package:school_management_system/features/groups/presentation/bloc/groups_bloc.dart';
 import 'package:school_management_system/features/groups/presentation/bloc/groups_event.dart';
 import 'package:school_management_system/features/groups/presentation/bloc/groups_state.dart';
+import 'package:school_management_system/features/groups/presentation/pages/group_details_page.dart';
 import 'package:school_management_system/features/subjects/domain/entities/subject_entity.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
@@ -18,8 +19,20 @@ import 'package:school_management_system/features/teachers/presentation/bloc/tea
 
 import '../../../subjects/presentation/bloc/subjects_state.dart';
 import '../../../teachers/presentation/bloc/teachers_state.dart';
-import 'group_details_page.dart';
 
+// ============================================================
+// 🎨 ثوابت التصميم
+// ============================================================
+class _Gap {
+  static double get xs => 4.h;
+  static double get sm => 8.h;
+  static double get md => 12.h;
+  static double get lg => 16.h;
+}
+
+const double _kRadius = 14;
+
+/// 📁 صفحة إدارة الأفواج
 class GroupsPage extends StatelessWidget {
   const GroupsPage({super.key});
 
@@ -53,9 +66,7 @@ class GroupsView extends StatelessWidget {
             if (grades.isEmpty) {
               return AlertDialog(
                 title: const Text('تنبيه'),
-                content: const Text(
-                  'لا توجد صفوف. يرجى إضافة الصفوف أولاً من صفحة الصفوف الدراسية.',
-                ),
+                content: const Text('لا توجد صفوف. يرجى إضافة الصفوف أولاً.'),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
@@ -69,21 +80,6 @@ class GroupsView extends StatelessWidget {
               builder: (dialogContext, subjectsState) {
                 final subjects = subjectsState.subjectsState.data ?? [];
 
-                if (subjects.isEmpty) {
-                  return AlertDialog(
-                    title: const Text('تنبيه'),
-                    content: const Text(
-                      'لا توجد مواد. يرجى إضافة المواد أولاً من صفحة المواد الدراسية.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(dialogContext).pop(),
-                        child: const Text('حسناً'),
-                      ),
-                    ],
-                  );
-                }
-
                 return BlocBuilder<TeachersBloc, TeachersState>(
                   builder: (dialogContext, teachersState) {
                     final teachers = teachersState.teachersState.data ?? [];
@@ -94,7 +90,7 @@ class GroupsView extends StatelessWidget {
                       subjects: subjects,
                       teachers: teachers,
                       groupsBloc: groupsBloc,
-                      gradesBloc: gradesBloc, // ✅ نمرر GradesBloc
+                      gradesBloc: gradesBloc,
                     );
                   },
                 );
@@ -125,18 +121,28 @@ class GroupsView extends StatelessWidget {
       appBar: AppBar(title: const Text('الأفواج')),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
+          // ====== بطاقة البحث ======
+          Container(
+            margin: EdgeInsets.all(12.w),
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(_kRadius),
+              border: Border.all(color: colors.outlineVariant.withOpacity(0.4)),
+            ),
             child: TextField(
               onChanged: (query) {
                 context.read<GroupsBloc>().add(SearchGroupsEvent(query));
               },
               decoration: InputDecoration(
                 hintText: 'ابحث عن فوج...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search, size: 18),
+                isDense: true,
               ),
             ),
           ),
+
+          // ====== قائمة الأفواج ======
           Expanded(
             child: BlocBuilder<GroupsBloc, GroupsState>(
               buildWhen: (prev, current) =>
@@ -145,26 +151,24 @@ class GroupsView extends StatelessWidget {
                 return switch (state.groupsState) {
                   Initial() => const SizedBox.shrink(),
                   Loading() => const Center(child: CircularProgressIndicator()),
-                  Empty() => const Center(
-                    child: Text('لا توجد أفواج. اضغط + لإضافة فوج.'),
-                  ),
+                  Empty() => const Center(child: Text('لا توجد أفواج')),
                   Error(message: final msg) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(msg),
-                        SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         ElevatedButton(
-                          onPressed: () {
-                            context.read<GroupsBloc>().add(const FetchGroups());
-                          },
+                          onPressed: () => context.read<GroupsBloc>().add(
+                            const FetchGroups(),
+                          ),
                           child: const Text('إعادة المحاولة'),
                         ),
                       ],
                     ),
                   ),
                   Success(data: final groups) => ListView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 80.h),
                     itemCount: groups.length,
                     itemBuilder: (context, index) {
                       final group = groups[index];
@@ -172,6 +176,13 @@ class GroupsView extends StatelessWidget {
                         group: group,
                         onEdit: () => _showAddDialog(context, group: group),
                         onDelete: () => _deleteGroup(context, group),
+                        onDetails: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => GroupDetailsPage(group: group),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -190,16 +201,18 @@ class GroupsView extends StatelessWidget {
   }
 }
 
-/// ✅ بطاقة فوج محسنة
+/// 📁 بطاقة فوج
 class _GroupCard extends StatelessWidget {
   final GroupEntity group;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onDetails;
 
   const _GroupCard({
     required this.group,
     required this.onEdit,
     required this.onDelete,
+    required this.onDetails,
   });
 
   @override
@@ -207,61 +220,69 @@ class _GroupCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      margin: EdgeInsets.only(bottom: 6.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+      elevation: 1,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: colors.secondary.withOpacity(0.1),
+          radius: 18.r,
+          backgroundColor: colors.secondaryContainer,
           child: Icon(
-            Icons.groups_outlined,
-            color: colors.secondary,
-            size: 20.sp,
+            Icons.groups,
+            size: 18.sp,
+            color: colors.onSecondaryContainer,
           ),
         ),
         title: Text(
           group.name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 13.5.sp, fontWeight: FontWeight.w600),
         ),
-        subtitle: Text('الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج'),
+        subtitle: Text(
+          'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
+          style: TextStyle(fontSize: 11.sp, color: colors.onSurfaceVariant),
+        ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
               icon: Icon(
+                Icons.info_outline,
+                size: 18.sp,
+                color: colors.secondary,
+              ),
+              onPressed: onDetails,
+            ),
+            IconButton(
+              icon: Icon(
                 Icons.edit_outlined,
+                size: 18.sp,
                 color: colors.primary,
-                size: 20.sp,
               ),
               onPressed: onEdit,
             ),
             IconButton(
               icon: Icon(
                 Icons.delete_outline,
+                size: 18.sp,
                 color: colors.error,
-                size: 20.sp,
               ),
               onPressed: onDelete,
             ),
           ],
         ),
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => GroupDetailsPage(group: group)),
-          );
-        },
       ),
     );
   }
 }
 
-/// ✅ حوار إضافة فوج - مع GradesBloc
+/// 📁 حوار إضافة/تعديل فوج
 class _AddGroupDialog extends StatefulWidget {
   final GroupEntity? group;
   final List<GradeEntity> grades;
   final List<SubjectEntity> subjects;
   final List<TeacherEntity> teachers;
   final GroupsBloc groupsBloc;
-  final GradesBloc gradesBloc; // ✅
+  final GradesBloc gradesBloc;
 
   const _AddGroupDialog({
     this.group,
@@ -299,7 +320,6 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
     _selectedSubjectId = widget.group?.subjectId;
     _selectedTeacherId = widget.group?.teacherId;
 
-    // ✅ جلب المواد المرتبطة بالصف عند التعديل
     if (_selectedGradeId != null) {
       widget.gradesBloc.add(FetchGradeSubjects(_selectedGradeId!));
     }
@@ -313,7 +333,6 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
     super.dispose();
   }
 
-  /// ✅ المواد التابعة للصف المختار
   List<SubjectEntity> get _filteredSubjects {
     if (_selectedGradeId == null) return [];
     final gradeSubjects = widget.gradesBloc.state.gradeSubjectsState.data ?? [];
@@ -350,153 +369,193 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.group == null ? 'إضافة فوج' : 'تعديل فوج'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1. اسم الفوج (إجباري)
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'اسم الفوج *',
-                prefixIcon: Icon(Icons.groups_outlined),
-              ),
-            ),
-            SizedBox(height: 12.h),
+    final colors = Theme.of(context).colorScheme;
 
-            // 2. الصف (إجباري)
-            DropdownButtonFormField<int>(
-              isExpanded: true,
-              initialValue: _selectedGradeId,
-              decoration: const InputDecoration(
-                labelText: 'الصف *',
-                prefixIcon: Icon(Icons.class_outlined),
-              ),
-              items: widget.grades.map((grade) {
-                return DropdownMenuItem(
-                  value: grade.id,
-                  child: Text(
-                    grade.name,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedGradeId = value;
-                  _selectedSubjectId = null;
-                });
-                if (value != null) {
-                  widget.gradesBloc.add(FetchGradeSubjects(value));
-                }
-              },
-            ),
-            SizedBox(height: 12.h),
-
-            // 3. المادة (إجباري - تظهر فقط مواد الصف)
-            if (_selectedGradeId == null)
-              const Text(
-                'اختر الصف أولاً لعرض المواد',
-                style: TextStyle(color: Colors.grey),
-              )
-            else
-              BlocBuilder<GradesBloc, GradesState>(
-                builder: (context, gradesState) {
-                  final filtered = _filteredSubjects;
-                  if (filtered.isEmpty) {
-                    return const Text(
-                      'لا توجد مواد مرتبطة بهذا الصف. يرجى ربط المواد بالصف أولاً.',
-                      style: TextStyle(color: Colors.orange),
-                    );
-                  }
-                  return DropdownButtonFormField<int>(
-                    isExpanded: true,
-                    initialValue: _selectedSubjectId,
-                    decoration: const InputDecoration(
-                      labelText: 'المادة *',
-                      prefixIcon: Icon(Icons.book_outlined),
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+      child: Padding(
+        padding: EdgeInsets.all(18.w),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18.r,
+                    backgroundColor: colors.primaryContainer,
+                    child: Icon(
+                      Icons.groups,
+                      size: 20.sp,
+                      color: colors.onPrimaryContainer,
                     ),
-                    items: filtered.map((subject) {
-                      return DropdownMenuItem(
-                        value: subject.id,
-                        child: Text(
-                          subject.name,
-                          overflow: TextOverflow.ellipsis, // ✅
-                          maxLines: 1,
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedSubjectId = value);
-                    },
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    widget.group == null ? 'إضافة فوج' : 'تعديل فوج',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: _Gap.lg),
+
+              // اسم الفوج
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'اسم الفوج *',
+                  prefixIcon: Icon(Icons.groups_outlined, size: 18),
+                  isDense: true,
+                ),
+              ),
+              SizedBox(height: _Gap.md),
+
+              // الصف
+              DropdownButtonFormField<int>(
+                initialValue: _selectedGradeId,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'الصف *',
+                  prefixIcon: Icon(Icons.class_outlined, size: 18),
+                  isDense: true,
+                ),
+                items: widget.grades.map((grade) {
+                  return DropdownMenuItem(
+                    value: grade.id,
+                    child: Text(grade.name, overflow: TextOverflow.ellipsis),
                   );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGradeId = value;
+                    _selectedSubjectId = null;
+                  });
+                  if (value != null) {
+                    widget.gradesBloc.add(FetchGradeSubjects(value));
+                  }
                 },
               ),
-            SizedBox(height: 12.h),
+              SizedBox(height: _Gap.md),
 
-            // 4. الرسوم الشهرية (إجباري)
-            TextField(
-              controller: _feeController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'الرسوم الشهرية (دج) *',
-                prefixIcon: Icon(Icons.payments_outlined),
-              ),
-            ),
-            SizedBox(height: 12.h),
+              // المادة (فقط مواد الصف)
+              if (_selectedGradeId == null)
+                Text(
+                  'اختر الصف أولاً لعرض المواد',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: colors.onSurfaceVariant,
+                  ),
+                )
+              else
+                BlocBuilder<GradesBloc, GradesState>(
+                  builder: (context, gradesState) {
+                    final filtered = _filteredSubjects;
+                    if (filtered.isEmpty) {
+                      return Text(
+                        'لا توجد مواد مرتبطة بهذا الصف',
+                        style: TextStyle(fontSize: 11.sp, color: colors.error),
+                      );
+                    }
+                    return DropdownButtonFormField<int>(
+                      initialValue: _selectedSubjectId,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'المادة *',
+                        prefixIcon: Icon(Icons.book_outlined, size: 18),
+                        isDense: true,
+                      ),
+                      items: filtered.map((subject) {
+                        return DropdownMenuItem(
+                          value: subject.id,
+                          child: Text(
+                            subject.name,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) =>
+                          setState(() => _selectedSubjectId = value),
+                    );
+                  },
+                ),
+              SizedBox(height: _Gap.md),
 
-            // 5. المعلم (اختياري)
-            DropdownButtonFormField<int>(
-              isExpanded: true,
-              initialValue: _selectedTeacherId,
-              decoration: const InputDecoration(
-                labelText: 'المعلم (اختياري)',
-                prefixIcon: Icon(Icons.person_outline),
+              // الرسوم
+              TextField(
+                controller: _feeController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'الرسوم الشهرية (دج) *',
+                  prefixIcon: Icon(Icons.payments_outlined, size: 18),
+                  isDense: true,
+                ),
               ),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('بدون معلم')),
-                ...widget.teachers.map((teacher) {
-                  return DropdownMenuItem(
-                    value: teacher.id,
-                    child: Text(
-                      teacher.fullName,
-                      overflow: TextOverflow.ellipsis, // ✅
-                      maxLines: 1,
+              SizedBox(height: _Gap.md),
+
+              // المعلم (اختياري)
+              DropdownButtonFormField<int>(
+                initialValue: _selectedTeacherId,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'المعلم (اختياري)',
+                  prefixIcon: Icon(Icons.person_outline, size: 18),
+                  isDense: true,
+                ),
+                items: [
+                  const DropdownMenuItem(value: null, child: Text('بدون معلم')),
+                  ...widget.teachers.map((teacher) {
+                    return DropdownMenuItem(
+                      value: teacher.id,
+                      child: Text(
+                        teacher.fullName,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }),
+                ],
+                onChanged: (value) =>
+                    setState(() => _selectedTeacherId = value),
+              ),
+              SizedBox(height: _Gap.md),
+
+              // الطاقة الاستيعابية
+              TextField(
+                controller: _maxStudentsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'الطاقة الاستيعابية (اختياري)',
+                  prefixIcon: Icon(Icons.people_outline, size: 18),
+                  isDense: true,
+                ),
+              ),
+              SizedBox(height: _Gap.lg),
+
+              // أزرار
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('إلغاء'),
                     ),
-                  );
-                }),
-              ],
-              onChanged: (value) {
-                setState(() => _selectedTeacherId = value);
-              },
-            ),
-            SizedBox(height: 12.h),
-
-            // 6. الطاقة الاستيعابية (اختياري)
-            TextField(
-              controller: _maxStudentsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'الطاقة الاستيعابية (اختياري)',
-                prefixIcon: Icon(Icons.people_outline),
+                  ),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      child: Text(widget.group == null ? 'إضافة' : 'حفظ'),
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: _submit,
-          child: Text(widget.group == null ? 'إضافة' : 'حفظ'),
-        ),
-      ],
     );
   }
 }

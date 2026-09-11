@@ -4302,6 +4302,18 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _registrationFeeMeta = const VerificationMeta(
+    'registrationFee',
+  );
+  @override
+  late final GeneratedColumn<double> registrationFee = GeneratedColumn<double>(
+    'registration_fee',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4319,6 +4331,7 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
     notes,
     createdAt,
     updatedAt,
+    registrationFee,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4431,6 +4444,15 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('registration_fee')) {
+      context.handle(
+        _registrationFeeMeta,
+        registrationFee.isAcceptableOrUnknown(
+          data['registration_fee']!,
+          _registrationFeeMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -4500,6 +4522,10 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      registrationFee: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}registration_fee'],
+      )!,
     );
   }
 
@@ -4525,6 +4551,7 @@ class Student extends DataClass implements Insertable<Student> {
   final String? notes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double registrationFee;
   const Student({
     required this.id,
     required this.schoolId,
@@ -4541,6 +4568,7 @@ class Student extends DataClass implements Insertable<Student> {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    required this.registrationFee,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4574,6 +4602,7 @@ class Student extends DataClass implements Insertable<Student> {
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['registration_fee'] = Variable<double>(registrationFee);
     return map;
   }
 
@@ -4608,6 +4637,7 @@ class Student extends DataClass implements Insertable<Student> {
           : Value(notes),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      registrationFee: Value(registrationFee),
     );
   }
 
@@ -4632,6 +4662,7 @@ class Student extends DataClass implements Insertable<Student> {
       notes: serializer.fromJson<String?>(json['notes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      registrationFee: serializer.fromJson<double>(json['registrationFee']),
     );
   }
   @override
@@ -4653,6 +4684,7 @@ class Student extends DataClass implements Insertable<Student> {
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'registrationFee': serializer.toJson<double>(registrationFee),
     };
   }
 
@@ -4672,6 +4704,7 @@ class Student extends DataClass implements Insertable<Student> {
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    double? registrationFee,
   }) => Student(
     id: id ?? this.id,
     schoolId: schoolId ?? this.schoolId,
@@ -4688,6 +4721,7 @@ class Student extends DataClass implements Insertable<Student> {
     notes: notes.present ? notes.value : this.notes,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    registrationFee: registrationFee ?? this.registrationFee,
   );
   Student copyWithCompanion(StudentsCompanion data) {
     return Student(
@@ -4712,6 +4746,9 @@ class Student extends DataClass implements Insertable<Student> {
       notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      registrationFee: data.registrationFee.present
+          ? data.registrationFee.value
+          : this.registrationFee,
     );
   }
 
@@ -4732,7 +4769,8 @@ class Student extends DataClass implements Insertable<Student> {
           ..write('status: $status, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('registrationFee: $registrationFee')
           ..write(')'))
         .toString();
   }
@@ -4754,6 +4792,7 @@ class Student extends DataClass implements Insertable<Student> {
     notes,
     createdAt,
     updatedAt,
+    registrationFee,
   );
   @override
   bool operator ==(Object other) =>
@@ -4773,7 +4812,8 @@ class Student extends DataClass implements Insertable<Student> {
           other.status == this.status &&
           other.notes == this.notes &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.registrationFee == this.registrationFee);
 }
 
 class StudentsCompanion extends UpdateCompanion<Student> {
@@ -4792,6 +4832,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
   final Value<String?> notes;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<double> registrationFee;
   const StudentsCompanion({
     this.id = const Value.absent(),
     this.schoolId = const Value.absent(),
@@ -4808,6 +4849,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.registrationFee = const Value.absent(),
   });
   StudentsCompanion.insert({
     this.id = const Value.absent(),
@@ -4825,6 +4867,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.registrationFee = const Value.absent(),
   }) : studentCode = Value(studentCode),
        firstName = Value(firstName),
        lastName = Value(lastName);
@@ -4844,6 +4887,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Expression<String>? notes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<double>? registrationFee,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -4861,6 +4905,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       if (notes != null) 'notes': notes,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (registrationFee != null) 'registration_fee': registrationFee,
     });
   }
 
@@ -4880,6 +4925,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     Value<String?>? notes,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<double>? registrationFee,
   }) {
     return StudentsCompanion(
       id: id ?? this.id,
@@ -4897,6 +4943,7 @@ class StudentsCompanion extends UpdateCompanion<Student> {
       notes: notes ?? this.notes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      registrationFee: registrationFee ?? this.registrationFee,
     );
   }
 
@@ -4948,6 +4995,9 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (registrationFee.present) {
+      map['registration_fee'] = Variable<double>(registrationFee.value);
+    }
     return map;
   }
 
@@ -4968,7 +5018,8 @@ class StudentsCompanion extends UpdateCompanion<Student> {
           ..write('status: $status, ')
           ..write('notes: $notes, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('registrationFee: $registrationFee')
           ..write(')'))
         .toString();
   }
@@ -8426,30 +8477,6 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _schoolIdMeta = const VerificationMeta(
-    'schoolId',
-  );
-  @override
-  late final GeneratedColumn<int> schoolId = GeneratedColumn<int>(
-    'school_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
-  );
-  static const VerificationMeta _receiptNumberMeta = const VerificationMeta(
-    'receiptNumber',
-  );
-  @override
-  late final GeneratedColumn<String> receiptNumber = GeneratedColumn<String>(
-    'receipt_number',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
-  );
   static const VerificationMeta _studentIdMeta = const VerificationMeta(
     'studentId',
   );
@@ -8461,6 +8488,37 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<int> groupId = GeneratedColumn<int>(
+    'group_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _monthYearMeta = const VerificationMeta(
+    'monthYear',
+  );
+  @override
+  late final GeneratedColumn<String> monthYear = GeneratedColumn<String>(
+    'month_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
   @override
   late final GeneratedColumn<double> amount = GeneratedColumn<double>(
@@ -8469,6 +8527,29 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalAmountMeta = const VerificationMeta(
+    'originalAmount',
+  );
+  @override
+  late final GeneratedColumn<double> originalAmount = GeneratedColumn<double>(
+    'original_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _remainingAmountMeta = const VerificationMeta(
+    'remainingAmount',
+  );
+  @override
+  late final GeneratedColumn<double> remainingAmount = GeneratedColumn<double>(
+    'remaining_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   static const VerificationMeta _paymentDateMeta = const VerificationMeta(
     'paymentDate',
@@ -8492,6 +8573,27 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     requiredDuringInsert: false,
     defaultValue: const Constant('cash'),
   );
+  static const VerificationMeta _receiptNumberMeta = const VerificationMeta(
+    'receiptNumber',
+  );
+  @override
+  late final GeneratedColumn<String> receiptNumber = GeneratedColumn<String>(
+    'receipt_number',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _recordedByMeta = const VerificationMeta(
     'recordedBy',
   );
@@ -8501,30 +8603,6 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     aliasedName,
     true,
     type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _isAdvanceMeta = const VerificationMeta(
-    'isAdvance',
-  );
-  @override
-  late final GeneratedColumn<bool> isAdvance = GeneratedColumn<bool>(
-    'is_advance',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("is_advance" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
-  @override
-  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-    'notes',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
@@ -8554,15 +8632,18 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    schoolId,
-    receiptNumber,
     studentId,
+    groupId,
+    type,
+    monthYear,
     amount,
+    originalAmount,
+    remainingAmount,
     paymentDate,
     method,
-    recordedBy,
-    isAdvance,
+    receiptNumber,
     notes,
+    recordedBy,
     createdAt,
     updatedAt,
   ];
@@ -8581,23 +8662,6 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('school_id')) {
-      context.handle(
-        _schoolIdMeta,
-        schoolId.isAcceptableOrUnknown(data['school_id']!, _schoolIdMeta),
-      );
-    }
-    if (data.containsKey('receipt_number')) {
-      context.handle(
-        _receiptNumberMeta,
-        receiptNumber.isAcceptableOrUnknown(
-          data['receipt_number']!,
-          _receiptNumberMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_receiptNumberMeta);
-    }
     if (data.containsKey('student_id')) {
       context.handle(
         _studentIdMeta,
@@ -8606,6 +8670,26 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
     } else if (isInserting) {
       context.missing(_studentIdMeta);
     }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('month_year')) {
+      context.handle(
+        _monthYearMeta,
+        monthYear.isAcceptableOrUnknown(data['month_year']!, _monthYearMeta),
+      );
+    }
     if (data.containsKey('amount')) {
       context.handle(
         _amountMeta,
@@ -8613,6 +8697,26 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('original_amount')) {
+      context.handle(
+        _originalAmountMeta,
+        originalAmount.isAcceptableOrUnknown(
+          data['original_amount']!,
+          _originalAmountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_originalAmountMeta);
+    }
+    if (data.containsKey('remaining_amount')) {
+      context.handle(
+        _remainingAmountMeta,
+        remainingAmount.isAcceptableOrUnknown(
+          data['remaining_amount']!,
+          _remainingAmountMeta,
+        ),
+      );
     }
     if (data.containsKey('payment_date')) {
       context.handle(
@@ -8629,22 +8733,27 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         method.isAcceptableOrUnknown(data['method']!, _methodMeta),
       );
     }
-    if (data.containsKey('recorded_by')) {
+    if (data.containsKey('receipt_number')) {
       context.handle(
-        _recordedByMeta,
-        recordedBy.isAcceptableOrUnknown(data['recorded_by']!, _recordedByMeta),
+        _receiptNumberMeta,
+        receiptNumber.isAcceptableOrUnknown(
+          data['receipt_number']!,
+          _receiptNumberMeta,
+        ),
       );
-    }
-    if (data.containsKey('is_advance')) {
-      context.handle(
-        _isAdvanceMeta,
-        isAdvance.isAcceptableOrUnknown(data['is_advance']!, _isAdvanceMeta),
-      );
+    } else if (isInserting) {
+      context.missing(_receiptNumberMeta);
     }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('recorded_by')) {
+      context.handle(
+        _recordedByMeta,
+        recordedBy.isAcceptableOrUnknown(data['recorded_by']!, _recordedByMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -8672,21 +8781,33 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      schoolId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}school_id'],
-      )!,
-      receiptNumber: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}receipt_number'],
-      )!,
       studentId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}student_id'],
       )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}group_id'],
+      ),
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      monthYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}month_year'],
+      ),
       amount: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
+      )!,
+      originalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}original_amount'],
+      )!,
+      remainingAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}remaining_amount'],
       )!,
       paymentDate: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -8696,17 +8817,17 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
         DriftSqlType.string,
         data['${effectivePrefix}method'],
       )!,
-      recordedBy: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}recorded_by'],
-      ),
-      isAdvance: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}is_advance'],
+      receiptNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_number'],
       )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
+      ),
+      recordedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recorded_by'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -8727,28 +8848,34 @@ class $PaymentsTable extends Payments with TableInfo<$PaymentsTable, Payment> {
 
 class Payment extends DataClass implements Insertable<Payment> {
   final int id;
-  final int schoolId;
-  final String receiptNumber;
   final int studentId;
+  final int? groupId;
+  final String type;
+  final String? monthYear;
   final double amount;
+  final double originalAmount;
+  final double remainingAmount;
   final DateTime paymentDate;
   final String method;
-  final int? recordedBy;
-  final bool isAdvance;
+  final String receiptNumber;
   final String? notes;
+  final int? recordedBy;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Payment({
     required this.id,
-    required this.schoolId,
-    required this.receiptNumber,
     required this.studentId,
+    this.groupId,
+    required this.type,
+    this.monthYear,
     required this.amount,
+    required this.originalAmount,
+    required this.remainingAmount,
     required this.paymentDate,
     required this.method,
-    this.recordedBy,
-    required this.isAdvance,
+    required this.receiptNumber,
     this.notes,
+    this.recordedBy,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -8756,18 +8883,25 @@ class Payment extends DataClass implements Insertable<Payment> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['school_id'] = Variable<int>(schoolId);
-    map['receipt_number'] = Variable<String>(receiptNumber);
     map['student_id'] = Variable<int>(studentId);
+    if (!nullToAbsent || groupId != null) {
+      map['group_id'] = Variable<int>(groupId);
+    }
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || monthYear != null) {
+      map['month_year'] = Variable<String>(monthYear);
+    }
     map['amount'] = Variable<double>(amount);
+    map['original_amount'] = Variable<double>(originalAmount);
+    map['remaining_amount'] = Variable<double>(remainingAmount);
     map['payment_date'] = Variable<DateTime>(paymentDate);
     map['method'] = Variable<String>(method);
-    if (!nullToAbsent || recordedBy != null) {
-      map['recorded_by'] = Variable<int>(recordedBy);
-    }
-    map['is_advance'] = Variable<bool>(isAdvance);
+    map['receipt_number'] = Variable<String>(receiptNumber);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || recordedBy != null) {
+      map['recorded_by'] = Variable<int>(recordedBy);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -8777,19 +8911,26 @@ class Payment extends DataClass implements Insertable<Payment> {
   PaymentsCompanion toCompanion(bool nullToAbsent) {
     return PaymentsCompanion(
       id: Value(id),
-      schoolId: Value(schoolId),
-      receiptNumber: Value(receiptNumber),
       studentId: Value(studentId),
+      groupId: groupId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(groupId),
+      type: Value(type),
+      monthYear: monthYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(monthYear),
       amount: Value(amount),
+      originalAmount: Value(originalAmount),
+      remainingAmount: Value(remainingAmount),
       paymentDate: Value(paymentDate),
       method: Value(method),
-      recordedBy: recordedBy == null && nullToAbsent
-          ? const Value.absent()
-          : Value(recordedBy),
-      isAdvance: Value(isAdvance),
+      receiptNumber: Value(receiptNumber),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      recordedBy: recordedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recordedBy),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -8802,15 +8943,18 @@ class Payment extends DataClass implements Insertable<Payment> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Payment(
       id: serializer.fromJson<int>(json['id']),
-      schoolId: serializer.fromJson<int>(json['schoolId']),
-      receiptNumber: serializer.fromJson<String>(json['receiptNumber']),
       studentId: serializer.fromJson<int>(json['studentId']),
+      groupId: serializer.fromJson<int?>(json['groupId']),
+      type: serializer.fromJson<String>(json['type']),
+      monthYear: serializer.fromJson<String?>(json['monthYear']),
       amount: serializer.fromJson<double>(json['amount']),
+      originalAmount: serializer.fromJson<double>(json['originalAmount']),
+      remainingAmount: serializer.fromJson<double>(json['remainingAmount']),
       paymentDate: serializer.fromJson<DateTime>(json['paymentDate']),
       method: serializer.fromJson<String>(json['method']),
-      recordedBy: serializer.fromJson<int?>(json['recordedBy']),
-      isAdvance: serializer.fromJson<bool>(json['isAdvance']),
+      receiptNumber: serializer.fromJson<String>(json['receiptNumber']),
       notes: serializer.fromJson<String?>(json['notes']),
+      recordedBy: serializer.fromJson<int?>(json['recordedBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -8820,15 +8964,18 @@ class Payment extends DataClass implements Insertable<Payment> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'schoolId': serializer.toJson<int>(schoolId),
-      'receiptNumber': serializer.toJson<String>(receiptNumber),
       'studentId': serializer.toJson<int>(studentId),
+      'groupId': serializer.toJson<int?>(groupId),
+      'type': serializer.toJson<String>(type),
+      'monthYear': serializer.toJson<String?>(monthYear),
       'amount': serializer.toJson<double>(amount),
+      'originalAmount': serializer.toJson<double>(originalAmount),
+      'remainingAmount': serializer.toJson<double>(remainingAmount),
       'paymentDate': serializer.toJson<DateTime>(paymentDate),
       'method': serializer.toJson<String>(method),
-      'recordedBy': serializer.toJson<int?>(recordedBy),
-      'isAdvance': serializer.toJson<bool>(isAdvance),
+      'receiptNumber': serializer.toJson<String>(receiptNumber),
       'notes': serializer.toJson<String?>(notes),
+      'recordedBy': serializer.toJson<int?>(recordedBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -8836,49 +8983,62 @@ class Payment extends DataClass implements Insertable<Payment> {
 
   Payment copyWith({
     int? id,
-    int? schoolId,
-    String? receiptNumber,
     int? studentId,
+    Value<int?> groupId = const Value.absent(),
+    String? type,
+    Value<String?> monthYear = const Value.absent(),
     double? amount,
+    double? originalAmount,
+    double? remainingAmount,
     DateTime? paymentDate,
     String? method,
-    Value<int?> recordedBy = const Value.absent(),
-    bool? isAdvance,
+    String? receiptNumber,
     Value<String?> notes = const Value.absent(),
+    Value<int?> recordedBy = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Payment(
     id: id ?? this.id,
-    schoolId: schoolId ?? this.schoolId,
-    receiptNumber: receiptNumber ?? this.receiptNumber,
     studentId: studentId ?? this.studentId,
+    groupId: groupId.present ? groupId.value : this.groupId,
+    type: type ?? this.type,
+    monthYear: monthYear.present ? monthYear.value : this.monthYear,
     amount: amount ?? this.amount,
+    originalAmount: originalAmount ?? this.originalAmount,
+    remainingAmount: remainingAmount ?? this.remainingAmount,
     paymentDate: paymentDate ?? this.paymentDate,
     method: method ?? this.method,
-    recordedBy: recordedBy.present ? recordedBy.value : this.recordedBy,
-    isAdvance: isAdvance ?? this.isAdvance,
+    receiptNumber: receiptNumber ?? this.receiptNumber,
     notes: notes.present ? notes.value : this.notes,
+    recordedBy: recordedBy.present ? recordedBy.value : this.recordedBy,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   Payment copyWithCompanion(PaymentsCompanion data) {
     return Payment(
       id: data.id.present ? data.id.value : this.id,
-      schoolId: data.schoolId.present ? data.schoolId.value : this.schoolId,
-      receiptNumber: data.receiptNumber.present
-          ? data.receiptNumber.value
-          : this.receiptNumber,
       studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      type: data.type.present ? data.type.value : this.type,
+      monthYear: data.monthYear.present ? data.monthYear.value : this.monthYear,
       amount: data.amount.present ? data.amount.value : this.amount,
+      originalAmount: data.originalAmount.present
+          ? data.originalAmount.value
+          : this.originalAmount,
+      remainingAmount: data.remainingAmount.present
+          ? data.remainingAmount.value
+          : this.remainingAmount,
       paymentDate: data.paymentDate.present
           ? data.paymentDate.value
           : this.paymentDate,
       method: data.method.present ? data.method.value : this.method,
+      receiptNumber: data.receiptNumber.present
+          ? data.receiptNumber.value
+          : this.receiptNumber,
+      notes: data.notes.present ? data.notes.value : this.notes,
       recordedBy: data.recordedBy.present
           ? data.recordedBy.value
           : this.recordedBy,
-      isAdvance: data.isAdvance.present ? data.isAdvance.value : this.isAdvance,
-      notes: data.notes.present ? data.notes.value : this.notes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -8888,15 +9048,18 @@ class Payment extends DataClass implements Insertable<Payment> {
   String toString() {
     return (StringBuffer('Payment(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
-          ..write('receiptNumber: $receiptNumber, ')
           ..write('studentId: $studentId, ')
+          ..write('groupId: $groupId, ')
+          ..write('type: $type, ')
+          ..write('monthYear: $monthYear, ')
           ..write('amount: $amount, ')
+          ..write('originalAmount: $originalAmount, ')
+          ..write('remainingAmount: $remainingAmount, ')
           ..write('paymentDate: $paymentDate, ')
           ..write('method: $method, ')
-          ..write('recordedBy: $recordedBy, ')
-          ..write('isAdvance: $isAdvance, ')
+          ..write('receiptNumber: $receiptNumber, ')
           ..write('notes: $notes, ')
+          ..write('recordedBy: $recordedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -8906,15 +9069,18 @@ class Payment extends DataClass implements Insertable<Payment> {
   @override
   int get hashCode => Object.hash(
     id,
-    schoolId,
-    receiptNumber,
     studentId,
+    groupId,
+    type,
+    monthYear,
     amount,
+    originalAmount,
+    remainingAmount,
     paymentDate,
     method,
-    recordedBy,
-    isAdvance,
+    receiptNumber,
     notes,
+    recordedBy,
     createdAt,
     updatedAt,
   );
@@ -8923,87 +9089,107 @@ class Payment extends DataClass implements Insertable<Payment> {
       identical(this, other) ||
       (other is Payment &&
           other.id == this.id &&
-          other.schoolId == this.schoolId &&
-          other.receiptNumber == this.receiptNumber &&
           other.studentId == this.studentId &&
+          other.groupId == this.groupId &&
+          other.type == this.type &&
+          other.monthYear == this.monthYear &&
           other.amount == this.amount &&
+          other.originalAmount == this.originalAmount &&
+          other.remainingAmount == this.remainingAmount &&
           other.paymentDate == this.paymentDate &&
           other.method == this.method &&
-          other.recordedBy == this.recordedBy &&
-          other.isAdvance == this.isAdvance &&
+          other.receiptNumber == this.receiptNumber &&
           other.notes == this.notes &&
+          other.recordedBy == this.recordedBy &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
 
 class PaymentsCompanion extends UpdateCompanion<Payment> {
   final Value<int> id;
-  final Value<int> schoolId;
-  final Value<String> receiptNumber;
   final Value<int> studentId;
+  final Value<int?> groupId;
+  final Value<String> type;
+  final Value<String?> monthYear;
   final Value<double> amount;
+  final Value<double> originalAmount;
+  final Value<double> remainingAmount;
   final Value<DateTime> paymentDate;
   final Value<String> method;
-  final Value<int?> recordedBy;
-  final Value<bool> isAdvance;
+  final Value<String> receiptNumber;
   final Value<String?> notes;
+  final Value<int?> recordedBy;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const PaymentsCompanion({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
-    this.receiptNumber = const Value.absent(),
     this.studentId = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.monthYear = const Value.absent(),
     this.amount = const Value.absent(),
+    this.originalAmount = const Value.absent(),
+    this.remainingAmount = const Value.absent(),
     this.paymentDate = const Value.absent(),
     this.method = const Value.absent(),
-    this.recordedBy = const Value.absent(),
-    this.isAdvance = const Value.absent(),
+    this.receiptNumber = const Value.absent(),
     this.notes = const Value.absent(),
+    this.recordedBy = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   PaymentsCompanion.insert({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
-    required String receiptNumber,
     required int studentId,
+    this.groupId = const Value.absent(),
+    required String type,
+    this.monthYear = const Value.absent(),
     required double amount,
+    required double originalAmount,
+    this.remainingAmount = const Value.absent(),
     this.paymentDate = const Value.absent(),
     this.method = const Value.absent(),
-    this.recordedBy = const Value.absent(),
-    this.isAdvance = const Value.absent(),
+    required String receiptNumber,
     this.notes = const Value.absent(),
+    this.recordedBy = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  }) : receiptNumber = Value(receiptNumber),
-       studentId = Value(studentId),
-       amount = Value(amount);
+  }) : studentId = Value(studentId),
+       type = Value(type),
+       amount = Value(amount),
+       originalAmount = Value(originalAmount),
+       receiptNumber = Value(receiptNumber);
   static Insertable<Payment> custom({
     Expression<int>? id,
-    Expression<int>? schoolId,
-    Expression<String>? receiptNumber,
     Expression<int>? studentId,
+    Expression<int>? groupId,
+    Expression<String>? type,
+    Expression<String>? monthYear,
     Expression<double>? amount,
+    Expression<double>? originalAmount,
+    Expression<double>? remainingAmount,
     Expression<DateTime>? paymentDate,
     Expression<String>? method,
-    Expression<int>? recordedBy,
-    Expression<bool>? isAdvance,
+    Expression<String>? receiptNumber,
     Expression<String>? notes,
+    Expression<int>? recordedBy,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (schoolId != null) 'school_id': schoolId,
-      if (receiptNumber != null) 'receipt_number': receiptNumber,
       if (studentId != null) 'student_id': studentId,
+      if (groupId != null) 'group_id': groupId,
+      if (type != null) 'type': type,
+      if (monthYear != null) 'month_year': monthYear,
       if (amount != null) 'amount': amount,
+      if (originalAmount != null) 'original_amount': originalAmount,
+      if (remainingAmount != null) 'remaining_amount': remainingAmount,
       if (paymentDate != null) 'payment_date': paymentDate,
       if (method != null) 'method': method,
-      if (recordedBy != null) 'recorded_by': recordedBy,
-      if (isAdvance != null) 'is_advance': isAdvance,
+      if (receiptNumber != null) 'receipt_number': receiptNumber,
       if (notes != null) 'notes': notes,
+      if (recordedBy != null) 'recorded_by': recordedBy,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -9011,29 +9197,35 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
 
   PaymentsCompanion copyWith({
     Value<int>? id,
-    Value<int>? schoolId,
-    Value<String>? receiptNumber,
     Value<int>? studentId,
+    Value<int?>? groupId,
+    Value<String>? type,
+    Value<String?>? monthYear,
     Value<double>? amount,
+    Value<double>? originalAmount,
+    Value<double>? remainingAmount,
     Value<DateTime>? paymentDate,
     Value<String>? method,
-    Value<int?>? recordedBy,
-    Value<bool>? isAdvance,
+    Value<String>? receiptNumber,
     Value<String?>? notes,
+    Value<int?>? recordedBy,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
     return PaymentsCompanion(
       id: id ?? this.id,
-      schoolId: schoolId ?? this.schoolId,
-      receiptNumber: receiptNumber ?? this.receiptNumber,
       studentId: studentId ?? this.studentId,
+      groupId: groupId ?? this.groupId,
+      type: type ?? this.type,
+      monthYear: monthYear ?? this.monthYear,
       amount: amount ?? this.amount,
+      originalAmount: originalAmount ?? this.originalAmount,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
       paymentDate: paymentDate ?? this.paymentDate,
       method: method ?? this.method,
-      recordedBy: recordedBy ?? this.recordedBy,
-      isAdvance: isAdvance ?? this.isAdvance,
+      receiptNumber: receiptNumber ?? this.receiptNumber,
       notes: notes ?? this.notes,
+      recordedBy: recordedBy ?? this.recordedBy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -9045,17 +9237,26 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (schoolId.present) {
-      map['school_id'] = Variable<int>(schoolId.value);
-    }
-    if (receiptNumber.present) {
-      map['receipt_number'] = Variable<String>(receiptNumber.value);
-    }
     if (studentId.present) {
       map['student_id'] = Variable<int>(studentId.value);
     }
+    if (groupId.present) {
+      map['group_id'] = Variable<int>(groupId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (monthYear.present) {
+      map['month_year'] = Variable<String>(monthYear.value);
+    }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (originalAmount.present) {
+      map['original_amount'] = Variable<double>(originalAmount.value);
+    }
+    if (remainingAmount.present) {
+      map['remaining_amount'] = Variable<double>(remainingAmount.value);
     }
     if (paymentDate.present) {
       map['payment_date'] = Variable<DateTime>(paymentDate.value);
@@ -9063,14 +9264,14 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
     if (method.present) {
       map['method'] = Variable<String>(method.value);
     }
-    if (recordedBy.present) {
-      map['recorded_by'] = Variable<int>(recordedBy.value);
-    }
-    if (isAdvance.present) {
-      map['is_advance'] = Variable<bool>(isAdvance.value);
+    if (receiptNumber.present) {
+      map['receipt_number'] = Variable<String>(receiptNumber.value);
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
+    }
+    if (recordedBy.present) {
+      map['recorded_by'] = Variable<int>(recordedBy.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -9085,15 +9286,18 @@ class PaymentsCompanion extends UpdateCompanion<Payment> {
   String toString() {
     return (StringBuffer('PaymentsCompanion(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
-          ..write('receiptNumber: $receiptNumber, ')
           ..write('studentId: $studentId, ')
+          ..write('groupId: $groupId, ')
+          ..write('type: $type, ')
+          ..write('monthYear: $monthYear, ')
           ..write('amount: $amount, ')
+          ..write('originalAmount: $originalAmount, ')
+          ..write('remainingAmount: $remainingAmount, ')
           ..write('paymentDate: $paymentDate, ')
           ..write('method: $method, ')
-          ..write('recordedBy: $recordedBy, ')
-          ..write('isAdvance: $isAdvance, ')
+          ..write('receiptNumber: $receiptNumber, ')
           ..write('notes: $notes, ')
+          ..write('recordedBy: $recordedBy, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -9678,18 +9882,6 @@ class $ExemptionsTable extends Exemptions
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _schoolIdMeta = const VerificationMeta(
-    'schoolId',
-  );
-  @override
-  late final GeneratedColumn<int> schoolId = GeneratedColumn<int>(
-    'school_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
-  );
   static const VerificationMeta _studentIdMeta = const VerificationMeta(
     'studentId',
   );
@@ -9701,15 +9893,13 @@ class $ExemptionsTable extends Exemptions
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _invoiceIdMeta = const VerificationMeta(
-    'invoiceId',
-  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
   @override
-  late final GeneratedColumn<int> invoiceId = GeneratedColumn<int>(
-    'invoice_id',
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
     aliasedName,
     false,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
   static const VerificationMeta _amountMeta = const VerificationMeta('amount');
@@ -9720,6 +9910,28 @@ class $ExemptionsTable extends Exemptions
     false,
     type: DriftSqlType.double,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _monthYearMeta = const VerificationMeta(
+    'monthYear',
+  );
+  @override
+  late final GeneratedColumn<String> monthYear = GeneratedColumn<String>(
+    'month_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _extraFeeIdMeta = const VerificationMeta(
+    'extraFeeId',
+  );
+  @override
+  late final GeneratedColumn<int> extraFeeId = GeneratedColumn<int>(
+    'extra_fee_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _reasonMeta = const VerificationMeta('reason');
   @override
@@ -9741,19 +9953,6 @@ class $ExemptionsTable extends Exemptions
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _exemptionDateMeta = const VerificationMeta(
-    'exemptionDate',
-  );
-  @override
-  late final GeneratedColumn<DateTime> exemptionDate =
-      GeneratedColumn<DateTime>(
-        'exemption_date',
-        aliasedName,
-        false,
-        type: DriftSqlType.dateTime,
-        requiredDuringInsert: false,
-        defaultValue: currentDateAndTime,
-      );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -9769,13 +9968,13 @@ class $ExemptionsTable extends Exemptions
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    schoolId,
     studentId,
-    invoiceId,
+    type,
     amount,
+    monthYear,
+    extraFeeId,
     reason,
     authorizedBy,
-    exemptionDate,
     createdAt,
   ];
   @override
@@ -9793,12 +9992,6 @@ class $ExemptionsTable extends Exemptions
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('school_id')) {
-      context.handle(
-        _schoolIdMeta,
-        schoolId.isAcceptableOrUnknown(data['school_id']!, _schoolIdMeta),
-      );
-    }
     if (data.containsKey('student_id')) {
       context.handle(
         _studentIdMeta,
@@ -9807,13 +10000,13 @@ class $ExemptionsTable extends Exemptions
     } else if (isInserting) {
       context.missing(_studentIdMeta);
     }
-    if (data.containsKey('invoice_id')) {
+    if (data.containsKey('type')) {
       context.handle(
-        _invoiceIdMeta,
-        invoiceId.isAcceptableOrUnknown(data['invoice_id']!, _invoiceIdMeta),
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
       );
     } else if (isInserting) {
-      context.missing(_invoiceIdMeta);
+      context.missing(_typeMeta);
     }
     if (data.containsKey('amount')) {
       context.handle(
@@ -9822,6 +10015,21 @@ class $ExemptionsTable extends Exemptions
       );
     } else if (isInserting) {
       context.missing(_amountMeta);
+    }
+    if (data.containsKey('month_year')) {
+      context.handle(
+        _monthYearMeta,
+        monthYear.isAcceptableOrUnknown(data['month_year']!, _monthYearMeta),
+      );
+    }
+    if (data.containsKey('extra_fee_id')) {
+      context.handle(
+        _extraFeeIdMeta,
+        extraFeeId.isAcceptableOrUnknown(
+          data['extra_fee_id']!,
+          _extraFeeIdMeta,
+        ),
+      );
     }
     if (data.containsKey('reason')) {
       context.handle(
@@ -9837,15 +10045,6 @@ class $ExemptionsTable extends Exemptions
         authorizedBy.isAcceptableOrUnknown(
           data['authorized_by']!,
           _authorizedByMeta,
-        ),
-      );
-    }
-    if (data.containsKey('exemption_date')) {
-      context.handle(
-        _exemptionDateMeta,
-        exemptionDate.isAcceptableOrUnknown(
-          data['exemption_date']!,
-          _exemptionDateMeta,
         ),
       );
     }
@@ -9868,22 +10067,26 @@ class $ExemptionsTable extends Exemptions
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      schoolId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}school_id'],
-      )!,
       studentId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}student_id'],
       )!,
-      invoiceId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}invoice_id'],
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
       )!,
       amount: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}amount'],
       )!,
+      monthYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}month_year'],
+      ),
+      extraFeeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}extra_fee_id'],
+      ),
       reason: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}reason'],
@@ -9892,10 +10095,6 @@ class $ExemptionsTable extends Exemptions
         DriftSqlType.int,
         data['${effectivePrefix}authorized_by'],
       ),
-      exemptionDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}exemption_date'],
-      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -9911,38 +10110,42 @@ class $ExemptionsTable extends Exemptions
 
 class Exemption extends DataClass implements Insertable<Exemption> {
   final int id;
-  final int schoolId;
   final int studentId;
-  final int invoiceId;
+  final String type;
   final double amount;
+  final String? monthYear;
+  final int? extraFeeId;
   final String reason;
   final int? authorizedBy;
-  final DateTime exemptionDate;
   final DateTime createdAt;
   const Exemption({
     required this.id,
-    required this.schoolId,
     required this.studentId,
-    required this.invoiceId,
+    required this.type,
     required this.amount,
+    this.monthYear,
+    this.extraFeeId,
     required this.reason,
     this.authorizedBy,
-    required this.exemptionDate,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['school_id'] = Variable<int>(schoolId);
     map['student_id'] = Variable<int>(studentId);
-    map['invoice_id'] = Variable<int>(invoiceId);
+    map['type'] = Variable<String>(type);
     map['amount'] = Variable<double>(amount);
+    if (!nullToAbsent || monthYear != null) {
+      map['month_year'] = Variable<String>(monthYear);
+    }
+    if (!nullToAbsent || extraFeeId != null) {
+      map['extra_fee_id'] = Variable<int>(extraFeeId);
+    }
     map['reason'] = Variable<String>(reason);
     if (!nullToAbsent || authorizedBy != null) {
       map['authorized_by'] = Variable<int>(authorizedBy);
     }
-    map['exemption_date'] = Variable<DateTime>(exemptionDate);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
@@ -9950,15 +10153,19 @@ class Exemption extends DataClass implements Insertable<Exemption> {
   ExemptionsCompanion toCompanion(bool nullToAbsent) {
     return ExemptionsCompanion(
       id: Value(id),
-      schoolId: Value(schoolId),
       studentId: Value(studentId),
-      invoiceId: Value(invoiceId),
+      type: Value(type),
       amount: Value(amount),
+      monthYear: monthYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(monthYear),
+      extraFeeId: extraFeeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(extraFeeId),
       reason: Value(reason),
       authorizedBy: authorizedBy == null && nullToAbsent
           ? const Value.absent()
           : Value(authorizedBy),
-      exemptionDate: Value(exemptionDate),
       createdAt: Value(createdAt),
     );
   }
@@ -9970,13 +10177,13 @@ class Exemption extends DataClass implements Insertable<Exemption> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Exemption(
       id: serializer.fromJson<int>(json['id']),
-      schoolId: serializer.fromJson<int>(json['schoolId']),
       studentId: serializer.fromJson<int>(json['studentId']),
-      invoiceId: serializer.fromJson<int>(json['invoiceId']),
+      type: serializer.fromJson<String>(json['type']),
       amount: serializer.fromJson<double>(json['amount']),
+      monthYear: serializer.fromJson<String?>(json['monthYear']),
+      extraFeeId: serializer.fromJson<int?>(json['extraFeeId']),
       reason: serializer.fromJson<String>(json['reason']),
       authorizedBy: serializer.fromJson<int?>(json['authorizedBy']),
-      exemptionDate: serializer.fromJson<DateTime>(json['exemptionDate']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -9985,52 +10192,52 @@ class Exemption extends DataClass implements Insertable<Exemption> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'schoolId': serializer.toJson<int>(schoolId),
       'studentId': serializer.toJson<int>(studentId),
-      'invoiceId': serializer.toJson<int>(invoiceId),
+      'type': serializer.toJson<String>(type),
       'amount': serializer.toJson<double>(amount),
+      'monthYear': serializer.toJson<String?>(monthYear),
+      'extraFeeId': serializer.toJson<int?>(extraFeeId),
       'reason': serializer.toJson<String>(reason),
       'authorizedBy': serializer.toJson<int?>(authorizedBy),
-      'exemptionDate': serializer.toJson<DateTime>(exemptionDate),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   Exemption copyWith({
     int? id,
-    int? schoolId,
     int? studentId,
-    int? invoiceId,
+    String? type,
     double? amount,
+    Value<String?> monthYear = const Value.absent(),
+    Value<int?> extraFeeId = const Value.absent(),
     String? reason,
     Value<int?> authorizedBy = const Value.absent(),
-    DateTime? exemptionDate,
     DateTime? createdAt,
   }) => Exemption(
     id: id ?? this.id,
-    schoolId: schoolId ?? this.schoolId,
     studentId: studentId ?? this.studentId,
-    invoiceId: invoiceId ?? this.invoiceId,
+    type: type ?? this.type,
     amount: amount ?? this.amount,
+    monthYear: monthYear.present ? monthYear.value : this.monthYear,
+    extraFeeId: extraFeeId.present ? extraFeeId.value : this.extraFeeId,
     reason: reason ?? this.reason,
     authorizedBy: authorizedBy.present ? authorizedBy.value : this.authorizedBy,
-    exemptionDate: exemptionDate ?? this.exemptionDate,
     createdAt: createdAt ?? this.createdAt,
   );
   Exemption copyWithCompanion(ExemptionsCompanion data) {
     return Exemption(
       id: data.id.present ? data.id.value : this.id,
-      schoolId: data.schoolId.present ? data.schoolId.value : this.schoolId,
       studentId: data.studentId.present ? data.studentId.value : this.studentId,
-      invoiceId: data.invoiceId.present ? data.invoiceId.value : this.invoiceId,
+      type: data.type.present ? data.type.value : this.type,
       amount: data.amount.present ? data.amount.value : this.amount,
+      monthYear: data.monthYear.present ? data.monthYear.value : this.monthYear,
+      extraFeeId: data.extraFeeId.present
+          ? data.extraFeeId.value
+          : this.extraFeeId,
       reason: data.reason.present ? data.reason.value : this.reason,
       authorizedBy: data.authorizedBy.present
           ? data.authorizedBy.value
           : this.authorizedBy,
-      exemptionDate: data.exemptionDate.present
-          ? data.exemptionDate.value
-          : this.exemptionDate,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -10039,13 +10246,13 @@ class Exemption extends DataClass implements Insertable<Exemption> {
   String toString() {
     return (StringBuffer('Exemption(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
           ..write('studentId: $studentId, ')
-          ..write('invoiceId: $invoiceId, ')
+          ..write('type: $type, ')
           ..write('amount: $amount, ')
+          ..write('monthYear: $monthYear, ')
+          ..write('extraFeeId: $extraFeeId, ')
           ..write('reason: $reason, ')
           ..write('authorizedBy: $authorizedBy, ')
-          ..write('exemptionDate: $exemptionDate, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -10054,13 +10261,13 @@ class Exemption extends DataClass implements Insertable<Exemption> {
   @override
   int get hashCode => Object.hash(
     id,
-    schoolId,
     studentId,
-    invoiceId,
+    type,
     amount,
+    monthYear,
+    extraFeeId,
     reason,
     authorizedBy,
-    exemptionDate,
     createdAt,
   );
   @override
@@ -10068,95 +10275,95 @@ class Exemption extends DataClass implements Insertable<Exemption> {
       identical(this, other) ||
       (other is Exemption &&
           other.id == this.id &&
-          other.schoolId == this.schoolId &&
           other.studentId == this.studentId &&
-          other.invoiceId == this.invoiceId &&
+          other.type == this.type &&
           other.amount == this.amount &&
+          other.monthYear == this.monthYear &&
+          other.extraFeeId == this.extraFeeId &&
           other.reason == this.reason &&
           other.authorizedBy == this.authorizedBy &&
-          other.exemptionDate == this.exemptionDate &&
           other.createdAt == this.createdAt);
 }
 
 class ExemptionsCompanion extends UpdateCompanion<Exemption> {
   final Value<int> id;
-  final Value<int> schoolId;
   final Value<int> studentId;
-  final Value<int> invoiceId;
+  final Value<String> type;
   final Value<double> amount;
+  final Value<String?> monthYear;
+  final Value<int?> extraFeeId;
   final Value<String> reason;
   final Value<int?> authorizedBy;
-  final Value<DateTime> exemptionDate;
   final Value<DateTime> createdAt;
   const ExemptionsCompanion({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
     this.studentId = const Value.absent(),
-    this.invoiceId = const Value.absent(),
+    this.type = const Value.absent(),
     this.amount = const Value.absent(),
+    this.monthYear = const Value.absent(),
+    this.extraFeeId = const Value.absent(),
     this.reason = const Value.absent(),
     this.authorizedBy = const Value.absent(),
-    this.exemptionDate = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   ExemptionsCompanion.insert({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
     required int studentId,
-    required int invoiceId,
+    required String type,
     required double amount,
+    this.monthYear = const Value.absent(),
+    this.extraFeeId = const Value.absent(),
     required String reason,
     this.authorizedBy = const Value.absent(),
-    this.exemptionDate = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : studentId = Value(studentId),
-       invoiceId = Value(invoiceId),
+       type = Value(type),
        amount = Value(amount),
        reason = Value(reason);
   static Insertable<Exemption> custom({
     Expression<int>? id,
-    Expression<int>? schoolId,
     Expression<int>? studentId,
-    Expression<int>? invoiceId,
+    Expression<String>? type,
     Expression<double>? amount,
+    Expression<String>? monthYear,
+    Expression<int>? extraFeeId,
     Expression<String>? reason,
     Expression<int>? authorizedBy,
-    Expression<DateTime>? exemptionDate,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (schoolId != null) 'school_id': schoolId,
       if (studentId != null) 'student_id': studentId,
-      if (invoiceId != null) 'invoice_id': invoiceId,
+      if (type != null) 'type': type,
       if (amount != null) 'amount': amount,
+      if (monthYear != null) 'month_year': monthYear,
+      if (extraFeeId != null) 'extra_fee_id': extraFeeId,
       if (reason != null) 'reason': reason,
       if (authorizedBy != null) 'authorized_by': authorizedBy,
-      if (exemptionDate != null) 'exemption_date': exemptionDate,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
 
   ExemptionsCompanion copyWith({
     Value<int>? id,
-    Value<int>? schoolId,
     Value<int>? studentId,
-    Value<int>? invoiceId,
+    Value<String>? type,
     Value<double>? amount,
+    Value<String?>? monthYear,
+    Value<int?>? extraFeeId,
     Value<String>? reason,
     Value<int?>? authorizedBy,
-    Value<DateTime>? exemptionDate,
     Value<DateTime>? createdAt,
   }) {
     return ExemptionsCompanion(
       id: id ?? this.id,
-      schoolId: schoolId ?? this.schoolId,
       studentId: studentId ?? this.studentId,
-      invoiceId: invoiceId ?? this.invoiceId,
+      type: type ?? this.type,
       amount: amount ?? this.amount,
+      monthYear: monthYear ?? this.monthYear,
+      extraFeeId: extraFeeId ?? this.extraFeeId,
       reason: reason ?? this.reason,
       authorizedBy: authorizedBy ?? this.authorizedBy,
-      exemptionDate: exemptionDate ?? this.exemptionDate,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -10167,26 +10374,26 @@ class ExemptionsCompanion extends UpdateCompanion<Exemption> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (schoolId.present) {
-      map['school_id'] = Variable<int>(schoolId.value);
-    }
     if (studentId.present) {
       map['student_id'] = Variable<int>(studentId.value);
     }
-    if (invoiceId.present) {
-      map['invoice_id'] = Variable<int>(invoiceId.value);
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
     }
     if (amount.present) {
       map['amount'] = Variable<double>(amount.value);
+    }
+    if (monthYear.present) {
+      map['month_year'] = Variable<String>(monthYear.value);
+    }
+    if (extraFeeId.present) {
+      map['extra_fee_id'] = Variable<int>(extraFeeId.value);
     }
     if (reason.present) {
       map['reason'] = Variable<String>(reason.value);
     }
     if (authorizedBy.present) {
       map['authorized_by'] = Variable<int>(authorizedBy.value);
-    }
-    if (exemptionDate.present) {
-      map['exemption_date'] = Variable<DateTime>(exemptionDate.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -10198,13 +10405,13 @@ class ExemptionsCompanion extends UpdateCompanion<Exemption> {
   String toString() {
     return (StringBuffer('ExemptionsCompanion(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
           ..write('studentId: $studentId, ')
-          ..write('invoiceId: $invoiceId, ')
+          ..write('type: $type, ')
           ..write('amount: $amount, ')
+          ..write('monthYear: $monthYear, ')
+          ..write('extraFeeId: $extraFeeId, ')
           ..write('reason: $reason, ')
           ..write('authorizedBy: $authorizedBy, ')
-          ..write('exemptionDate: $exemptionDate, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -12764,6 +12971,1096 @@ class AuditLogsCompanion extends UpdateCompanion<AuditLog> {
   }
 }
 
+class $ExtraFeesTable extends ExtraFees
+    with TableInfo<$ExtraFeesTable, ExtraFee> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExtraFeesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<int> studentId = GeneratedColumn<int>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalAmountMeta = const VerificationMeta(
+    'totalAmount',
+  );
+  @override
+  late final GeneratedColumn<double> totalAmount = GeneratedColumn<double>(
+    'total_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paidAmountMeta = const VerificationMeta(
+    'paidAmount',
+  );
+  @override
+  late final GeneratedColumn<double> paidAmount = GeneratedColumn<double>(
+    'paid_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _remainingAmountMeta = const VerificationMeta(
+    'remainingAmount',
+  );
+  @override
+  late final GeneratedColumn<double> remainingAmount = GeneratedColumn<double>(
+    'remaining_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unpaid'),
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
+    'due_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    studentId,
+    description,
+    totalAmount,
+    paidAmount,
+    remainingAmount,
+    status,
+    dueDate,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'extra_fees';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExtraFee> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('total_amount')) {
+      context.handle(
+        _totalAmountMeta,
+        totalAmount.isAcceptableOrUnknown(
+          data['total_amount']!,
+          _totalAmountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_totalAmountMeta);
+    }
+    if (data.containsKey('paid_amount')) {
+      context.handle(
+        _paidAmountMeta,
+        paidAmount.isAcceptableOrUnknown(data['paid_amount']!, _paidAmountMeta),
+      );
+    }
+    if (data.containsKey('remaining_amount')) {
+      context.handle(
+        _remainingAmountMeta,
+        remainingAmount.isAcceptableOrUnknown(
+          data['remaining_amount']!,
+          _remainingAmountMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remainingAmountMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ExtraFee map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExtraFee(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}student_id'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      totalAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total_amount'],
+      )!,
+      paidAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}paid_amount'],
+      )!,
+      remainingAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}remaining_amount'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_date'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExtraFeesTable createAlias(String alias) {
+    return $ExtraFeesTable(attachedDatabase, alias);
+  }
+}
+
+class ExtraFee extends DataClass implements Insertable<ExtraFee> {
+  final int id;
+  final int studentId;
+  final String description;
+  final double totalAmount;
+  final double paidAmount;
+  final double remainingAmount;
+  final String status;
+  final DateTime? dueDate;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const ExtraFee({
+    required this.id,
+    required this.studentId,
+    required this.description,
+    required this.totalAmount,
+    required this.paidAmount,
+    required this.remainingAmount,
+    required this.status,
+    this.dueDate,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['student_id'] = Variable<int>(studentId);
+    map['description'] = Variable<String>(description);
+    map['total_amount'] = Variable<double>(totalAmount);
+    map['paid_amount'] = Variable<double>(paidAmount);
+    map['remaining_amount'] = Variable<double>(remainingAmount);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || dueDate != null) {
+      map['due_date'] = Variable<DateTime>(dueDate);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  ExtraFeesCompanion toCompanion(bool nullToAbsent) {
+    return ExtraFeesCompanion(
+      id: Value(id),
+      studentId: Value(studentId),
+      description: Value(description),
+      totalAmount: Value(totalAmount),
+      paidAmount: Value(paidAmount),
+      remainingAmount: Value(remainingAmount),
+      status: Value(status),
+      dueDate: dueDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueDate),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ExtraFee.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExtraFee(
+      id: serializer.fromJson<int>(json['id']),
+      studentId: serializer.fromJson<int>(json['studentId']),
+      description: serializer.fromJson<String>(json['description']),
+      totalAmount: serializer.fromJson<double>(json['totalAmount']),
+      paidAmount: serializer.fromJson<double>(json['paidAmount']),
+      remainingAmount: serializer.fromJson<double>(json['remainingAmount']),
+      status: serializer.fromJson<String>(json['status']),
+      dueDate: serializer.fromJson<DateTime?>(json['dueDate']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'studentId': serializer.toJson<int>(studentId),
+      'description': serializer.toJson<String>(description),
+      'totalAmount': serializer.toJson<double>(totalAmount),
+      'paidAmount': serializer.toJson<double>(paidAmount),
+      'remainingAmount': serializer.toJson<double>(remainingAmount),
+      'status': serializer.toJson<String>(status),
+      'dueDate': serializer.toJson<DateTime?>(dueDate),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  ExtraFee copyWith({
+    int? id,
+    int? studentId,
+    String? description,
+    double? totalAmount,
+    double? paidAmount,
+    double? remainingAmount,
+    String? status,
+    Value<DateTime?> dueDate = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => ExtraFee(
+    id: id ?? this.id,
+    studentId: studentId ?? this.studentId,
+    description: description ?? this.description,
+    totalAmount: totalAmount ?? this.totalAmount,
+    paidAmount: paidAmount ?? this.paidAmount,
+    remainingAmount: remainingAmount ?? this.remainingAmount,
+    status: status ?? this.status,
+    dueDate: dueDate.present ? dueDate.value : this.dueDate,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  ExtraFee copyWithCompanion(ExtraFeesCompanion data) {
+    return ExtraFee(
+      id: data.id.present ? data.id.value : this.id,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      totalAmount: data.totalAmount.present
+          ? data.totalAmount.value
+          : this.totalAmount,
+      paidAmount: data.paidAmount.present
+          ? data.paidAmount.value
+          : this.paidAmount,
+      remainingAmount: data.remainingAmount.present
+          ? data.remainingAmount.value
+          : this.remainingAmount,
+      status: data.status.present ? data.status.value : this.status,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExtraFee(')
+          ..write('id: $id, ')
+          ..write('studentId: $studentId, ')
+          ..write('description: $description, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('paidAmount: $paidAmount, ')
+          ..write('remainingAmount: $remainingAmount, ')
+          ..write('status: $status, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    studentId,
+    description,
+    totalAmount,
+    paidAmount,
+    remainingAmount,
+    status,
+    dueDate,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExtraFee &&
+          other.id == this.id &&
+          other.studentId == this.studentId &&
+          other.description == this.description &&
+          other.totalAmount == this.totalAmount &&
+          other.paidAmount == this.paidAmount &&
+          other.remainingAmount == this.remainingAmount &&
+          other.status == this.status &&
+          other.dueDate == this.dueDate &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ExtraFeesCompanion extends UpdateCompanion<ExtraFee> {
+  final Value<int> id;
+  final Value<int> studentId;
+  final Value<String> description;
+  final Value<double> totalAmount;
+  final Value<double> paidAmount;
+  final Value<double> remainingAmount;
+  final Value<String> status;
+  final Value<DateTime?> dueDate;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const ExtraFeesCompanion({
+    this.id = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.description = const Value.absent(),
+    this.totalAmount = const Value.absent(),
+    this.paidAmount = const Value.absent(),
+    this.remainingAmount = const Value.absent(),
+    this.status = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ExtraFeesCompanion.insert({
+    this.id = const Value.absent(),
+    required int studentId,
+    required String description,
+    required double totalAmount,
+    this.paidAmount = const Value.absent(),
+    required double remainingAmount,
+    this.status = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : studentId = Value(studentId),
+       description = Value(description),
+       totalAmount = Value(totalAmount),
+       remainingAmount = Value(remainingAmount);
+  static Insertable<ExtraFee> custom({
+    Expression<int>? id,
+    Expression<int>? studentId,
+    Expression<String>? description,
+    Expression<double>? totalAmount,
+    Expression<double>? paidAmount,
+    Expression<double>? remainingAmount,
+    Expression<String>? status,
+    Expression<DateTime>? dueDate,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (studentId != null) 'student_id': studentId,
+      if (description != null) 'description': description,
+      if (totalAmount != null) 'total_amount': totalAmount,
+      if (paidAmount != null) 'paid_amount': paidAmount,
+      if (remainingAmount != null) 'remaining_amount': remainingAmount,
+      if (status != null) 'status': status,
+      if (dueDate != null) 'due_date': dueDate,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ExtraFeesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? studentId,
+    Value<String>? description,
+    Value<double>? totalAmount,
+    Value<double>? paidAmount,
+    Value<double>? remainingAmount,
+    Value<String>? status,
+    Value<DateTime?>? dueDate,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return ExtraFeesCompanion(
+      id: id ?? this.id,
+      studentId: studentId ?? this.studentId,
+      description: description ?? this.description,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paidAmount: paidAmount ?? this.paidAmount,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
+      status: status ?? this.status,
+      dueDate: dueDate ?? this.dueDate,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<int>(studentId.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (totalAmount.present) {
+      map['total_amount'] = Variable<double>(totalAmount.value);
+    }
+    if (paidAmount.present) {
+      map['paid_amount'] = Variable<double>(paidAmount.value);
+    }
+    if (remainingAmount.present) {
+      map['remaining_amount'] = Variable<double>(remainingAmount.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<DateTime>(dueDate.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExtraFeesCompanion(')
+          ..write('id: $id, ')
+          ..write('studentId: $studentId, ')
+          ..write('description: $description, ')
+          ..write('totalAmount: $totalAmount, ')
+          ..write('paidAmount: $paidAmount, ')
+          ..write('remainingAmount: $remainingAmount, ')
+          ..write('status: $status, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FeeSettingsTable extends FeeSettings
+    with TableInfo<$FeeSettingsTable, FeeSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FeeSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _registrationFeeEnabledMeta =
+      const VerificationMeta('registrationFeeEnabled');
+  @override
+  late final GeneratedColumn<bool> registrationFeeEnabled =
+      GeneratedColumn<bool>(
+        'registration_fee_enabled',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("registration_fee_enabled" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
+  static const VerificationMeta _registrationFeeAmountMeta =
+      const VerificationMeta('registrationFeeAmount');
+  @override
+  late final GeneratedColumn<double> registrationFeeAmount =
+      GeneratedColumn<double>(
+        'registration_fee_amount',
+        aliasedName,
+        false,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      );
+  static const VerificationMeta _discount3MonthsMeta = const VerificationMeta(
+    'discount3Months',
+  );
+  @override
+  late final GeneratedColumn<double> discount3Months = GeneratedColumn<double>(
+    'discount3_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _discount6MonthsMeta = const VerificationMeta(
+    'discount6Months',
+  );
+  @override
+  late final GeneratedColumn<double> discount6Months = GeneratedColumn<double>(
+    'discount6_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _discount12MonthsMeta = const VerificationMeta(
+    'discount12Months',
+  );
+  @override
+  late final GeneratedColumn<double> discount12Months = GeneratedColumn<double>(
+    'discount12_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    registrationFeeEnabled,
+    registrationFeeAmount,
+    discount3Months,
+    discount6Months,
+    discount12Months,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fee_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FeeSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('registration_fee_enabled')) {
+      context.handle(
+        _registrationFeeEnabledMeta,
+        registrationFeeEnabled.isAcceptableOrUnknown(
+          data['registration_fee_enabled']!,
+          _registrationFeeEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('registration_fee_amount')) {
+      context.handle(
+        _registrationFeeAmountMeta,
+        registrationFeeAmount.isAcceptableOrUnknown(
+          data['registration_fee_amount']!,
+          _registrationFeeAmountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('discount3_months')) {
+      context.handle(
+        _discount3MonthsMeta,
+        discount3Months.isAcceptableOrUnknown(
+          data['discount3_months']!,
+          _discount3MonthsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('discount6_months')) {
+      context.handle(
+        _discount6MonthsMeta,
+        discount6Months.isAcceptableOrUnknown(
+          data['discount6_months']!,
+          _discount6MonthsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('discount12_months')) {
+      context.handle(
+        _discount12MonthsMeta,
+        discount12Months.isAcceptableOrUnknown(
+          data['discount12_months']!,
+          _discount12MonthsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FeeSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FeeSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      registrationFeeEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}registration_fee_enabled'],
+      )!,
+      registrationFeeAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}registration_fee_amount'],
+      )!,
+      discount3Months: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}discount3_months'],
+      )!,
+      discount6Months: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}discount6_months'],
+      )!,
+      discount12Months: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}discount12_months'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FeeSettingsTable createAlias(String alias) {
+    return $FeeSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class FeeSetting extends DataClass implements Insertable<FeeSetting> {
+  final int id;
+  final bool registrationFeeEnabled;
+  final double registrationFeeAmount;
+  final double discount3Months;
+  final double discount6Months;
+  final double discount12Months;
+  final DateTime updatedAt;
+  const FeeSetting({
+    required this.id,
+    required this.registrationFeeEnabled,
+    required this.registrationFeeAmount,
+    required this.discount3Months,
+    required this.discount6Months,
+    required this.discount12Months,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['registration_fee_enabled'] = Variable<bool>(registrationFeeEnabled);
+    map['registration_fee_amount'] = Variable<double>(registrationFeeAmount);
+    map['discount3_months'] = Variable<double>(discount3Months);
+    map['discount6_months'] = Variable<double>(discount6Months);
+    map['discount12_months'] = Variable<double>(discount12Months);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  FeeSettingsCompanion toCompanion(bool nullToAbsent) {
+    return FeeSettingsCompanion(
+      id: Value(id),
+      registrationFeeEnabled: Value(registrationFeeEnabled),
+      registrationFeeAmount: Value(registrationFeeAmount),
+      discount3Months: Value(discount3Months),
+      discount6Months: Value(discount6Months),
+      discount12Months: Value(discount12Months),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory FeeSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FeeSetting(
+      id: serializer.fromJson<int>(json['id']),
+      registrationFeeEnabled: serializer.fromJson<bool>(
+        json['registrationFeeEnabled'],
+      ),
+      registrationFeeAmount: serializer.fromJson<double>(
+        json['registrationFeeAmount'],
+      ),
+      discount3Months: serializer.fromJson<double>(json['discount3Months']),
+      discount6Months: serializer.fromJson<double>(json['discount6Months']),
+      discount12Months: serializer.fromJson<double>(json['discount12Months']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'registrationFeeEnabled': serializer.toJson<bool>(registrationFeeEnabled),
+      'registrationFeeAmount': serializer.toJson<double>(registrationFeeAmount),
+      'discount3Months': serializer.toJson<double>(discount3Months),
+      'discount6Months': serializer.toJson<double>(discount6Months),
+      'discount12Months': serializer.toJson<double>(discount12Months),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  FeeSetting copyWith({
+    int? id,
+    bool? registrationFeeEnabled,
+    double? registrationFeeAmount,
+    double? discount3Months,
+    double? discount6Months,
+    double? discount12Months,
+    DateTime? updatedAt,
+  }) => FeeSetting(
+    id: id ?? this.id,
+    registrationFeeEnabled:
+        registrationFeeEnabled ?? this.registrationFeeEnabled,
+    registrationFeeAmount: registrationFeeAmount ?? this.registrationFeeAmount,
+    discount3Months: discount3Months ?? this.discount3Months,
+    discount6Months: discount6Months ?? this.discount6Months,
+    discount12Months: discount12Months ?? this.discount12Months,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  FeeSetting copyWithCompanion(FeeSettingsCompanion data) {
+    return FeeSetting(
+      id: data.id.present ? data.id.value : this.id,
+      registrationFeeEnabled: data.registrationFeeEnabled.present
+          ? data.registrationFeeEnabled.value
+          : this.registrationFeeEnabled,
+      registrationFeeAmount: data.registrationFeeAmount.present
+          ? data.registrationFeeAmount.value
+          : this.registrationFeeAmount,
+      discount3Months: data.discount3Months.present
+          ? data.discount3Months.value
+          : this.discount3Months,
+      discount6Months: data.discount6Months.present
+          ? data.discount6Months.value
+          : this.discount6Months,
+      discount12Months: data.discount12Months.present
+          ? data.discount12Months.value
+          : this.discount12Months,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeeSetting(')
+          ..write('id: $id, ')
+          ..write('registrationFeeEnabled: $registrationFeeEnabled, ')
+          ..write('registrationFeeAmount: $registrationFeeAmount, ')
+          ..write('discount3Months: $discount3Months, ')
+          ..write('discount6Months: $discount6Months, ')
+          ..write('discount12Months: $discount12Months, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    registrationFeeEnabled,
+    registrationFeeAmount,
+    discount3Months,
+    discount6Months,
+    discount12Months,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FeeSetting &&
+          other.id == this.id &&
+          other.registrationFeeEnabled == this.registrationFeeEnabled &&
+          other.registrationFeeAmount == this.registrationFeeAmount &&
+          other.discount3Months == this.discount3Months &&
+          other.discount6Months == this.discount6Months &&
+          other.discount12Months == this.discount12Months &&
+          other.updatedAt == this.updatedAt);
+}
+
+class FeeSettingsCompanion extends UpdateCompanion<FeeSetting> {
+  final Value<int> id;
+  final Value<bool> registrationFeeEnabled;
+  final Value<double> registrationFeeAmount;
+  final Value<double> discount3Months;
+  final Value<double> discount6Months;
+  final Value<double> discount12Months;
+  final Value<DateTime> updatedAt;
+  const FeeSettingsCompanion({
+    this.id = const Value.absent(),
+    this.registrationFeeEnabled = const Value.absent(),
+    this.registrationFeeAmount = const Value.absent(),
+    this.discount3Months = const Value.absent(),
+    this.discount6Months = const Value.absent(),
+    this.discount12Months = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  FeeSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.registrationFeeEnabled = const Value.absent(),
+    this.registrationFeeAmount = const Value.absent(),
+    this.discount3Months = const Value.absent(),
+    this.discount6Months = const Value.absent(),
+    this.discount12Months = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<FeeSetting> custom({
+    Expression<int>? id,
+    Expression<bool>? registrationFeeEnabled,
+    Expression<double>? registrationFeeAmount,
+    Expression<double>? discount3Months,
+    Expression<double>? discount6Months,
+    Expression<double>? discount12Months,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (registrationFeeEnabled != null)
+        'registration_fee_enabled': registrationFeeEnabled,
+      if (registrationFeeAmount != null)
+        'registration_fee_amount': registrationFeeAmount,
+      if (discount3Months != null) 'discount3_months': discount3Months,
+      if (discount6Months != null) 'discount6_months': discount6Months,
+      if (discount12Months != null) 'discount12_months': discount12Months,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  FeeSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<bool>? registrationFeeEnabled,
+    Value<double>? registrationFeeAmount,
+    Value<double>? discount3Months,
+    Value<double>? discount6Months,
+    Value<double>? discount12Months,
+    Value<DateTime>? updatedAt,
+  }) {
+    return FeeSettingsCompanion(
+      id: id ?? this.id,
+      registrationFeeEnabled:
+          registrationFeeEnabled ?? this.registrationFeeEnabled,
+      registrationFeeAmount:
+          registrationFeeAmount ?? this.registrationFeeAmount,
+      discount3Months: discount3Months ?? this.discount3Months,
+      discount6Months: discount6Months ?? this.discount6Months,
+      discount12Months: discount12Months ?? this.discount12Months,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (registrationFeeEnabled.present) {
+      map['registration_fee_enabled'] = Variable<bool>(
+        registrationFeeEnabled.value,
+      );
+    }
+    if (registrationFeeAmount.present) {
+      map['registration_fee_amount'] = Variable<double>(
+        registrationFeeAmount.value,
+      );
+    }
+    if (discount3Months.present) {
+      map['discount3_months'] = Variable<double>(discount3Months.value);
+    }
+    if (discount6Months.present) {
+      map['discount6_months'] = Variable<double>(discount6Months.value);
+    }
+    if (discount12Months.present) {
+      map['discount12_months'] = Variable<double>(discount12Months.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeeSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('registrationFeeEnabled: $registrationFeeEnabled, ')
+          ..write('registrationFeeAmount: $registrationFeeAmount, ')
+          ..write('discount3Months: $discount3Months, ')
+          ..write('discount6Months: $discount6Months, ')
+          ..write('discount12Months: $discount12Months, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -12788,6 +14085,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ExamResultsTable examResults = $ExamResultsTable(this);
   late final $NotificationsTable notifications = $NotificationsTable(this);
   late final $AuditLogsTable auditLogs = $AuditLogsTable(this);
+  late final $ExtraFeesTable extraFees = $ExtraFeesTable(this);
+  late final $FeeSettingsTable feeSettings = $FeeSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -12814,6 +14113,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     examResults,
     notifications,
     auditLogs,
+    extraFees,
+    feeSettings,
   ];
 }
 
@@ -15502,6 +16803,7 @@ typedef $$StudentsTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<double> registrationFee,
     });
 typedef $$StudentsTableUpdateCompanionBuilder =
     StudentsCompanion Function({
@@ -15520,6 +16822,7 @@ typedef $$StudentsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<double> registrationFee,
     });
 
 class $$StudentsTableFilterComposer
@@ -15603,6 +16906,11 @@ class $$StudentsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get registrationFee => $composableBuilder(
+    column: $table.registrationFee,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -15690,6 +16998,11 @@ class $$StudentsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<double> get registrationFee => $composableBuilder(
+    column: $table.registrationFee,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$StudentsTableAnnotationComposer
@@ -15751,6 +17064,11 @@ class $$StudentsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<double> get registrationFee => $composableBuilder(
+    column: $table.registrationFee,
+    builder: (column) => column,
+  );
 }
 
 class $$StudentsTableTableManager
@@ -15796,6 +17114,7 @@ class $$StudentsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<double> registrationFee = const Value.absent(),
               }) => StudentsCompanion(
                 id: id,
                 schoolId: schoolId,
@@ -15812,6 +17131,7 @@ class $$StudentsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                registrationFee: registrationFee,
               ),
           createCompanionCallback:
               ({
@@ -15830,6 +17150,7 @@ class $$StudentsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<double> registrationFee = const Value.absent(),
               }) => StudentsCompanion.insert(
                 id: id,
                 schoolId: schoolId,
@@ -15846,6 +17167,7 @@ class $$StudentsTableTableManager
                 notes: notes,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                registrationFee: registrationFee,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -17494,30 +18816,36 @@ typedef $$InvoicesTableProcessedTableManager =
 typedef $$PaymentsTableCreateCompanionBuilder =
     PaymentsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
-      required String receiptNumber,
       required int studentId,
+      Value<int?> groupId,
+      required String type,
+      Value<String?> monthYear,
       required double amount,
+      required double originalAmount,
+      Value<double> remainingAmount,
       Value<DateTime> paymentDate,
       Value<String> method,
-      Value<int?> recordedBy,
-      Value<bool> isAdvance,
+      required String receiptNumber,
       Value<String?> notes,
+      Value<int?> recordedBy,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
 typedef $$PaymentsTableUpdateCompanionBuilder =
     PaymentsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
-      Value<String> receiptNumber,
       Value<int> studentId,
+      Value<int?> groupId,
+      Value<String> type,
+      Value<String?> monthYear,
       Value<double> amount,
+      Value<double> originalAmount,
+      Value<double> remainingAmount,
       Value<DateTime> paymentDate,
       Value<String> method,
-      Value<int?> recordedBy,
-      Value<bool> isAdvance,
+      Value<String> receiptNumber,
       Value<String?> notes,
+      Value<int?> recordedBy,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -17536,23 +18864,38 @@ class $$PaymentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get receiptNumber => $composableBuilder(
-    column: $table.receiptNumber,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get studentId => $composableBuilder(
     column: $table.studentId,
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get monthYear => $composableBuilder(
+    column: $table.monthYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get originalAmount => $composableBuilder(
+    column: $table.originalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17566,18 +18909,18 @@ class $$PaymentsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get recordedBy => $composableBuilder(
-    column: $table.recordedBy,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<bool> get isAdvance => $composableBuilder(
-    column: $table.isAdvance,
+  ColumnFilters<String> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recordedBy => $composableBuilder(
+    column: $table.recordedBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17606,23 +18949,38 @@ class $$PaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get receiptNumber => $composableBuilder(
-    column: $table.receiptNumber,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get studentId => $composableBuilder(
     column: $table.studentId,
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get monthYear => $composableBuilder(
+    column: $table.monthYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get originalAmount => $composableBuilder(
+    column: $table.originalAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17636,18 +18994,18 @@ class $$PaymentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get recordedBy => $composableBuilder(
-    column: $table.recordedBy,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get isAdvance => $composableBuilder(
-    column: $table.isAdvance,
+  ColumnOrderings<String> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recordedBy => $composableBuilder(
+    column: $table.recordedBy,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17674,19 +19032,30 @@ class $$PaymentsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get schoolId =>
-      $composableBuilder(column: $table.schoolId, builder: (column) => column);
-
-  GeneratedColumn<String> get receiptNumber => $composableBuilder(
-    column: $table.receiptNumber,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<int> get studentId =>
       $composableBuilder(column: $table.studentId, builder: (column) => column);
 
+  GeneratedColumn<int> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get monthYear =>
+      $composableBuilder(column: $table.monthYear, builder: (column) => column);
+
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<double> get originalAmount => $composableBuilder(
+    column: $table.originalAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get paymentDate => $composableBuilder(
     column: $table.paymentDate,
@@ -17696,16 +19065,18 @@ class $$PaymentsTableAnnotationComposer
   GeneratedColumn<String> get method =>
       $composableBuilder(column: $table.method, builder: (column) => column);
 
+  GeneratedColumn<String> get receiptNumber => $composableBuilder(
+    column: $table.receiptNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
   GeneratedColumn<int> get recordedBy => $composableBuilder(
     column: $table.recordedBy,
     builder: (column) => column,
   );
-
-  GeneratedColumn<bool> get isAdvance =>
-      $composableBuilder(column: $table.isAdvance, builder: (column) => column);
-
-  GeneratedColumn<String> get notes =>
-      $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -17743,56 +19114,68 @@ class $$PaymentsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
-                Value<String> receiptNumber = const Value.absent(),
                 Value<int> studentId = const Value.absent(),
+                Value<int?> groupId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String?> monthYear = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<double> originalAmount = const Value.absent(),
+                Value<double> remainingAmount = const Value.absent(),
                 Value<DateTime> paymentDate = const Value.absent(),
                 Value<String> method = const Value.absent(),
-                Value<int?> recordedBy = const Value.absent(),
-                Value<bool> isAdvance = const Value.absent(),
+                Value<String> receiptNumber = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<int?> recordedBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => PaymentsCompanion(
                 id: id,
-                schoolId: schoolId,
-                receiptNumber: receiptNumber,
                 studentId: studentId,
+                groupId: groupId,
+                type: type,
+                monthYear: monthYear,
                 amount: amount,
+                originalAmount: originalAmount,
+                remainingAmount: remainingAmount,
                 paymentDate: paymentDate,
                 method: method,
-                recordedBy: recordedBy,
-                isAdvance: isAdvance,
+                receiptNumber: receiptNumber,
                 notes: notes,
+                recordedBy: recordedBy,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
-                required String receiptNumber,
                 required int studentId,
+                Value<int?> groupId = const Value.absent(),
+                required String type,
+                Value<String?> monthYear = const Value.absent(),
                 required double amount,
+                required double originalAmount,
+                Value<double> remainingAmount = const Value.absent(),
                 Value<DateTime> paymentDate = const Value.absent(),
                 Value<String> method = const Value.absent(),
-                Value<int?> recordedBy = const Value.absent(),
-                Value<bool> isAdvance = const Value.absent(),
+                required String receiptNumber,
                 Value<String?> notes = const Value.absent(),
+                Value<int?> recordedBy = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => PaymentsCompanion.insert(
                 id: id,
-                schoolId: schoolId,
-                receiptNumber: receiptNumber,
                 studentId: studentId,
+                groupId: groupId,
+                type: type,
+                monthYear: monthYear,
                 amount: amount,
+                originalAmount: originalAmount,
+                remainingAmount: remainingAmount,
                 paymentDate: paymentDate,
                 method: method,
-                recordedBy: recordedBy,
-                isAdvance: isAdvance,
+                receiptNumber: receiptNumber,
                 notes: notes,
+                recordedBy: recordedBy,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -18091,25 +19474,25 @@ typedef $$DiscountsTableProcessedTableManager =
 typedef $$ExemptionsTableCreateCompanionBuilder =
     ExemptionsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
       required int studentId,
-      required int invoiceId,
+      required String type,
       required double amount,
+      Value<String?> monthYear,
+      Value<int?> extraFeeId,
       required String reason,
       Value<int?> authorizedBy,
-      Value<DateTime> exemptionDate,
       Value<DateTime> createdAt,
     });
 typedef $$ExemptionsTableUpdateCompanionBuilder =
     ExemptionsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
       Value<int> studentId,
-      Value<int> invoiceId,
+      Value<String> type,
       Value<double> amount,
+      Value<String?> monthYear,
+      Value<int?> extraFeeId,
       Value<String> reason,
       Value<int?> authorizedBy,
-      Value<DateTime> exemptionDate,
       Value<DateTime> createdAt,
     });
 
@@ -18127,23 +19510,28 @@ class $$ExemptionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<int> get studentId => $composableBuilder(
     column: $table.studentId,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get invoiceId => $composableBuilder(
-    column: $table.invoiceId,
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get monthYear => $composableBuilder(
+    column: $table.monthYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get extraFeeId => $composableBuilder(
+    column: $table.extraFeeId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18154,11 +19542,6 @@ class $$ExemptionsTableFilterComposer
 
   ColumnFilters<int> get authorizedBy => $composableBuilder(
     column: $table.authorizedBy,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get exemptionDate => $composableBuilder(
-    column: $table.exemptionDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -18182,23 +19565,28 @@ class $$ExemptionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<int> get studentId => $composableBuilder(
     column: $table.studentId,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get invoiceId => $composableBuilder(
-    column: $table.invoiceId,
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<double> get amount => $composableBuilder(
     column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get monthYear => $composableBuilder(
+    column: $table.monthYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get extraFeeId => $composableBuilder(
+    column: $table.extraFeeId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -18209,11 +19597,6 @@ class $$ExemptionsTableOrderingComposer
 
   ColumnOrderings<int> get authorizedBy => $composableBuilder(
     column: $table.authorizedBy,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get exemptionDate => $composableBuilder(
-    column: $table.exemptionDate,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -18235,28 +19618,28 @@ class $$ExemptionsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get schoolId =>
-      $composableBuilder(column: $table.schoolId, builder: (column) => column);
-
   GeneratedColumn<int> get studentId =>
       $composableBuilder(column: $table.studentId, builder: (column) => column);
 
-  GeneratedColumn<int> get invoiceId =>
-      $composableBuilder(column: $table.invoiceId, builder: (column) => column);
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<double> get amount =>
       $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get monthYear =>
+      $composableBuilder(column: $table.monthYear, builder: (column) => column);
+
+  GeneratedColumn<int> get extraFeeId => $composableBuilder(
+    column: $table.extraFeeId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get reason =>
       $composableBuilder(column: $table.reason, builder: (column) => column);
 
   GeneratedColumn<int> get authorizedBy => $composableBuilder(
     column: $table.authorizedBy,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get exemptionDate => $composableBuilder(
-    column: $table.exemptionDate,
     builder: (column) => column,
   );
 
@@ -18296,45 +19679,45 @@ class $$ExemptionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
                 Value<int> studentId = const Value.absent(),
-                Value<int> invoiceId = const Value.absent(),
+                Value<String> type = const Value.absent(),
                 Value<double> amount = const Value.absent(),
+                Value<String?> monthYear = const Value.absent(),
+                Value<int?> extraFeeId = const Value.absent(),
                 Value<String> reason = const Value.absent(),
                 Value<int?> authorizedBy = const Value.absent(),
-                Value<DateTime> exemptionDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => ExemptionsCompanion(
                 id: id,
-                schoolId: schoolId,
                 studentId: studentId,
-                invoiceId: invoiceId,
+                type: type,
                 amount: amount,
+                monthYear: monthYear,
+                extraFeeId: extraFeeId,
                 reason: reason,
                 authorizedBy: authorizedBy,
-                exemptionDate: exemptionDate,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
                 required int studentId,
-                required int invoiceId,
+                required String type,
                 required double amount,
+                Value<String?> monthYear = const Value.absent(),
+                Value<int?> extraFeeId = const Value.absent(),
                 required String reason,
                 Value<int?> authorizedBy = const Value.absent(),
-                Value<DateTime> exemptionDate = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => ExemptionsCompanion.insert(
                 id: id,
-                schoolId: schoolId,
                 studentId: studentId,
-                invoiceId: invoiceId,
+                type: type,
                 amount: amount,
+                monthYear: monthYear,
+                extraFeeId: extraFeeId,
                 reason: reason,
                 authorizedBy: authorizedBy,
-                exemptionDate: exemptionDate,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -19575,6 +20958,539 @@ typedef $$AuditLogsTableProcessedTableManager =
       AuditLog,
       PrefetchHooks Function()
     >;
+typedef $$ExtraFeesTableCreateCompanionBuilder =
+    ExtraFeesCompanion Function({
+      Value<int> id,
+      required int studentId,
+      required String description,
+      required double totalAmount,
+      Value<double> paidAmount,
+      required double remainingAmount,
+      Value<String> status,
+      Value<DateTime?> dueDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$ExtraFeesTableUpdateCompanionBuilder =
+    ExtraFeesCompanion Function({
+      Value<int> id,
+      Value<int> studentId,
+      Value<String> description,
+      Value<double> totalAmount,
+      Value<double> paidAmount,
+      Value<double> remainingAmount,
+      Value<String> status,
+      Value<DateTime?> dueDate,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$ExtraFeesTableFilterComposer
+    extends Composer<_$AppDatabase, $ExtraFeesTable> {
+  $$ExtraFeesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get paidAmount => $composableBuilder(
+    column: $table.paidAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExtraFeesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExtraFeesTable> {
+  $$ExtraFeesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get paidAmount => $composableBuilder(
+    column: $table.paidAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExtraFeesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExtraFeesTable> {
+  $$ExtraFeesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get studentId =>
+      $composableBuilder(column: $table.studentId, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get totalAmount => $composableBuilder(
+    column: $table.totalAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get paidAmount => $composableBuilder(
+    column: $table.paidAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get remainingAmount => $composableBuilder(
+    column: $table.remainingAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ExtraFeesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExtraFeesTable,
+          ExtraFee,
+          $$ExtraFeesTableFilterComposer,
+          $$ExtraFeesTableOrderingComposer,
+          $$ExtraFeesTableAnnotationComposer,
+          $$ExtraFeesTableCreateCompanionBuilder,
+          $$ExtraFeesTableUpdateCompanionBuilder,
+          (ExtraFee, BaseReferences<_$AppDatabase, $ExtraFeesTable, ExtraFee>),
+          ExtraFee,
+          PrefetchHooks Function()
+        > {
+  $$ExtraFeesTableTableManager(_$AppDatabase db, $ExtraFeesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExtraFeesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExtraFeesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExtraFeesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> studentId = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<double> totalAmount = const Value.absent(),
+                Value<double> paidAmount = const Value.absent(),
+                Value<double> remainingAmount = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> dueDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExtraFeesCompanion(
+                id: id,
+                studentId: studentId,
+                description: description,
+                totalAmount: totalAmount,
+                paidAmount: paidAmount,
+                remainingAmount: remainingAmount,
+                status: status,
+                dueDate: dueDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int studentId,
+                required String description,
+                required double totalAmount,
+                Value<double> paidAmount = const Value.absent(),
+                required double remainingAmount,
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> dueDate = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => ExtraFeesCompanion.insert(
+                id: id,
+                studentId: studentId,
+                description: description,
+                totalAmount: totalAmount,
+                paidAmount: paidAmount,
+                remainingAmount: remainingAmount,
+                status: status,
+                dueDate: dueDate,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExtraFeesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExtraFeesTable,
+      ExtraFee,
+      $$ExtraFeesTableFilterComposer,
+      $$ExtraFeesTableOrderingComposer,
+      $$ExtraFeesTableAnnotationComposer,
+      $$ExtraFeesTableCreateCompanionBuilder,
+      $$ExtraFeesTableUpdateCompanionBuilder,
+      (ExtraFee, BaseReferences<_$AppDatabase, $ExtraFeesTable, ExtraFee>),
+      ExtraFee,
+      PrefetchHooks Function()
+    >;
+typedef $$FeeSettingsTableCreateCompanionBuilder =
+    FeeSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> registrationFeeEnabled,
+      Value<double> registrationFeeAmount,
+      Value<double> discount3Months,
+      Value<double> discount6Months,
+      Value<double> discount12Months,
+      Value<DateTime> updatedAt,
+    });
+typedef $$FeeSettingsTableUpdateCompanionBuilder =
+    FeeSettingsCompanion Function({
+      Value<int> id,
+      Value<bool> registrationFeeEnabled,
+      Value<double> registrationFeeAmount,
+      Value<double> discount3Months,
+      Value<double> discount6Months,
+      Value<double> discount12Months,
+      Value<DateTime> updatedAt,
+    });
+
+class $$FeeSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $FeeSettingsTable> {
+  $$FeeSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get registrationFeeEnabled => $composableBuilder(
+    column: $table.registrationFeeEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get registrationFeeAmount => $composableBuilder(
+    column: $table.registrationFeeAmount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get discount3Months => $composableBuilder(
+    column: $table.discount3Months,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get discount6Months => $composableBuilder(
+    column: $table.discount6Months,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get discount12Months => $composableBuilder(
+    column: $table.discount12Months,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FeeSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FeeSettingsTable> {
+  $$FeeSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get registrationFeeEnabled => $composableBuilder(
+    column: $table.registrationFeeEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get registrationFeeAmount => $composableBuilder(
+    column: $table.registrationFeeAmount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get discount3Months => $composableBuilder(
+    column: $table.discount3Months,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get discount6Months => $composableBuilder(
+    column: $table.discount6Months,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get discount12Months => $composableBuilder(
+    column: $table.discount12Months,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FeeSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FeeSettingsTable> {
+  $$FeeSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<bool> get registrationFeeEnabled => $composableBuilder(
+    column: $table.registrationFeeEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get registrationFeeAmount => $composableBuilder(
+    column: $table.registrationFeeAmount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get discount3Months => $composableBuilder(
+    column: $table.discount3Months,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get discount6Months => $composableBuilder(
+    column: $table.discount6Months,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get discount12Months => $composableBuilder(
+    column: $table.discount12Months,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$FeeSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FeeSettingsTable,
+          FeeSetting,
+          $$FeeSettingsTableFilterComposer,
+          $$FeeSettingsTableOrderingComposer,
+          $$FeeSettingsTableAnnotationComposer,
+          $$FeeSettingsTableCreateCompanionBuilder,
+          $$FeeSettingsTableUpdateCompanionBuilder,
+          (
+            FeeSetting,
+            BaseReferences<_$AppDatabase, $FeeSettingsTable, FeeSetting>,
+          ),
+          FeeSetting,
+          PrefetchHooks Function()
+        > {
+  $$FeeSettingsTableTableManager(_$AppDatabase db, $FeeSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FeeSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FeeSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FeeSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> registrationFeeEnabled = const Value.absent(),
+                Value<double> registrationFeeAmount = const Value.absent(),
+                Value<double> discount3Months = const Value.absent(),
+                Value<double> discount6Months = const Value.absent(),
+                Value<double> discount12Months = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => FeeSettingsCompanion(
+                id: id,
+                registrationFeeEnabled: registrationFeeEnabled,
+                registrationFeeAmount: registrationFeeAmount,
+                discount3Months: discount3Months,
+                discount6Months: discount6Months,
+                discount12Months: discount12Months,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<bool> registrationFeeEnabled = const Value.absent(),
+                Value<double> registrationFeeAmount = const Value.absent(),
+                Value<double> discount3Months = const Value.absent(),
+                Value<double> discount6Months = const Value.absent(),
+                Value<double> discount12Months = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => FeeSettingsCompanion.insert(
+                id: id,
+                registrationFeeEnabled: registrationFeeEnabled,
+                registrationFeeAmount: registrationFeeAmount,
+                discount3Months: discount3Months,
+                discount6Months: discount6Months,
+                discount12Months: discount12Months,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FeeSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FeeSettingsTable,
+      FeeSetting,
+      $$FeeSettingsTableFilterComposer,
+      $$FeeSettingsTableOrderingComposer,
+      $$FeeSettingsTableAnnotationComposer,
+      $$FeeSettingsTableCreateCompanionBuilder,
+      $$FeeSettingsTableUpdateCompanionBuilder,
+      (
+        FeeSetting,
+        BaseReferences<_$AppDatabase, $FeeSettingsTable, FeeSetting>,
+      ),
+      FeeSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -19621,4 +21537,8 @@ class $AppDatabaseManager {
       $$NotificationsTableTableManager(_db, _db.notifications);
   $$AuditLogsTableTableManager get auditLogs =>
       $$AuditLogsTableTableManager(_db, _db.auditLogs);
+  $$ExtraFeesTableTableManager get extraFees =>
+      $$ExtraFeesTableTableManager(_db, _db.extraFees);
+  $$FeeSettingsTableTableManager get feeSettings =>
+      $$FeeSettingsTableTableManager(_db, _db.feeSettings);
 }

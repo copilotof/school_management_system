@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/enrollment/domain/entities/enrollment_entity.dart';
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
@@ -11,10 +12,11 @@ import 'package:school_management_system/features/students/domain/entities/stude
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
+import '../../../../core/widgets/custom_date_picker.dart';
 import '../../../groups/presentation/bloc/groups_state.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
-/// 📁 صفحة تسجيل الطلاب في الأفواج - مع البحث
+/// 📁 صفحة تسجيل الطلاب في الأفواج - مع تاريخ التسجيل
 
 class EnrollmentPage extends StatefulWidget {
   final int? initialGroupId;
@@ -47,7 +49,6 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
     super.dispose();
   }
 
-  /// ✅ تصفية الطلاب حسب البحث
   List<StudentEntity> _filterStudents(List<StudentEntity> students) {
     if (_searchQuery.isEmpty) return students;
     final query = _searchQuery.toLowerCase();
@@ -55,6 +56,23 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
       return student.fullName.toLowerCase().contains(query) ||
           student.studentCode.toLowerCase().contains(query);
     }).toList();
+  }
+
+  /// ✅ تسجيل طالب مع تاريخ التسجيل
+  void _enrollStudent(StudentEntity student) {
+    if (_selectedGroupId == null) return;
+
+    // ✅ فتح حوار اختيار تاريخ التسجيل
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return _EnrollmentDateDialog(
+          student: student,
+          groupId: _selectedGroupId!,
+          enrollmentBloc: context.read<EnrollmentBloc>(),
+        );
+      },
+    );
   }
 
   @override
@@ -148,7 +166,6 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
     );
   }
 
-  /// ✅ بناء قائمة الطلاب مع البحث
   Widget _buildStudentList(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
@@ -159,10 +176,8 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
             final allStudents = studentsState.studentsState.data ?? [];
             final enrollments = enrollmentState.enrollmentsState.data ?? [];
 
-            // ✅ تطبيق البحث أولاً
             final filteredAllStudents = _filterStudents(allStudents);
 
-            // الطلاب المسجلون في هذا الفوج
             final enrolledStudentIds = enrollments
                 .where(
                   (e) => e.groupId == _selectedGroupId && e.status == 'active',
@@ -170,34 +185,26 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                 .map((e) => e.studentId)
                 .toSet();
 
-            // الطلاب غير المسجلين (مع البحث)
             final availableStudents = filteredAllStudents
                 .where((s) => !enrolledStudentIds.contains(s.id))
                 .toList();
 
-            // الطلاب المسجلون (مع البحث)
             final enrolledStudents = filteredAllStudents
                 .where((s) => enrolledStudentIds.contains(s.id))
                 .toList();
 
+            // ✅ الحصول على تواريخ التسجيل لكل طالب مسجل
+            Map<int, DateTime> enrollmentDates = {};
+            for (final enrollment in enrollments.where(
+              (e) => e.groupId == _selectedGroupId,
+            )) {
+              enrollmentDates[enrollment.studentId] = enrollment.enrollmentDate;
+            }
+
             if (filteredAllStudents.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 48.sp,
-                      color: colors.onSurfaceVariant,
-                    ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      _searchQuery.isEmpty
-                          ? 'لا يوجد طلاب'
-                          : 'لا توجد نتائج للبحث "${_searchQuery}"',
-                      style: TextStyle(color: colors.onSurfaceVariant),
-                    ),
-                  ],
+                child: Text(
+                  _searchQuery.isEmpty ? 'لا يوجد طلاب' : 'لا توجد نتائج للبحث',
                 ),
               );
             }
@@ -212,13 +219,15 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                     icon: Icons.check_circle,
                     color: colors.secondary,
                   ),
-                  ...enrolledStudents.map(
-                    (student) => _StudentCard(
+                  ...enrolledStudents.map((student) {
+                    final enrollmentDate = enrollmentDates[student.id];
+                    return _StudentCard(
                       student: student,
                       isEnrolled: true,
+                      enrollmentDate: enrollmentDate,
                       onToggle: () => _removeStudent(student),
-                    ),
-                  ),
+                    );
+                  }),
                   SizedBox(height: 16.h),
                 ],
 
@@ -233,27 +242,8 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                     (student) => _StudentCard(
                       student: student,
                       isEnrolled: false,
+                      enrollmentDate: null,
                       onToggle: () => _enrollStudent(student),
-                    ),
-                  ),
-                ],
-
-                // ====== إذا الجميع مسجلون ======
-                if (availableStudents.isEmpty &&
-                    enrolledStudents.isNotEmpty &&
-                    _searchQuery.isEmpty) ...[
-                  SizedBox(height: 40.h),
-                  Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.check_circle_outline,
-                          size: 48.sp,
-                          color: colors.secondary,
-                        ),
-                        SizedBox(height: 8.h),
-                        Text('كل الطلاب مسجلون في هذا الفوج'),
-                      ],
                     ),
                   ),
                 ],
@@ -265,30 +255,6 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
     );
   }
 
-  /// ✅ تسجيل طالب
-  void _enrollStudent(StudentEntity student) {
-    if (_selectedGroupId == null) return;
-
-    final enrollment = EnrollmentEntity(
-      studentId: student.id!,
-      groupId: _selectedGroupId!,
-      enrollmentDate: DateTime.now(),
-      registrationFee: 0,
-      status: 'active',
-    );
-
-    context.read<EnrollmentBloc>().add(CreateEnrollmentEvent(enrollment));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('تم تسجيل ${student.fullName} بنجاح'),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        duration: const Duration(seconds: 1),
-      ),
-    );
-  }
-
-  /// ✅ إلغاء تسجيل طالب
   void _removeStudent(StudentEntity student) {
     final enrollments =
         context.read<EnrollmentBloc>().state.enrollmentsState.data ?? [];
@@ -306,7 +272,162 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
       SnackBar(
         content: Text('تم إلغاء تسجيل ${student.fullName}'),
         backgroundColor: Theme.of(context).colorScheme.error,
-        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+}
+
+/// 📁 حوار اختيار تاريخ التسجيل
+class _EnrollmentDateDialog extends StatefulWidget {
+  final StudentEntity student;
+  final int groupId;
+  final EnrollmentBloc enrollmentBloc;
+
+  const _EnrollmentDateDialog({
+    required this.student,
+    required this.groupId,
+    required this.enrollmentBloc,
+  });
+
+  @override
+  State<_EnrollmentDateDialog> createState() => _EnrollmentDateDialogState();
+}
+
+class _EnrollmentDateDialogState extends State<_EnrollmentDateDialog> {
+  DateTime _selectedDate = DateTime.now();
+
+  void _submit() {
+    final enrollment = EnrollmentEntity(
+      studentId: widget.student.id!,
+      groupId: widget.groupId,
+      enrollmentDate: _selectedDate,
+      registrationFee: 0,
+      status: 'active',
+    );
+
+    widget.enrollmentBloc.add(CreateEnrollmentEvent(enrollment));
+
+    Navigator.of(context).pop();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('تم تسجيل ${widget.student.fullName} بنجاح'),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('تسجيل: ${widget.student.fullName}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('تاريخ التسجيل في الفوج:'),
+          SizedBox(height: 12.h),
+          InkWell(
+            onTap: () async {
+              final picked = await CustomDatePicker.showBottomSheet(
+                context: context,
+                initialDate: _selectedDate,
+                minDate: DateTime(DateTime.now().year - 1),
+                maxDate: DateTime(DateTime.now().year + 1),
+              );
+              if (picked != null) {
+                setState(() => _selectedDate = picked);
+              }
+            },
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.calendar_today),
+                border: OutlineInputBorder(),
+              ),
+              child: Text(
+                DateFormat('yyyy/MM/dd').format(_selectedDate),
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton(onPressed: _submit, child: const Text('تسجيل')),
+      ],
+    );
+  }
+}
+
+/// 📁 بطاقة طالب - مع تاريخ التسجيل
+class _StudentCard extends StatelessWidget {
+  final StudentEntity student;
+  final bool isEnrolled;
+  final DateTime? enrollmentDate;
+  final VoidCallback onToggle;
+
+  const _StudentCard({
+    required this.student,
+    required this.isEnrolled,
+    required this.onToggle,
+    this.enrollmentDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: (isEnrolled ? colors.secondary : colors.primary)
+              .withOpacity(0.1),
+          child: Text(
+            student.firstName.isNotEmpty
+                ? student.firstName.substring(0, 1)
+                : '؟',
+            style: TextStyle(
+              color: isEnrolled ? colors.secondary : colors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(student.fullName),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('الرقم: ${student.studentCode}'),
+            // ✅ عرض تاريخ التسجيل للمسجلين
+            if (isEnrolled && enrollmentDate != null)
+              Text(
+                'سجل في: ${DateFormat('yyyy/MM/dd').format(enrollmentDate!)}',
+                style: TextStyle(fontSize: 11.sp, color: colors.secondary),
+              ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: (isEnrolled ? colors.error : colors.secondary).withOpacity(
+                0.1,
+              ),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isEnrolled ? Icons.remove : Icons.add,
+              color: isEnrolled ? colors.error : colors.secondary,
+              size: 20.sp,
+            ),
+          ),
+          tooltip: isEnrolled ? 'إلغاء التسجيل' : 'تسجيل في الفوج',
+          onPressed: onToggle,
+        ),
       ),
     );
   }
@@ -341,63 +462,6 @@ class _SectionHeader extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-/// 📁 بطاقة طالب
-class _StudentCard extends StatelessWidget {
-  final StudentEntity student;
-  final bool isEnrolled;
-  final VoidCallback onToggle;
-
-  const _StudentCard({
-    required this.student,
-    required this.isEnrolled,
-    required this.onToggle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: (isEnrolled ? colors.secondary : colors.primary)
-              .withOpacity(0.1),
-          child: Text(
-            student.firstName.isNotEmpty
-                ? student.firstName.substring(0, 1)
-                : '؟',
-            style: TextStyle(
-              color: isEnrolled ? colors.secondary : colors.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        title: Text(student.fullName),
-        subtitle: Text('الرقم: ${student.studentCode}'),
-        trailing: IconButton(
-          icon: Container(
-            padding: EdgeInsets.all(6.w),
-            decoration: BoxDecoration(
-              color: (isEnrolled ? colors.error : colors.secondary).withOpacity(
-                0.1,
-              ),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isEnrolled ? Icons.remove : Icons.add,
-              color: isEnrolled ? colors.error : colors.secondary,
-              size: 20.sp,
-            ),
-          ),
-          tooltip: isEnrolled ? 'إلغاء التسجيل' : 'تسجيل في الفوج',
-          onPressed: onToggle,
-        ),
       ),
     );
   }

@@ -46,6 +46,11 @@ import 'package:school_management_system/features/teachers/domain/usecases/searc
 import 'package:school_management_system/features/teachers/domain/usecases/update_teacher.dart';
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 
+import 'features/finance/data/repositories/finance_repository_impl.dart';
+import 'features/finance/data/sources/finance_local_source.dart';
+import 'features/finance/domain/repositories/finance_repository.dart';
+import 'features/finance/presentation/bloc/finance_bloc.dart';
+
 final GetIt getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -245,5 +250,26 @@ Future<void> configureDependencies() async {
   }
   if (!getIt.isRegistered<EnrollmentBloc>()) {
     getIt.registerFactory(() => EnrollmentBloc(repository: getIt()));
+  }
+
+  if (!getIt.isRegistered<FinanceLocalDataSource>()) {
+    getIt.registerSingleton<FinanceLocalDataSource>(
+      FinanceLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+
+  if (!getIt.isRegistered<FinanceRepository>()) {
+    getIt.registerSingleton<FinanceRepository>(
+      FinanceRepositoryImpl(localDataSource: getIt<FinanceLocalDataSource>()),
+    );
+  }
+
+  if (!getIt.isRegistered<FinanceBloc>()) {
+    getIt.registerFactory(() => FinanceBloc(repository: getIt()));
+  }
+  if (!getIt.isRegistered<FinanceLocalDataSource>()) {
+    getIt.registerSingleton<FinanceLocalDataSource>(
+      FinanceLocalDataSource(db: getIt<AppDatabase>()),
+    );
   }
 }

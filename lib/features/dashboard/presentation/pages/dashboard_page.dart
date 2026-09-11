@@ -1,16 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
+import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
+import 'package:school_management_system/features/enrollment/presentation/pages/enrollment_page.dart';
+import 'package:school_management_system/features/groups/presentation/bloc/groups_bloc.dart';
+import 'package:school_management_system/features/groups/presentation/bloc/groups_event.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
+import 'package:school_management_system/features/subjects/presentation/pages/subjects_page.dart';
+import 'package:school_management_system/features/teachers/presentation/pages/teachers_page.dart';
 
-import '../../../enrollment/presentation/pages/enrollment_page.dart';
-import '../../../subjects/presentation/pages/subjects_page.dart';
-import '../../../teachers/presentation/pages/teachers_page.dart';
+import '../../../groups/presentation/bloc/groups_state.dart';
+import '../../../students/presentation/bloc/students_state.dart';
 
-/// 📁 صفحة لوحة التحكم
-/// تعرض ملخصاً سريعاً لأهم المعلومات
+// ============================================================
+// 🎨 ثوابت التصميم
+// ============================================================
+class _Gap {
+  static double get xs => 4.h;
+  static double get sm => 8.h;
+  static double get md => 12.h;
+  static double get lg => 16.h;
+}
 
+const double _kRadius = 16;
+
+/// 📁 صفحة لوحة التحكم - مبسطة ومركزة
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentsBloc>().add(const FetchStudents());
+      context.read<GroupsBloc>().add(const FetchGroups());
+      context.read<EnrollmentBloc>().add(FetchEnrollments());
+    });
+
+    return const DashboardView();
+  }
+}
+
+class DashboardView extends StatelessWidget {
+  const DashboardView({super.key});
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'صباح الخير';
+    if (hour < 18) return 'مساء الخير';
+    return 'مساء الخير';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,95 +64,70 @@ class DashboardPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: context.smartPadding(mobile: 16, tablet: 24, desktop: 32),
+          padding: EdgeInsets.all(16.w),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // بطاقة الترحيب
-              _WelcomeCard(colors: colors),
-              SizedBox(height: 20.h),
+              // ====== بطاقة الترحيب ======
+              _WelcomeCard(greeting: _greeting()),
+              SizedBox(height: _Gap.lg),
 
-              // الإحصائيات
+              // ====== الإحصائيات ======
               Text(
-                'إحصائيات سريعة',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onBackground,
-                ),
+                'الإحصائيات',
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: _Gap.sm),
+              BlocBuilder<StudentsBloc, StudentsState>(
+                builder: (context, studentsState) {
+                  final studentsCount =
+                      studentsState.studentsState.data?.length ?? 0;
 
-              // شبكة الإحصائيات
-              GridView.count(
-                crossAxisCount: context.isMobile ? 2 : 4,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12.w,
-                mainAxisSpacing: 12.h,
-                childAspectRatio: context.isMobile
-                    ? 1.1
-                    : 1.3, // ✅ نسبة أكبر للمساحة الرأسية
-                children: const [
-                  _StatCard(
-                    title: 'الطلاب',
-                    value: '0',
-                    icon: Icons.people,
-                    color: Color(0xFF1A73E8),
-                  ),
-                  _StatCard(
-                    title: 'الأفواج',
-                    value: '0',
-                    icon: Icons.groups,
-                    color: Color(0xFF34A853),
-                  ),
-                  _StatCard(
-                    title: 'الحصص اليوم',
-                    value: '0',
-                    icon: Icons.schedule,
-                    color: Color(0xFFFBBC04),
-                  ),
-                  _StatCard(
-                    title: 'المتأخرات',
-                    value: '0 دج',
-                    icon: Icons.warning,
-                    color: Color(0xFFD93025),
-                  ),
-                ],
+                  return BlocBuilder<GroupsBloc, GroupsState>(
+                    builder: (context, groupsState) {
+                      final groupsCount =
+                          groupsState.groupsState.data?.length ?? 0;
+
+                      return Row(
+                        children: [
+                          _StatCard(
+                            title: 'الطلاب',
+                            value: '$studentsCount',
+                            icon: Icons.people_alt_rounded,
+                            color: const Color(0xFF1A73E8),
+                          ),
+                          SizedBox(width: 10.w),
+                          _StatCard(
+                            title: 'الأفواج',
+                            value: '$groupsCount',
+                            icon: Icons.groups_rounded,
+                            color: const Color(0xFF34A853),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
               ),
-              SizedBox(height: 20.h),
+              SizedBox(height: _Gap.lg),
 
-              // أقسام سريعة
+              // ====== أقسام سريعة ======
               Text(
                 'أقسام سريعة',
-                style: TextStyle(
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onBackground,
-                ),
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 12.h),
-
-              // أزرار التنقل السريع
+              SizedBox(height: _Gap.sm),
               GridView.count(
                 crossAxisCount: context.isMobile ? 2 : 4,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12.w,
-                mainAxisSpacing: 12.h,
-                childAspectRatio: 1.5,
+                crossAxisSpacing: 10.w,
+                mainAxisSpacing: 10.h,
+                childAspectRatio: 1.4,
                 children: [
                   _QuickActionCard(
-                    title: 'إضافة طالب',
-                    icon: Icons.person_add,
-                    color: const Color(0xFF1A73E8),
-                    onTap: () {
-                      // التنقل لإضافة طالب
-                    },
-                  ),
-                  _QuickActionCard(
                     title: 'تسجيل طالب',
-                    icon: Icons.link,
+                    icon: Icons.link_rounded,
                     color: const Color(0xFF34A853),
                     onTap: () {
                       Navigator.of(context).push(
@@ -123,8 +139,8 @@ class DashboardPage extends StatelessWidget {
                   ),
                   _QuickActionCard(
                     title: 'المواد الدراسية',
-                    icon: Icons.book_outlined,
-                    color: const Color(0xFF34A853),
+                    icon: Icons.menu_book_rounded,
+                    color: const Color(0xFF1A73E8),
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const SubjectsPage()),
@@ -132,20 +148,8 @@ class DashboardPage extends StatelessWidget {
                     },
                   ),
                   _QuickActionCard(
-                    title: 'تسجيل الحضور',
-                    icon: Icons.check_circle,
-                    color: const Color(0xFF34A853),
-                    onTap: () {},
-                  ),
-                  _QuickActionCard(
-                    title: 'تسجيل دفعة',
-                    icon: Icons.payment,
-                    color: const Color(0xFFFBBC04),
-                    onTap: () {},
-                  ),
-                  _QuickActionCard(
                     title: 'المعلمون',
-                    icon: Icons.person_outline,
+                    icon: Icons.person_outline_rounded,
                     color: const Color(0xFFF29900),
                     onTap: () {
                       Navigator.of(context).push(
@@ -154,9 +158,9 @@ class DashboardPage extends StatelessWidget {
                     },
                   ),
                   _QuickActionCard(
-                    title: 'التقارير',
-                    icon: Icons.bar_chart,
-                    color: const Color(0xFFD93025),
+                    title: 'الإعدادات',
+                    icon: Icons.settings_rounded,
+                    color: const Color(0xFF9AA0A6),
                     onTap: () {},
                   ),
                 ],
@@ -169,43 +173,67 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-/// 📁 بطاقة الترحيب
+/// 📁 بطاقة الترحيب - مبسطة
 class _WelcomeCard extends StatelessWidget {
-  final ColorScheme colors;
-  const _WelcomeCard({required this.colors});
+  final String greeting;
+  const _WelcomeCard({required this.greeting});
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final now = DateTime.now();
+
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [colors.primary, colors.primary.withOpacity(0.8)],
           begin: Alignment.topRight,
           end: Alignment.bottomLeft,
         ),
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(_kRadius),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Icon(Icons.school, size: 40.sp, color: colors.onPrimary),
-          SizedBox(height: 12.h),
-          Text(
-            'مرحباً بك في نظام إدارة المدارس',
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: colors.onPrimary,
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
             ),
+            child: Icon(Icons.school_rounded, size: 28.sp, color: Colors.white),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            'اليوم: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: colors.onPrimary.withOpacity(0.8),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: Colors.white.withOpacity(0.85),
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  'نظام إدارة المدرسة',
+                  style: TextStyle(
+                    fontSize: 17.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  '${now.day}/${now.month}/${now.year}',
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -214,7 +242,7 @@ class _WelcomeCard extends StatelessWidget {
   }
 }
 
-/// 📁 بطاقة إحصائية - نسخة محسنة بدون overflow
+/// 📁 بطاقة إحصائية - كبيرة ومركزة
 class _StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -232,52 +260,30 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: EdgeInsets.all(8.w),
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(_kRadius),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // الأيقونة مع مرونة
-            Flexible(
-              flex: 2,
-              child: Container(
-                padding: EdgeInsets.all(6.w),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 20.sp, color: color),
-              ),
-            ),
-            SizedBox(height: 4.h),
-            // القيمة مع مرونة
-            Flexible(
-              flex: 1,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onSurface,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            Icon(icon, size: 24.sp, color: color),
+            SizedBox(height: 6.h),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
             SizedBox(height: 2.h),
-            // العنوان مع مرونة
-            Flexible(
-              flex: 1,
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 10.sp,
-                  color: colors.onSurfaceVariant,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+            Text(
+              title,
+              style: TextStyle(fontSize: 11.sp, color: colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -286,7 +292,7 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-/// 📁 بطاقة إجراء سريع
+/// 📁 بطاقة إجراء سريع - مبسطة
 class _QuickActionCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -304,24 +310,40 @@ class _QuickActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    return Card(
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(_kRadius),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 28.sp, color: color),
-            SizedBox(height: 8.h),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w600,
-                color: colors.onSurface,
+        borderRadius: BorderRadius.circular(_kRadius),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_kRadius),
+            border: Border.all(color: colors.outlineVariant.withOpacity(0.4)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 22.sp, color: color),
               ),
-            ),
-          ],
+              SizedBox(height: 6.h),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: colors.onSurface,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
