@@ -12,6 +12,7 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 
 import 'add_payment_page.dart';
+import 'receipt_page.dart';
 
 // ثوابت التصميم...
 class _Gap {
@@ -150,6 +151,25 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                       fontSize: 11.sp,
                       color: colors.onSurfaceVariant,
                     ),
+                  ),
+                ],
+                // بعد الأزرار الموجودة
+                if (payment.type != 'exemption') ...[
+                  SizedBox(height: 6.h),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ReceiptPage(
+                            payment: payment,
+                            student: widget.student,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.receipt_long, size: 16),
+                    label: const Text('عرض الإيصال'),
                   ),
                 ],
 
@@ -482,6 +502,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                                   final isPaid = session.remainingAmount <= 0;
 
                                   return _ExtraSessionCard(
+                                    student: widget.student,
                                     originalExtra: session,
                                     payments: sessionPayments,
                                     onDelete: () => _deletePayment(session),
@@ -889,12 +910,14 @@ class _DetailRow extends StatelessWidget {
 
 /// 📁 بطاقة الحصة الإضافية (مع دفعاتها)
 class _ExtraSessionCard extends StatelessWidget {
+  final StudentEntity student;
   final PaymentEntity originalExtra;
   final List<PaymentEntity> payments;
   final VoidCallback onDelete;
   final VoidCallback? onPay;
 
   const _ExtraSessionCard({
+    required this.student,
     required this.originalExtra,
     required this.payments,
     required this.onDelete,
@@ -1059,6 +1082,32 @@ class _ExtraSessionCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                  ),
+                ),
+              ],
+
+              // في _ExtraSessionCard، بعد الدفعات
+              if (isPaid && payments.isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ReceiptPage(
+                          payment: payments.last, // آخر دفعة
+                          student: student,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.receipt_long, size: 14),
+                  label: const Text(
+                    'عرض الإيصال',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    minimumSize: Size(0, 30.h),
                   ),
                 ),
               ],

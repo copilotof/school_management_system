@@ -5,6 +5,8 @@ import 'package:school_management_system/features/finance/presentation/pages/stu
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
 
+import 'student_card_page.dart';
+
 // ============================================================
 // 🎨 ثوابت التصميم
 // ============================================================
@@ -43,6 +45,17 @@ class StudentDetailsPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('تفاصيل الطالب'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.badge_outlined, size: 20.sp),
+            tooltip: 'بطاقة الطالب',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => StudentCardPage(student: student),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.payments_outlined, size: 20.sp),
             tooltip: 'الحالة المالية',
