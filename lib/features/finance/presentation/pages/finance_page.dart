@@ -14,6 +14,8 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 
+import '../../../../core/states/ui_state.dart';
+import '../../../attendance/domain/entities/session_entity.dart';
 import '../../../enrollment/domain/entities/enrollment_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import 'add_payment_page.dart';
@@ -36,39 +38,131 @@ class FinancePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FinanceBloc>().add(FetchAllFinanceData());
-      context.read<StudentsBloc>().add(const FetchStudents());
-      context.read<GroupsBloc>().add(const FetchGroups());
-      context.read<EnrollmentBloc>().add(FetchEnrollments());
-    });
-
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('الإدارة المالية'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(
-                text: 'الطلبة والتسجيل',
-                icon: Icon(Icons.people_outline, size: 18),
-              ),
-              Tab(
-                text: 'المعلومات المالية',
-                icon: Icon(Icons.bar_chart, size: 18),
+    return MultiBlocListener(
+      listeners: [
+        // ✅ إعادة حساب المالية عند تغيير التسجيلات
+        BlocListener<EnrollmentBloc, EnrollmentState>(
+          listener: (context, state) {
+            if (state.enrollmentsState is Success ||
+                state.enrollmentsState is Empty) {
+              context.read<FinanceBloc>().add(FetchAllFinanceData());
+            }
+          },
+        ),
+      ],
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('الإدارة المالية'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'تحديث',
+                onPressed: () {
+                  context.read<FinanceBloc>().add(FetchAllFinanceData());
+                  context.read<EnrollmentBloc>().add(FetchEnrollments());
+                },
               ),
             ],
+            bottom: const TabBar(
+              tabs: [
+                Tab(
+                  text: 'الطلبة والتسجيل',
+                  icon: Icon(Icons.people_outline, size: 18),
+                ),
+                Tab(
+                  text: 'المعلومات المالية',
+                  icon: Icon(Icons.bar_chart, size: 18),
+                ),
+              ],
+            ),
           ),
-        ),
-        body: const TabBarView(
-          children: [StudentsByGroupTab(), FinanceSummaryTab()],
+          body: const TabBarBody(),
         ),
       ),
     );
   }
 }
 
+/// ✅ Widget منفصل لتفعيل postFrameCallback
+class TabBarBody extends StatefulWidget {
+  const TabBarBody({super.key});
+
+  @override
+  State<TabBarBody> createState() => _TabBarBodyState();
+}
+
+class _TabBarBodyState extends State<TabBarBody> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // ✅ جلب كل البيانات عند فتح الصفحة
+      context.read<FinanceBloc>().add(FetchAllFinanceData());
+      context.read<EnrollmentBloc>().add(FetchEnrollments());
+      context.read<StudentsBloc>().add(const FetchStudents());
+      context.read<GroupsBloc>().add(const FetchGroups());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const TabBarView(
+      children: [StudentsByGroupTab(), FinanceSummaryTab()],
+    );
+  }
+}
+
+/* 
+class FinancePage extends StatelessWidget {
+  const FinancePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiBlocListener(
+      listeners: [
+        // ✅ عند تغيير التسجيلات، أعد حساب الإحصائيات
+        BlocListener<EnrollmentBloc, EnrollmentState>(
+          listener: (context, state) {
+            if (state.enrollmentsState is Success ||
+                state.enrollmentsState is Empty) {
+              context.read<FinanceBloc>().add(FetchAllFinanceData());
+            }
+          },
+        ),
+      ],
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('الإدارة المالية'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'تحديث',
+                onPressed: () {
+                  context.read<FinanceBloc>().add(FetchAllFinanceData());
+                  context.read<EnrollmentBloc>().add(FetchEnrollments());
+                },
+              ),
+            ],
+            bottom: const TabBar(
+              tabs: [
+                Tab(text: 'الطلبة والتسجيل', icon: Icon(Icons.people_outline, size: 18)),
+                Tab(text: 'المعلومات المالية', icon: Icon(Icons.bar_chart, size: 18)),
+              ],
+            ),
+          ),
+          body: const TabBarView(
+            children: [StudentsByGroupTab(), FinanceSummaryTab()],
+          ),
+        ),
+      ),
+    );
+  }
+}
+ */
 // ============================================================
 // 📁 تبويب الطلبة حسب الأفواج
 // ============================================================
@@ -626,15 +720,12 @@ class _DebtorsListState extends State<_DebtorsList> {
                   // ✅ حساب المديونية لكل طالب - الأشهر المتأخرة
                   final debtorMap =
                       <int, List<String>>{}; // studentId -> الأشهر المتأخرة
-                  // ✅ حساب المديونية لكل طالب - الأشهر غير المدفوعة + الدفعات الجزئية
-                  final debtorMonthsMap =
-                      <int, List<String>>{}; // studentId -> الأشهر المتأخرة
-                  final debtorPartialMap =
-                      <
-                        int,
-                        List<PaymentEntity>
-                      >{}; // studentId -> الدفعات الجزئية
-                  final studentGroupMap = <int, int>{}; // studentId -> groupId
+                  // ✅ حساب المديونية لكل طالب - الأشهر غير المدفوعة + العمليات الجزئية + الحصص الإضافية
+                  final debtorMonthsMap = <int, List<String>>{};
+                  final debtorPartialMap = <int, List<PaymentEntity>>{};
+                  final studentGroupMap = <int, int>{};
+                  final studentSessionMap =
+                      <int, SessionEntity?>{}; // ✅ للربط بالحصة
 
                   for (final enrollment in enrollments.where(
                     (e) => e.status == 'active',
@@ -648,7 +739,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                         .firstOrNull;
                     if (group == null) continue;
 
-                    // 1. الأشهر غير المدفوعة من التسجيل حتى الشهر الماضي
+                    // 1. الأشهر غير المدفوعة
                     final unpaidMonths = _getUnpaidMonthsForStudent(
                       enrollment.studentId,
                       enrollment.groupId,
@@ -656,15 +747,15 @@ class _DebtorsListState extends State<_DebtorsList> {
                       enrollments,
                     );
 
-                    // 2. الدفعات الجزئية (remainingAmount > 0)
+                    // 2. الدفعات الجزئية + الحصص الإضافية
                     final partialPayments = payments
                         .where(
                           (p) =>
                               p.studentId == enrollment.studentId &&
                               p.groupId == enrollment.groupId &&
-                              p.type == 'monthly' &&
-                              p.remainingAmount > 0,
-                        )
+                              p.remainingAmount > 0 &&
+                              (p.type == 'monthly' || p.type == 'extra'),
+                        ) // ✅ أضف extra
                         .toList();
 
                     if (unpaidMonths.isNotEmpty || partialPayments.isNotEmpty) {
@@ -674,7 +765,6 @@ class _DebtorsListState extends State<_DebtorsList> {
                           enrollment.groupId;
                     }
                   }
-
                   final allDebtorIds = {
                     ...debtorMonthsMap.keys,
                     ...debtorPartialMap.keys,
@@ -845,7 +935,7 @@ class _DebtorsListState extends State<_DebtorsList> {
   ) {
     final colors = Theme.of(context).colorScheme;
     final monthlyFee = group?.monthlyFee ?? 0;
-    final unpaidAmount = unpaidMonths.length * monthlyFee;
+    final unpaidAmount = unpaidMonths.length * (group?.monthlyFee ?? 0);
     final partialAmount = partialPayments.fold<double>(
       0,
       (sum, p) => sum + p.remainingAmount,
@@ -1006,30 +1096,36 @@ class _DebtorsListState extends State<_DebtorsList> {
                     SizedBox(height: 6.h),
                     // ✅ الدفعات الجزئية - عند الضغط: تسديد الباقي
                     ...partialPayments.map((payment) {
+                      final isExtra = payment.type == 'extra';
                       return InkWell(
                         onTap: () {
-                          _showPartialDetails(context, payment, dialogContext);
+                          Navigator.of(dialogContext).pop(); // إغلاق الحوار
+                          if (isExtra) {
+                            // ✅ حصة إضافية: فتح حوار تأكيد
+                            _confirmExtraPayment(context, student, payment);
+                          } else {
+                            // دفعة شهرية جزئية: عرض نافذة تسديد الباقي
+                            _showPartialDetails(
+                              context,
+                              payment,
+                              dialogContext,
+                            );
+                          }
+                          borderRadius:
+                          BorderRadius.circular(10.r);
                         },
-                        borderRadius: BorderRadius.circular(10.r),
                         child: Container(
-                          margin: EdgeInsets.only(bottom: 6.h),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 10.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(10.r),
-                            border: Border.all(
-                              color: colors.error.withOpacity(0.2),
-                            ),
-                          ),
+                          // ...
                           child: Row(
                             children: [
                               Icon(
-                                Icons.timelapse,
+                                isExtra
+                                    ? Icons.payments_outlined
+                                    : Icons.timelapse,
                                 size: 16.sp,
-                                color: colors.error,
+                                color: isExtra
+                                    ? colors.tertiary
+                                    : colors.primary,
                               ),
                               SizedBox(width: 8.w),
                               Expanded(
@@ -1037,7 +1133,9 @@ class _DebtorsListState extends State<_DebtorsList> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '${payment.monthYear ?? ''}',
+                                      isExtra
+                                          ? 'حصة إضافية'
+                                          : '${payment.monthYear ?? ''}',
                                       style: TextStyle(
                                         fontSize: 12.sp,
                                         fontWeight: FontWeight.w600,
@@ -1060,12 +1158,6 @@ class _DebtorsListState extends State<_DebtorsList> {
                                   fontWeight: FontWeight.bold,
                                   color: colors.error,
                                 ),
-                              ),
-                              SizedBox(width: 8.w),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                size: 12.sp,
-                                color: colors.error,
                               ),
                             ],
                           ),
@@ -1098,6 +1190,81 @@ class _DebtorsListState extends State<_DebtorsList> {
           ),
         );
       },
+    );
+  }
+}
+
+/// ✅ تأكيد دفع الحصة الإضافية من قائمة المدينين
+Future<void> _confirmExtraPayment(
+  BuildContext context,
+  StudentEntity student,
+  PaymentEntity extraSession,
+) async {
+  final colors = Theme.of(context).colorScheme;
+
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('تسديد حصة إضافية'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('الطالب: ${student.fullName}'),
+          SizedBox(height: 8.h),
+          Container(
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: colors.tertiaryContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'التاريخ: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
+                  style: TextStyle(fontSize: 12.sp),
+                ),
+                Text(
+                  'المبلغ: ${extraSession.originalAmount.toStringAsFixed(0)} دج',
+                  style: TextStyle(fontSize: 12.sp),
+                ),
+                Text(
+                  'المتبقي: ${extraSession.remainingAmount.toStringAsFixed(0)} دج',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: colors.error,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton.icon(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          icon: const Icon(Icons.payment, size: 16),
+          label: const Text('تسديد الآن'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed == true && context.mounted) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddPaymentPage(
+          student: student,
+          groupId: extraSession.groupId!,
+          initialExtraSessionId: extraSession.id,
+        ),
+      ),
     );
   }
 }

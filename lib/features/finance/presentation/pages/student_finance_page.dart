@@ -11,6 +11,8 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/groups/presentation/bloc/groups_state.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 
+import 'add_payment_page.dart';
+
 // ثوابت التصميم...
 class _Gap {
   static double get xs => 4.h;
@@ -278,7 +280,8 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                       SizedBox(height: _Gap.lg),
                     ],
 
-                    if (_selectedGroupId != null)
+                    /*                     if (_selectedGroupId != null)
+                    
                       BlocBuilder<FinanceBloc, FinanceState>(
                         builder: (context, financeState) {
                           final payments =
@@ -360,6 +363,155 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                           );
                         },
                       ),
+                  */
+                    if (_selectedGroupId != null)
+                      BlocBuilder<FinanceBloc, FinanceState>(
+                        builder: (context, financeState) {
+                          // ✅ كل الدفعات لهذا الطالب في هذا الفوج
+                          final allPayments =
+                              (financeState.paymentsState.data ?? [])
+                                  .where(
+                                    (p) =>
+                                        p.studentId == widget.student.id &&
+                                        p.groupId == _selectedGroupId,
+                                  )
+                                  .toList();
+
+                          // ✅ تجميع الدفعات
+                          final regularPayments = allPayments
+                              .where(
+                                (p) =>
+                                    p.type != 'extra_payment' &&
+                                    p.type != 'extra',
+                              )
+                              .toList()
+                              .reversed
+                              .toList();
+
+                          final extraSessions = allPayments
+                              .where((p) => p.type == 'extra')
+                              .toList()
+                              .reversed
+                              .toList();
+
+                          final extraPayments = allPayments
+                              .where((p) => p.type == 'extra_payment')
+                              .toList();
+
+                          // ✅ حسابات الملخص
+                          final totalPaid = allPayments
+                              .where(
+                                (p) =>
+                                    p.type != 'exemption' &&
+                                    p.type != 'extra_payment',
+                              )
+                              .fold<double>(0, (sum, p) => sum + p.amount);
+
+                          final totalRemaining = allPayments
+                              .where(
+                                (p) =>
+                                    p.remainingAmount > 0 &&
+                                    p.type != 'extra_payment',
+                              )
+                              .fold<double>(
+                                0,
+                                (sum, p) => sum + p.remainingAmount,
+                              );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // ====== الملخص ======
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _SummaryChip(
+                                      label: 'المدفوع',
+                                      value:
+                                          '${totalPaid.toStringAsFixed(0)} دج',
+                                      icon: Icons.check_circle,
+                                      color: colors.secondary,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  Expanded(
+                                    child: _SummaryChip(
+                                      label: 'المتبقي',
+                                      value:
+                                          '${totalRemaining.toStringAsFixed(0)} دج',
+                                      icon: Icons.warning_amber,
+                                      color: totalRemaining > 0
+                                          ? colors.error
+                                          : colors.secondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: _Gap.lg),
+
+                              const _SectionHeader(
+                                icon: Icons.history,
+                                title: 'السجل المالي للفوج',
+                              ),
+                              SizedBox(height: _Gap.sm),
+
+                              // ✅ إذا لا توجد دفعات
+                              if (allPayments.isEmpty)
+                                _buildEmptyCard(
+                                  colors,
+                                  'لا توجد عمليات مالية لهذا الفوج',
+                                )
+                              else ...[
+                                // ====== 1. الدفعات العادية ======
+                                ...regularPayments.map(
+                                  (payment) => _PaymentHistoryCard(
+                                    payment: payment,
+                                    onTap: () => _showPaymentDetails(payment),
+                                    onDelete: () => _deletePayment(payment),
+                                  ),
+                                ),
+
+                                // ====== 2. الحصص الإضافية (مع دفعاتها) ======
+                                ...extraSessions.map((session) {
+                                  final sessionPayments = extraPayments
+                                      .where(
+                                        (p) => p.parentPaymentId == session.id,
+                                      )
+                                      .toList();
+
+                                  final isPaid = session.remainingAmount <= 0;
+
+                                  return _ExtraSessionCard(
+                                    originalExtra: session,
+                                    payments: sessionPayments,
+                                    onDelete: () => _deletePayment(session),
+                                    // ✅ عند الضغط: الانتقال لصفحة الدفع (إذا لم تكن مدفوعة)
+                                    onPay: isPaid
+                                        ? null
+                                        : () => _confirmGoToPayment(
+                                            context,
+                                            session,
+                                          ),
+
+                                    /* () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => AddPaymentPage(
+                                                  student: widget.student,
+                                                  groupId: _selectedGroupId!,
+                                                  initialExtraSessionId:
+                                                      session.id,
+                                                ),
+                                              ),
+                                            );
+                                          }, */
+                                  );
+                                }),
+                              ],
+                            ],
+                          );
+                        },
+                      ),
                   ],
                 ),
               );
@@ -368,6 +520,80 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
         },
       ),
     );
+  }
+
+  /// ✅ تأكيد الذهاب لدفع الحصة الإضافية
+  Future<void> _confirmGoToPayment(
+    BuildContext context,
+    PaymentEntity extraSession,
+  ) async {
+    final colors = Theme.of(context).colorScheme;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تسديد حصة إضافية'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('هل تريد الانتقال لصفحة الدفع لتسديد هذه الحصة الإضافية؟'),
+            SizedBox(height: 12.h),
+            Container(
+              padding: EdgeInsets.all(10.w),
+              decoration: BoxDecoration(
+                color: colors.tertiaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'التاريخ: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
+                    style: TextStyle(fontSize: 12.sp),
+                  ),
+                  Text(
+                    'المبلغ: ${extraSession.originalAmount.toStringAsFixed(0)} دج',
+                    style: TextStyle(fontSize: 12.sp),
+                  ),
+                  Text(
+                    'المتبقي: ${extraSession.remainingAmount.toStringAsFixed(0)} دج',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: colors.error,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            icon: const Icon(Icons.payment, size: 16),
+            label: const Text('تسديد الآن'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => AddPaymentPage(
+            student: widget.student,
+            groupId: _selectedGroupId!,
+            initialExtraSessionId: extraSession.id,
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildStudentCard(ColorScheme colors) {
@@ -564,6 +790,7 @@ class _PaymentHistoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.r),
         side: BorderSide(color: statusColor.withOpacity(0.3)),
       ),
+
       child: InkWell(
         borderRadius: BorderRadius.circular(10.r),
         onTap: onTap,
@@ -651,6 +878,222 @@ class _DetailRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 13.sp,
               fontWeight: FontWeight.w600,
+              color: color ?? colors.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 📁 بطاقة الحصة الإضافية (مع دفعاتها)
+class _ExtraSessionCard extends StatelessWidget {
+  final PaymentEntity originalExtra;
+  final List<PaymentEntity> payments;
+  final VoidCallback onDelete;
+  final VoidCallback? onPay;
+
+  const _ExtraSessionCard({
+    required this.originalExtra,
+    required this.payments,
+    required this.onDelete,
+    this.onPay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isPaid = originalExtra.remainingAmount <= 0;
+    final statusColor = isPaid ? colors.secondary : colors.error;
+    final statusIcon = isPaid ? Icons.check_circle : Icons.timelapse;
+    final statusLabel = isPaid
+        ? 'مدفوع'
+        : 'متبقي ${originalExtra.remainingAmount.toStringAsFixed(0)} دج';
+
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.only(bottom: 6.h),
+      color: colors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.r),
+        side: BorderSide(color: colors.tertiary.withOpacity(0.3)),
+      ),
+      child: InkWell(
+        // ✅ إضافة onTap
+        borderRadius: BorderRadius.circular(10.r),
+        onTap: onPay,
+        child: Padding(
+          padding: EdgeInsets.all(10.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ====== الرأس ======
+              Row(
+                children: [
+                  Icon(
+                    Icons.payments_outlined,
+                    size: 18.sp,
+                    color: colors.tertiary,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'حصة إضافية',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          DateFormat(
+                            'yyyy/MM/dd',
+                          ).format(originalExtra.paymentDate),
+                          style: TextStyle(
+                            fontSize: 10.5.sp,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // شارة الحالة
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 3.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(statusIcon, size: 12.sp, color: statusColor),
+                        SizedBox(width: 4.w),
+                        Text(
+                          statusLabel,
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w600,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // زر الحذف
+                  IconButton(
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 16.sp,
+                      color: colors.error,
+                    ),
+                    tooltip: 'حذف',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: onDelete,
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+
+              // ====== ملخص المبالغ ======
+              Row(
+                children: [
+                  _MiniInfo(
+                    label: 'الأصلي',
+                    value:
+                        '${originalExtra.originalAmount.toStringAsFixed(0)} دج',
+                  ),
+                  _MiniInfo(
+                    label: 'المدفوع',
+                    value: '${originalExtra.amount.toStringAsFixed(0)} دج',
+                  ),
+                  _MiniInfo(
+                    label: 'المتبقي',
+                    value:
+                        '${originalExtra.remainingAmount.toStringAsFixed(0)} دج',
+                    color: originalExtra.remainingAmount > 0
+                        ? colors.error
+                        : null,
+                  ),
+                ],
+              ),
+
+              // ====== الدفعات ======
+              if (payments.isNotEmpty) ...[
+                SizedBox(height: 8.h),
+                Divider(height: 1, color: colors.outlineVariant),
+                SizedBox(height: 6.h),
+                ...payments.map(
+                  (p) => Padding(
+                    padding: EdgeInsets.symmetric(vertical: 2.h),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 12.sp,
+                          color: colors.secondary,
+                        ),
+                        SizedBox(width: 6.w),
+                        Text(
+                          '${p.amount.toStringAsFixed(0)} دج',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          DateFormat('yyyy/MM/dd').format(p.paymentDate),
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 📊 معلومة صغيرة
+class _MiniInfo extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? color;
+
+  const _MiniInfo({required this.label, required this.value, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 9.sp, color: colors.onSurfaceVariant),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.bold,
               color: color ?? colors.onSurface,
             ),
           ),

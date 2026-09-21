@@ -202,6 +202,7 @@ class GroupsView extends StatelessWidget {
 }
 
 /// 📁 بطاقة فوج
+/// 📁 بطاقة فوج - تصميم محسن
 class _GroupCard extends StatelessWidget {
   final GroupEntity group;
   final VoidCallback onEdit;
@@ -220,55 +221,149 @@ class _GroupCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Card(
-      margin: EdgeInsets.only(bottom: 6.h),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-      elevation: 1,
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 18.r,
-          backgroundColor: colors.secondaryContainer,
-          child: Icon(
-            Icons.groups,
-            size: 18.sp,
-            color: colors.onSecondaryContainer,
+      margin: EdgeInsets.only(bottom: 10.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
+      child: InkWell(
+        // ✅ البطاقة كلها قابلة للضغط → تفتح التفاصيل
+        onTap: onDetails,
+        borderRadius: BorderRadius.circular(14.r),
+        child: Padding(
+          padding: EdgeInsets.all(12.w),
+          child: Column(
+            children: [
+              // ====== رأس البطاقة ======
+              Row(
+                children: [
+                  // الأيقونة
+                  Container(
+                    width: 44.w,
+                    height: 44.h,
+                    decoration: BoxDecoration(
+                      color: colors.secondaryContainer,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(
+                      Icons.groups,
+                      size: 22.sp,
+                      color: colors.onSecondaryContainer,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  // معلومات الفوج
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group.name,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ✅ سهم يشير إلى إمكانية الفتح
+                  Icon(
+                    Icons.chevron_left,
+                    size: 22.sp,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+
+              // =====️ شريط الأزرار =====
+              Row(
+                children: [
+                  // ✅ زر رئيسي: عرض التفاصيل
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: onDetails,
+                      icon: const Icon(Icons.visibility_outlined, size: 16),
+                      label: const Text(
+                        'عرض التفاصيل',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(0, 34.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  // زر تعديل
+                  _IconActionButton(
+                    icon: Icons.edit_outlined,
+                    color: colors.primary,
+                    tooltip: 'تعديل',
+                    onTap: onEdit,
+                  ),
+                  SizedBox(width: 6.w),
+                  // زر حذف
+                  _IconActionButton(
+                    icon: Icons.delete_outline,
+                    color: colors.error,
+                    tooltip: 'حذف',
+                    onTap: onDelete,
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-        title: Text(
-          group.name,
-          style: TextStyle(fontSize: 13.5.sp, fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
-          style: TextStyle(fontSize: 11.sp, color: colors.onSurfaceVariant),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                Icons.info_outline,
-                size: 18.sp,
-                color: colors.secondary,
-              ),
-              onPressed: onDetails,
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.edit_outlined,
-                size: 18.sp,
-                color: colors.primary,
-              ),
-              onPressed: onEdit,
-            ),
-            IconButton(
-              icon: Icon(
-                Icons.delete_outline,
-                size: 18.sp,
-                color: colors.error,
-              ),
-              onPressed: onDelete,
-            ),
-          ],
+      ),
+    );
+  }
+}
+
+/// 📁 زر أيقونة صغير
+class _IconActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _IconActionButton({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.r),
+        child: Container(
+          width: 34.w,
+          height: 34.h,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Icon(icon, size: 16.sp, color: color),
         ),
       ),
     );

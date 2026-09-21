@@ -99,7 +99,7 @@ class FinanceLocalDataSource {
     return payments.fold<double>(0, (sum, p) => sum + p.remainingAmount);
   }
 
-  /// ✅ إجمالي الإيرادات
+  /*   /// ✅ إجمالي الإيرادات
   Future<double> getTotalRevenue() async {
     final payments = await getAllPayments();
     return payments
@@ -111,5 +111,103 @@ class FinanceLocalDataSource {
   Future<double> getTotalOutstanding() async {
     final payments = await getAllPayments();
     return payments.fold<double>(0, (sum, p) => sum + p.remainingAmount);
+  }
+ */
+  /// ✅ إجمالي الإيرادات = مجموع الدفعات المقبوضة فعلياً
+  Future<double> getTotalRevenue() async {
+    final payments = await getAllPayments();
+
+    // ✅ نحسب فقط الدفعات التي تم استلامها فعلياً
+    // نستثني:
+    // - type == 'exemption' (إعفاء، لا يوجد دفع)
+    // - type == 'extra' (الحصة الأصلية، الدفعات الفعلية في extra_payment)
+    return payments
+        .where((p) => p.type != 'exemption' && p.type != 'extra')
+        .fold<double>(0, (sum, p) => sum + p.amount);
+  }
+
+  /// ✅ إجمالي المتأخرات = الأشهر غير المدفوعة + المتبقي من الدفعات الجزئية + الحصص الإضافية
+  Future<double> getTotalOutstanding() async {
+    double total = 0;
+
+    // ============================================
+    // 1. الأشهر غير المدفوعة (من التسجيل حتى الشهر الماضي)
+    // ============================================
+    final now = DateTime.now();
+    final lastMonth = DateTime(now.year, now.month - 1, 1);
+
+    // جلب كل التسجيلات النشطة
+    final enrollments = await (db.select(
+      db.enrollments,
+    )..where((t) => t.status.equals('active'))).get();
+
+    // جلب كل الأفواج
+    final groups = await db.select(db.groups).get();
+
+    // جلب كل الدفعات
+    final payments = await getAllPayments();
+
+    for (final enrollment in enrollments) {
+      final group = groups.where((g) => g.id == enrollment.groupId).firstOrNull;
+      if (group == null) continue;
+
+      // الأشهر المدفوعة لهذا الطالب في هذا الفوج
+      final paidMonths = <String>{};
+      for (final p in payments.where(
+        (p) =>
+            p.studentId == enrollment.studentId &&
+            p.groupId == enrollment.groupId,
+      )) {
+        if (p.monthYear != null) {
+          paidMonths.add(p.monthYear!);
+        }
+        // الدفع المسبق يغطي عدة أشهر
+        if (p.type == 'advance' && p.notes != null) {
+          final match = RegExp(r'(\d{4}-\d{2})').allMatches(p.notes!);
+          final monthList = match.map((m) => m.group(0)!).toList();
+          if (monthList.length >= 2) {
+            final start = DateTime.parse('${monthList[0]}-01');
+            final end = DateTime.parse('${monthList[1]}-01');
+            for (
+              DateTime d = start;
+              !d.isAfter(end);
+              d = DateTime(d.year, d.month + 1, 1)
+            ) {
+              paidMonths.add('${d.year}-${d.month.toString().padLeft(2, '0')}');
+            }
+          }
+        }
+      }
+
+      // الأشهر غير المدفوعة من التسجيل حتى الشهر الماضي
+      final enrollmentDate = enrollment.enrollmentDate;
+      final startMonth = DateTime(enrollmentDate.year, enrollmentDate.month, 1);
+
+      for (
+        DateTime date = startMonth;
+        !date.isAfter(lastMonth);
+        date = DateTime(date.year, date.month + 1, 1)
+      ) {
+        final monthYear =
+            '${date.year}-${date.month.toString().padLeft(2, '0')}';
+        if (!paidMonths.contains(monthYear)) {
+          total += group.monthlyFee;
+        }
+      }
+    }
+
+    // ============================================
+    // 2. المتبقي من الدفعات الجزئية + الحصص الإضافية
+    // ============================================
+    total += payments
+        .where(
+          (p) =>
+              p.remainingAmount > 0 &&
+              p.type != 'extra_payment' &&
+              p.type != 'exemption',
+        )
+        .fold<double>(0, (sum, p) => sum + p.remainingAmount);
+
+    return total;
   }
 }

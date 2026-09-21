@@ -192,7 +192,7 @@ class GradesView extends StatelessWidget {
   }
 }
 
-/// ✅ بطاقة صف محسنة
+/// 📁 بطاقة صف - تصميم محسن
 class _GradeCard extends StatelessWidget {
   final GradeEntity grade;
   final VoidCallback onEdit;
@@ -211,83 +211,138 @@ class _GradeCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      margin: EdgeInsets.only(bottom: 10.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
       child: Padding(
         padding: EdgeInsets.all(12.w),
-        child: Row(
+        child: Column(
           children: [
-            // أيقونة الصف
-            Container(
-              width: 48.w,
-              height: 48.h,
-              decoration: BoxDecoration(
-                color: colors.secondary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.class_outlined,
-                color: colors.secondary,
-                size: 24.sp,
-              ),
-            ),
-            SizedBox(width: 12.w),
-            // معلومات الصف
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    grade.name,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: colors.onSurface,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    'الترتيب: ${grade.orderIndex}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // أزرار الإجراءات
+            // ====== رأس البطاقة ======
             Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.book_outlined,
-                    color: colors.tertiary,
-                    size: 20.sp,
+                // أيقونة الصف
+                Container(
+                  width: 44.w,
+                  height: 44.h,
+                  decoration: BoxDecoration(
+                    color: colors.secondaryContainer,
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
-                  tooltip: 'المواد المرتبطة',
-                  onPressed: onManageSubjects,
+                  child: Icon(
+                    Icons.class_outlined,
+                    size: 22.sp,
+                    color: colors.onSecondaryContainer,
+                  ),
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.edit_outlined,
-                    color: colors.primary,
-                    size: 20.sp,
+                SizedBox(width: 10.w),
+                // معلومات الصف
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        grade.name,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'الترتيب: ${grade.orderIndex}',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
                   ),
-                  onPressed: onEdit,
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: colors.error,
-                    size: 20.sp,
+              ],
+            ),
+            SizedBox(height: 10.h),
+
+            // ====== شريط الأزرار =====
+            Row(
+              children: [
+                // ✅ زر رئيسي: إدارة المواد
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: onManageSubjects,
+                    icon: const Icon(Icons.book_outlined, size: 16),
+                    label: const Text(
+                      'ربط المواد',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.tertiary,
+                      foregroundColor: colors.onTertiary,
+                      minimumSize: Size(0, 34.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
                   ),
-                  onPressed: onDelete,
+                ),
+                SizedBox(width: 6.w),
+                // زر تعديل
+                _IconActionButton(
+                  icon: Icons.edit_outlined,
+                  color: colors.primary,
+                  tooltip: 'تعديل',
+                  onTap: onEdit,
+                ),
+                SizedBox(width: 6.w),
+                // زر حذف
+                _IconActionButton(
+                  icon: Icons.delete_outline,
+                  color: colors.error,
+                  tooltip: 'حذف',
+                  onTap: onDelete,
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 📁 زر أيقونة صغير
+class _IconActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  const _IconActionButton({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8.r),
+        child: Container(
+          width: 34.w,
+          height: 34.h,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Icon(icon, size: 16.sp, color: color),
         ),
       ),
     );

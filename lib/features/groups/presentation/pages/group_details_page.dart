@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/features/attendance/domain/entities/schedule_template_entity.dart';
+import 'package:school_management_system/features/attendance/presentation/bloc/attendance_bloc.dart';
+import 'package:school_management_system/features/attendance/presentation/widgets/schedule_template_dialog.dart';
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'package:school_management_system/features/enrollment/presentation/pages/enrollment_page.dart';
 import 'package:school_management_system/features/grades/domain/entities/grade_entity.dart';
@@ -10,14 +13,13 @@ import 'package:school_management_system/features/grades/presentation/bloc/grade
 import 'package:school_management_system/features/groups/domain/entities/group_entity.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
+import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 import 'package:school_management_system/features/subjects/domain/entities/subject_entity.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
+import 'package:school_management_system/features/subjects/presentation/bloc/subjects_state.dart';
 
-import '../../../students/presentation/bloc/students_state.dart';
-import '../../../subjects/presentation/bloc/subjects_state.dart';
-
-// ثوابت التصميم...
+// ثوابت التصميم
 class _Gap {
   static double get xs => 4.h;
   static double get sm => 8.h;
@@ -45,6 +47,9 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
       context.read<StudentsBloc>().add(const FetchStudents());
       context.read<GradesBloc>().add(FetchGrades());
       context.read<SubjectsBloc>().add(const FetchSubjects());
+      context.read<AttendanceBloc>().add(
+        FetchTemplatesByGroup(widget.group.id!),
+      );
     });
   }
 
@@ -60,7 +65,6 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
     }
   }
 
-  /// ✅ عدد الطلاب المسجلين
   int _getEnrolledStudentsCount(EnrollmentState state) {
     final enrollments = state.enrollmentsState.data ?? [];
     return enrollments
@@ -68,7 +72,6 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         .length;
   }
 
-  /// ✅ اسم الصف
   String _getGradeName(GradesState state) {
     if (widget.group.gradeId == null) return 'غير محدد';
     final grades = state.gradesState.data ?? [];
@@ -76,7 +79,6 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
     return grade?.name ?? 'غير محدد';
   }
 
-  /// ✅ اسم المادة
   String _getSubjectName(SubjectsState state) {
     if (widget.group.subjectId == null) return 'غير محدد';
     final subjects = state.subjectsState.data ?? [];
@@ -84,6 +86,64 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         .where((s) => s.id == widget.group.subjectId)
         .firstOrNull;
     return subject?.name ?? 'غير محدد';
+  }
+
+  /// ✅ نافذة إضافة/تعديل موعد أسبوعي
+  void _showAddTemplateDialog(
+    BuildContext context, {
+    ScheduleTemplateEntity? template,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) => ScheduleTemplateDialog(
+        groupId: widget.group.id!,
+        template: template,
+        onSubmit: (newTemplate) {
+          if (template == null) {
+            context.read<AttendanceBloc>().add(
+              CreateTemplateEvent(newTemplate),
+            );
+          } else {
+            context.read<AttendanceBloc>().add(
+              UpdateTemplateEvent(newTemplate),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  /// ✅ حذف موعد أسبوعي
+  Future<void> _deleteTemplate(
+    BuildContext context,
+    ScheduleTemplateEntity template,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: Text('هل أنت متأكد من حذف موعد ${template.dayLabel}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<AttendanceBloc>().add(
+        DeleteTemplateEvent(id: template.id!, groupId: widget.group.id!),
+      );
+    }
   }
 
   @override
@@ -97,7 +157,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ====== بطاقة الفوج ======
+            // ====== 1. بطاقة الفوج ======
             Container(
               padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
@@ -138,7 +198,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
             ),
             SizedBox(height: _Gap.md),
 
-            // ====== معلومات الفوج ======
+            // ====== 2. معلومات الفوج ======
             BlocBuilder<EnrollmentBloc, EnrollmentState>(
               builder: (context, enrollmentState) {
                 final studentsCount = _getEnrolledStudentsCount(
@@ -190,7 +250,71 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
             ),
             SizedBox(height: _Gap.lg),
 
-            // ====== الطلاب المسجلون ======
+            // ====== 3. ✅ الجدول الأسبوعي (هنا القسم الجديد) ======
+            _InfoCard(
+              icon: Icons.schedule,
+              title: 'الجدول الأسبوعي',
+              children: [
+                BlocBuilder<AttendanceBloc, AttendanceState>(
+                  builder: (context, state) {
+                    return switch (state.templatesState) {
+                      Initial() => const SizedBox.shrink(),
+                      Loading() => const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                      Empty() => Column(
+                        children: [
+                          Text(
+                            'لا توجد مواعيد أسبوعية',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          OutlinedButton.icon(
+                            onPressed: () => _showAddTemplateDialog(context),
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('إضافة موعد'),
+                          ),
+                        ],
+                      ),
+                      Error(message: final msg) => Text(
+                        msg,
+                        style: TextStyle(color: colors.error),
+                      ),
+                      Success(data: final templates) => Column(
+                        children: [
+                          ...templates.map(
+                            (template) => _TemplateRow(
+                              template: template,
+                              onEdit: () => _showAddTemplateDialog(
+                                context,
+                                template: template,
+                              ),
+                              onDelete: () =>
+                                  _deleteTemplate(context, template),
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          OutlinedButton.icon(
+                            onPressed: () => _showAddTemplateDialog(context),
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('إضافة موعد'),
+                          ),
+                        ],
+                      ),
+                    };
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: _Gap.lg),
+
+            // ====== 4. الطلاب المسجلون ======
             Text(
               'الطلاب المسجلون',
               style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
@@ -444,6 +568,78 @@ class _InfoRow extends StatelessWidget {
           Text(
             value,
             style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 📅 صف القالب الأسبوعي
+class _TemplateRow extends StatelessWidget {
+  final ScheduleTemplateEntity template;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _TemplateRow({
+    required this.template,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final startStr =
+        '${template.startTime.hour.toString().padLeft(2, '0')}:${template.startTime.minute.toString().padLeft(2, '0')}';
+    final endStr =
+        '${template.endTime.hour.toString().padLeft(2, '0')}:${template.endTime.minute.toString().padLeft(2, '0')}';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 6.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Text(
+              template.dayLabel,
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.bold,
+                color: colors.onPrimaryContainer,
+              ),
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              '$startStr - $endStr',
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.edit_outlined, size: 16.sp, color: colors.primary),
+            onPressed: onEdit,
+            tooltip: 'تعديل',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+          SizedBox(width: 6.w),
+          IconButton(
+            icon: Icon(Icons.delete_outline, size: 16.sp, color: colors.error),
+            onPressed: onDelete,
+            tooltip: 'حذف',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
           ),
         ],
       ),

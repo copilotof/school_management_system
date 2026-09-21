@@ -10,6 +10,14 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/groups/presentation/bloc/groups_event.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 
+// ثوابت التصميم
+class _Gap {
+  static double get xs => 4.h;
+  static double get sm => 8.h;
+  static double get md => 12.h;
+  static double get lg => 16.h;
+}
+
 // ============================================================
 // 🎨 نظام التصميم الموحّد (Design Tokens) — Material 3
 // ============================================================
@@ -276,12 +284,14 @@ class AddPaymentPage extends StatefulWidget {
   final StudentEntity student;
   final int groupId;
   final String? initialMonth; // ✅ شهر محدد مسبقاً
+  final int? initialExtraSessionId;
 
   const AddPaymentPage({
     super.key,
     required this.student,
     required this.groupId,
     this.initialMonth,
+    this.initialExtraSessionId,
   });
 
   @override
@@ -301,6 +311,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
   int _advanceMonths = 3;
   double _advanceDiscount = 5;
 
+  int? _selectedExtraId;
+  List<PaymentEntity> _unpaidExtras = [];
+
   static const Map<String, IconData> _typeIcons = {
     'monthly': Icons.calendar_view_month_rounded,
     'exemption': Icons.volunteer_activism_outlined,
@@ -312,6 +325,12 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
   @override
   void initState() {
     super.initState();
+
+    // ✅ إذا كانت حصة إضافية محددة، اختر نوع "إضافية" مباشرة
+    if (widget.initialExtraSessionId != null) {
+      _paymentType = 'extra';
+    }
+
     // ✅ تعيين الشهر المحدد مسبقاً
     if (widget.initialMonth != null) {
       _selectedMonth = widget.initialMonth!;
@@ -321,6 +340,63 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       context.read<EnrollmentBloc>().add(FetchEnrollments());
       context.read<FinanceBloc>().add(FetchAllFinanceData());
       _setDefaultAmount();
+
+      // ✅ إذا كانت حصة إضافية، عيّن المبلغ تلقائياً
+      /*       if (widget.initialExtraSessionId != null) {
+        _unpaidExtras = _getUnpaidExtraFees();
+        final selected = _unpaidExtras
+            .where((e) => e.id == widget.initialExtraSessionId)
+            .firstOrNull;
+        if (selected != null) {
+          _amountController.text = selected.remainingAmount.toStringAsFixed(0);
+        }
+        setState(() {});
+      }
+ */
+
+      // ✅ إذا كانت حصة إضافية محددة، جلب الحصص واختيار المناسبة
+      if (widget.initialExtraSessionId != null) {
+        _loadExtraSession();
+      }
+    });
+  }
+
+  /// ✅ جلب واختيار الحصة الإضافية
+  void _loadExtraSession() {
+    // انتظر قليلاً حتى يتم تحميل البيانات
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+
+      final payments =
+          context.read<FinanceBloc>().state.paymentsState.data ?? [];
+      final unpaidExtras = payments
+          .where(
+            (p) =>
+                p.studentId == widget.student.id &&
+                p.groupId == widget.groupId &&
+                p.type == 'extra' &&
+                p.remainingAmount > 0,
+          )
+          .toList();
+
+      final selected = unpaidExtras
+          .where((e) => e.id == widget.initialExtraSessionId)
+          .firstOrNull;
+
+      if (selected != null) {
+        setState(() {
+          _unpaidExtras = unpaidExtras;
+          _selectedExtraId = selected.id;
+          _amountController.text = selected.remainingAmount.toStringAsFixed(0);
+        });
+      } else {
+        // الحصة غير موجودة أو مدفوعة
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('هذه الحصة الإضافية مدفوعة بالكامل أو غير موجودة'),
+          ),
+        );
+      }
     });
   }
 
@@ -360,6 +436,19 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         )
         .firstOrNull;
     return enrollment?.enrollmentDate;
+  }
+
+  List<PaymentEntity> _getUnpaidExtraFees() {
+    final payments = context.read<FinanceBloc>().state.paymentsState.data ?? [];
+    return payments
+        .where(
+          (p) =>
+              p.studentId == widget.student.id &&
+              p.groupId == widget.groupId &&
+              p.type == 'extra' &&
+              p.remainingAmount > 0,
+        )
+        .toList();
   }
 
   /// ✅ الأشهر غير المدفوعة - من التسجيل حتى شهر بعد آخر شهر مدفوع
@@ -480,19 +569,18 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
 
   void _submit() {
     var amount = double.tryParse(_amountController.text) ?? 0;
-    if (amount <= 0) return;
+    // ... باقي الحالات (monthly, advance, reduction, registration, extra)
+    // if (amount <= 0) return;
+    // ✅ الإعفاء لا يحتاج مبلغاً
+    if (_paymentType != 'exemption' && amount <= 0) return;
 
-    // ✅ تأكد من أن الشهر غير فارغ
-    if ((_paymentType == 'monthly' ||
-            _paymentType == 'exemption' ||
-            _paymentType == 'reduction') &&
+    if ((_paymentType == 'monthly' || _paymentType == 'reduction') &&
         _selectedMonth.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الشهر')));
       return;
     }
-
     final monthlyFee = _getGroupMonthlyFee();
     String? monthYear = null;
     String? notes = _notesController.text.isEmpty
@@ -524,28 +612,133 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         }
       }
     } else if (_paymentType == 'exemption') {
-      monthYear = _selectedMonth;
-      originalAmount = monthlyFee;
-      amount = 0;
-      notes =
-          'إعفاء - ${_notesController.text.isNotEmpty ? _notesController.text : 'بدون سبب'}';
+      if (_selectedMonth.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الشهر')));
+        return;
+      }
+
+      final monthlyFee = _getGroupMonthlyFee();
+      final sessionId = null; // الإعفاء لا يرتبط بحصة
+      final now = DateTime.now();
+      final dateStr = DateFormat('yyyy/MM/dd').format(now);
+
+      // ✅ إنشاء عملية إعفاء
+      final payment = PaymentEntity(
+        studentId: widget.student.id!,
+        groupId: widget.groupId,
+        type: 'exemption',
+        monthYear: _selectedMonth,
+        amount: 0, // ✅ المدفوع = 0
+        originalAmount: monthlyFee, // ✅ الأصلي = رسوم الفوج
+        remainingAmount: 0, // ✅ لا متبقي
+        paymentDate: _paymentDate,
+        method: 'cash',
+        receiptNumber: _generateReceiptNumber(),
+        notes:
+            'إعفاء - ${_notesController.text.isNotEmpty ? _notesController.text : 'بدون سبب'}',
+      );
+
+      context.read<FinanceBloc>().add(CreatePaymentEvent(payment));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تسجيل الإعفاء بنجاح'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+
+      Navigator.of(context).pop();
+      return;
     } else if (_paymentType == 'reduction') {
       monthYear = _selectedMonth;
-      originalAmount = monthlyFee;
-      double reducedAmount = double.tryParse(_reductionController.text) ?? 0;
+      // ✅ المبلغ الأصلي = المبلغ في الحقل (غير قابل للتغيير)
+      originalAmount = double.tryParse(_amountController.text) ?? monthlyFee;
+      // ✅ المبلغ المدفوع = المبلغ المخفض
+      final reducedAmount = double.tryParse(_reductionController.text) ?? 0;
       amount = reducedAmount;
-      // ✅ لا متبقي - التخفيض مساعدة من المدرسة
       remainingAmount = 0;
       notes =
-          'تخفيض - المطلوب $monthlyFee دج، دفع $reducedAmount دج (مساعدة ${(monthlyFee - reducedAmount).toStringAsFixed(0)} دج) ${_notesController.text.isNotEmpty ? '- ${_notesController.text}' : ''}';
+          'تخفيض - المطلوب ${originalAmount.toStringAsFixed(0)} دج، دفع ${reducedAmount.toStringAsFixed(0)} دج (مساعدة ${(originalAmount - reducedAmount).toStringAsFixed(0)} دج)${_notesController.text.isNotEmpty ? ' - ${_notesController.text}' : ''}';
     } else if (_paymentType == 'registration') {
       type = 'registration';
       notes = 'رسوم تسجيل سنوية';
     } else if (_paymentType == 'extra') {
-      type = 'extra';
-      notes = _extraDescriptionController.text.isNotEmpty
-          ? _extraDescriptionController.text
-          : 'مستحقات إضافية';
+      // ✅ تسديد حصة إضافية
+      if (_selectedExtraId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('يرجى اختيار الحصة الإضافية')),
+        );
+        return;
+      }
+
+      final selectedExtra = _unpaidExtras.firstWhere(
+        (e) => e.id == _selectedExtraId,
+      );
+      final payAmount = double.tryParse(_amountController.text) ?? 0;
+
+      if (payAmount <= 0) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('يرجى إدخال مبلغ صحيح')));
+        return;
+      }
+
+      if (payAmount > selectedExtra.remainingAmount) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'المبلغ أكبر من المتبقي (${selectedExtra.remainingAmount.toStringAsFixed(0)} دج)',
+            ),
+          ),
+        );
+        return;
+      }
+
+      final newRemaining = selectedExtra.remainingAmount - payAmount;
+
+      // 1. تحديث الحصة الإضافية الأصلية
+      final updatedExtra = selectedExtra.copyWith(
+        amount: selectedExtra.amount + payAmount,
+        remainingAmount: newRemaining,
+        paymentDate: DateTime.now(),
+        notes: newRemaining <= 0 ? 'مدفوع بالكامل' : selectedExtra.notes,
+      );
+
+      // 2. إنشاء دفعة منفصلة للسجل
+      final payment = PaymentEntity(
+        studentId: widget.student.id!,
+        groupId: widget.groupId,
+        sessionId: selectedExtra.sessionId,
+        parentPaymentId: selectedExtra.id, // ✅ ربط بالحصة الأصلية
+        type: 'extra_payment',
+        amount: payAmount,
+        originalAmount: selectedExtra.originalAmount,
+        remainingAmount: newRemaining,
+        paymentDate: _paymentDate,
+        method: 'cash',
+        receiptNumber: _generateReceiptNumber(),
+        notes: 'تسديد حصة إضافية',
+      );
+
+      // إرسال الحدثين
+      context.read<FinanceBloc>().add(UpdatePaymentEvent(updatedExtra));
+      context.read<FinanceBloc>().add(CreatePaymentEvent(payment));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newRemaining <= 0
+                ? 'تم تسديد الحصة الإضافية بالكامل'
+                : 'تم تسديد $payAmount دج. المتبقي: $newRemaining دج',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        ),
+      );
+
+      Navigator.of(context).pop();
+      return;
     }
 
     final payment = PaymentEntity(
@@ -573,9 +766,19 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
     setState(() {
       _paymentType = type;
       _isAdvance = false;
-      if (type == 'monthly') _setDefaultAmount();
-      if (type == 'reduction') {
-        // ✅ تفريغ الحقل ليتم إدخال المبلغ المخفض
+      _selectedExtraId = null;
+
+      if (type == 'monthly') {
+        _setDefaultAmount();
+      } else if (type == 'reduction') {
+        final fee = _getGroupMonthlyFee();
+        _amountController.text = fee.toStringAsFixed(0);
+        _reductionController.clear();
+      } else if (type == 'extra') {
+        // ✅ جلب الحصص الإضافية
+        _unpaidExtras = _getUnpaidExtraFees();
+        _amountController.clear();
+      } else {
         _amountController.clear();
       }
     });
@@ -775,17 +978,17 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
               SizedBox(height: AppSpacing.sm),
             ],
 
-            // ====== المبلغ ======
-            if (_paymentType != 'exemption') ...[
+            // المبلغ - يظهر فقط لغير الإعفاء
+            if (_paymentType != 'exemption' &&
+                (_paymentType != 'extra' || _selectedExtraId != null)) ...[
               _FormCard(
                 icon: Icons.payments_outlined,
                 title: _paymentType == 'reduction'
-                    ? 'المبلغ الأصلي (دج)'
+                    ? 'المبلغ المطلوب (دج)'
                     : 'المبلغ (دج)',
                 child: TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
-                  // ✅ غير قابل للتغيير في التخفيض
                   readOnly: _isAdvance || _paymentType == 'reduction',
                   decoration: InputDecoration(
                     prefixIcon: Icon(
@@ -795,15 +998,26 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                       size: 18,
                     ),
                     isDense: true,
-                    fillColor: _paymentType == 'reduction'
+                    filled: _paymentType == 'reduction' || _isAdvance,
+                    fillColor: _paymentType == 'reduction' || _isAdvance
                         ? Theme.of(context).colorScheme.surfaceContainerHighest
                         : null,
-                    filled: _paymentType == 'reduction',
+                    suffixIcon: _paymentType == 'reduction'
+                        ? Icon(
+                            Icons.lock_outline,
+                            size: 16,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
+                          )
+                        : null,
                   ),
                 ),
               ),
-              SizedBox(height: AppSpacing.md),
+              // SizedBox(height: AppSpacing.md),
+              SizedBox(height: _Gap.md),
             ],
+
             // ====== مبلغ التخفيض ======
             if (_paymentType == 'reduction') ...[
               _FormCard(
@@ -822,18 +1036,52 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             ],
 
             // ====== عنوان المستحق الإضافي ======
+            // بعد _FormCard الخاص بنوع العملية:
             if (_paymentType == 'extra') ...[
               _FormCard(
-                icon: Icons.title,
-                title: 'عنوان المستحق',
-                child: TextField(
-                  controller: _extraDescriptionController,
-                  decoration: _fieldDecoration(icon: Icons.title),
-                ),
+                icon: Icons.event,
+                title: 'الحصة الإضافية',
+                child: _unpaidExtras.isEmpty
+                    ? Text(
+                        'لا توجد حصص إضافية مستحقة لهذا الطالب',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      )
+                    : DropdownButtonFormField<int>(
+                        isExpanded: true,
+                        initialValue: _selectedExtraId,
+                        decoration: const InputDecoration(
+                          labelText: 'اختر الحصة *',
+                          prefixIcon: Icon(Icons.event, size: 18),
+                          isDense: true,
+                        ),
+                        items: _unpaidExtras.map((extra) {
+                          return DropdownMenuItem(
+                            value: extra.id,
+                            child: Text(
+                              'حصة ${DateFormat('yyyy/MM/dd').format(extra.paymentDate)} - متبقي ${extra.remainingAmount.toStringAsFixed(0)} دج',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedExtraId = value;
+                            final selected = _unpaidExtras.firstWhere(
+                              (e) => e.id == value,
+                            );
+                            // ✅ المبلغ تلقائياً = المتبقي
+                            _amountController.text = selected.remainingAmount
+                                .toStringAsFixed(0);
+                          });
+                        },
+                      ),
               ),
-              SizedBox(height: AppSpacing.sm),
+              SizedBox(height: _Gap.md),
             ],
-
             // ====== التاريخ ======
             _FormCard(
               icon: Icons.calendar_today,

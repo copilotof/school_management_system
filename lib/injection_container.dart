@@ -46,6 +46,10 @@ import 'package:school_management_system/features/teachers/domain/usecases/searc
 import 'package:school_management_system/features/teachers/domain/usecases/update_teacher.dart';
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 
+import 'features/attendance/data/repositories/attendance_repository_impl.dart';
+import 'features/attendance/data/sources/attendance_local_source.dart';
+import 'features/attendance/domain/repositories/attendance_repository.dart';
+import 'features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'features/finance/data/repositories/finance_repository_impl.dart';
 import 'features/finance/data/sources/finance_local_source.dart';
 import 'features/finance/domain/repositories/finance_repository.dart';
@@ -271,5 +275,23 @@ Future<void> configureDependencies() async {
     getIt.registerSingleton<FinanceLocalDataSource>(
       FinanceLocalDataSource(db: getIt<AppDatabase>()),
     );
+  }
+
+  // في configureDependencies:
+  if (!getIt.isRegistered<AttendanceLocalDataSource>()) {
+    getIt.registerSingleton<AttendanceLocalDataSource>(
+      AttendanceLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<AttendanceRepository>()) {
+    getIt.registerSingleton<AttendanceRepository>(
+      AttendanceRepositoryImpl(
+        localDataSource: getIt<AttendanceLocalDataSource>(),
+        db: getIt<AppDatabase>(),
+      ),
+    );
+  }
+  if (!getIt.isRegistered<AttendanceBloc>()) {
+    getIt.registerFactory(() => AttendanceBloc(repository: getIt()));
   }
 }

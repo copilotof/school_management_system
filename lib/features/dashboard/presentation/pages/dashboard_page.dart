@@ -12,6 +12,7 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/subjects/presentation/pages/subjects_page.dart';
 import 'package:school_management_system/features/teachers/presentation/pages/teachers_page.dart';
 
+import '../../../attendance/presentation/pages/attendance_page.dart';
 import '../../../groups/presentation/bloc/groups_state.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
@@ -148,6 +149,25 @@ class DashboardView extends StatelessWidget {
                     },
                   ),
                   _QuickActionCard(
+                    title: 'الحضور',
+                    icon: Icons.check_circle_outline_rounded,
+                    color: const Color(0xFFFBBC04),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AttendancePage(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _QuickActionCard(
+                    title: 'الإعدادات',
+                    icon: Icons.settings_rounded,
+                    color: const Color(0xFF9AA0A6),
+                    onTap: () {},
+                  ),
+                  /*        _QuickActionCard(
                     title: 'المعلمون',
                     icon: Icons.person_outline_rounded,
                     color: const Color(0xFFF29900),
@@ -156,13 +176,7 @@ class DashboardView extends StatelessWidget {
                         MaterialPageRoute(builder: (_) => const TeachersPage()),
                       );
                     },
-                  ),
-                  _QuickActionCard(
-                    title: 'الإعدادات',
-                    icon: Icons.settings_rounded,
-                    color: const Color(0xFF9AA0A6),
-                    onTap: () {},
-                  ),
+                  ), */
                 ],
               ),
             ],

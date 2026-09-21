@@ -145,6 +145,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:school_management_system/core/services/language_cubit.dart';
 import 'package:school_management_system/core/theme/app_theme.dart';
@@ -158,11 +159,13 @@ import 'package:school_management_system/features/subjects/presentation/bloc/sub
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import 'features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ar', null);
   /* 
   // ✅ حذف قاعدة البيانات القديمة (مؤقت - للتطوير فقط)
   try {
@@ -205,7 +208,7 @@ class SchoolManagementApp extends StatelessWidget {
             BlocProvider(create: (_) => getIt<GradesBloc>()),
             BlocProvider(create: (_) => getIt<GroupsBloc>()),
             BlocProvider(create: (_) => getIt<FinanceBloc>()),
-            BlocProvider(create: (_) => getIt<FinanceBloc>()),
+            BlocProvider(create: (_) => getIt<AttendanceBloc>()),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {

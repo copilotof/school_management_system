@@ -6,6 +6,8 @@ class PaymentEntity extends Equatable {
   final int? id;
   final int studentId;
   final int? groupId; // الفوج
+  final int? sessionId;
+  final int? parentPaymentId; // ✅ مرتبط بالحصة الإضافية الأصلية
   final String
   type; // monthly, advance, exemption, reduction, registration, extra
   final String? monthYear; // "2026-07"
@@ -22,6 +24,8 @@ class PaymentEntity extends Equatable {
     this.id,
     required this.studentId,
     this.groupId,
+    this.sessionId,
+    this.parentPaymentId, // ✅
     required this.type,
     this.monthYear,
     required this.amount,
@@ -48,13 +52,14 @@ class PaymentEntity extends Equatable {
       case 'registration':
         return 'تسجيل';
       case 'extra':
-        return 'إضافية';
+        return 'حصة إضافية';
+      case 'extra_payment':
+        return 'تسديد حصة إضافية'; // ✅
       default:
         return type;
     }
   }
-
-  /// هل مدفوعة بالكامل؟
+  /*   /// هل مدفوعة بالكامل؟
   bool get isFullyPaid => remainingAmount <= 0 && amount >= originalAmount;
 
   /// هل جزئية؟
@@ -65,6 +70,62 @@ class PaymentEntity extends Equatable {
     id,
     studentId,
     groupId,
+    type,
+    monthYear,
+    amount,
+    originalAmount,
+    remainingAmount,
+    paymentDate,
+    method,
+    receiptNumber,
+    notes,
+    recordedBy,
+  ];
+ */
+
+  bool get isFullyPaid => remainingAmount <= 0 && amount >= originalAmount;
+  bool get isPartial => remainingAmount > 0;
+
+  PaymentEntity copyWith({
+    int? id,
+    int? studentId,
+    int? groupId,
+    int? sessionId,
+    String? type,
+    String? monthYear,
+    double? amount,
+    double? originalAmount,
+    double? remainingAmount,
+    DateTime? paymentDate,
+    String? method,
+    String? receiptNumber,
+    String? notes,
+    int? recordedBy,
+  }) {
+    return PaymentEntity(
+      id: id ?? this.id,
+      studentId: studentId ?? this.studentId,
+      groupId: groupId ?? this.groupId,
+      sessionId: sessionId ?? this.sessionId,
+      type: type ?? this.type,
+      monthYear: monthYear ?? this.monthYear,
+      amount: amount ?? this.amount,
+      originalAmount: originalAmount ?? this.originalAmount,
+      remainingAmount: remainingAmount ?? this.remainingAmount,
+      paymentDate: paymentDate ?? this.paymentDate,
+      method: method ?? this.method,
+      receiptNumber: receiptNumber ?? this.receiptNumber,
+      notes: notes ?? this.notes,
+      recordedBy: recordedBy ?? this.recordedBy,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    studentId,
+    groupId,
+    sessionId,
     type,
     monthYear,
     amount,

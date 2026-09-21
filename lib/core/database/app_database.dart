@@ -182,44 +182,49 @@ class Enrollments extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// ============== جدول الحصص ==============
+// ============== جدول الحضور ==============
 @DataClassName('Session')
 class Sessions extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
   IntColumn get groupId => integer()();
+  IntColumn get templateId => integer().nullable()(); // ✅ للقالب
   DateTimeColumn get sessionDate => dateTime()();
   DateTimeColumn get startTime => dateTime()();
   DateTimeColumn get endTime => dateTime()();
-  TextColumn get type => text().withDefault(const Constant('regular'))();
-  TextColumn get status => text().withDefault(const Constant('scheduled'))();
+  TextColumn get type =>
+      text().withDefault(const Constant('regular'))(); // regular, makeup, extra
+  TextColumn get status => text().withDefault(
+    const Constant('scheduled'),
+  )(); // scheduled, in_progress, completed, cancelled, postponed
   TextColumn get lessonTopic => text().nullable()();
   TextColumn get teacherNotes => text().nullable()();
   TextColumn get homework => text().nullable()();
-  BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
-  RealColumn get price => real().nullable()();
+  TextColumn get cancelReason => text().nullable()(); // ✅ سبب الإلغاء
+  BoolColumn get isPaid =>
+      boolean().withDefault(const Constant(false))(); // ✅ للحصة الإضافية
+  RealColumn get price => real().nullable()(); // ✅ سعر الحصة الإضافية
+  TextColumn get paymentStatus =>
+      text().nullable()(); // ✅ unpaid, partial, paid, exempted
+  RealColumn get paidAmount =>
+      real().withDefault(const Constant(0))(); // ✅ المدفوع
+  RealColumn get remainingAmount =>
+      real().withDefault(const Constant(0))(); // ✅ المتبقي
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// ============== جدول الحضور ==============
-@DataClassName('AttendanceRecord')
-class Attendance extends Table {
+// ============== جدول القوالب الأسبوعية ==============
+@DataClassName('ScheduleTemplate')
+class ScheduleTemplates extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
-  IntColumn get sessionId => integer()();
-  IntColumn get studentId => integer()();
-  TextColumn get status => text()(); // present, late, excused, unexcused
-  DateTimeColumn get checkInTime => dateTime().nullable()();
-  IntColumn get recordedBy => integer().nullable()();
-  TextColumn get notes => text().nullable()();
+  IntColumn get groupId => integer()();
+  IntColumn get dayOfWeek => integer()(); // 0=الأحد، 1=الإثنين... 6=السبت
+  DateTimeColumn get startTime => dateTime()();
+  DateTimeColumn get endTime => dateTime()();
+  TextColumn get location => text().nullable()();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  List<Set<Column>> get uniqueKeys => [
-    {sessionId, studentId},
-  ];
 }
 
 // ============== جدول المستحقات ==============
@@ -329,7 +334,7 @@ class Payments extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get studentId => integer()();
   IntColumn get groupId => integer().nullable()(); // ✅ الفوج
-
+  IntColumn get sessionId => integer().nullable()();
   TextColumn get type => text()(); // monthly, registration, advance, extra
   TextColumn get monthYear => text().nullable()(); // "2025-09" للشهرية
   RealColumn get amount => real()(); // المبلغ المدفوع
@@ -342,6 +347,7 @@ class Payments extends Table {
   TextColumn get receiptNumber => text().unique()();
   TextColumn get notes => text().nullable()();
   IntColumn get recordedBy => integer().nullable()();
+  IntColumn get parentPaymentId => integer().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -389,6 +395,24 @@ class FeeSettings extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+@DataClassName('AttendanceRecord')
+class Attendance extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get sessionId => integer()();
+  IntColumn get studentId => integer()();
+  TextColumn get status => text()(); // ✅ present, absent, late فقط
+  DateTimeColumn get checkInTime => dateTime().nullable()();
+  IntColumn get recordedBy => integer().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {sessionId, studentId},
+  ];
+}
+
 // ============== قاعدة البيانات ==============
 @DriftDatabase(
   tables: [
@@ -403,6 +427,7 @@ class FeeSettings extends Table {
     Students,
     Groups,
     Enrollments,
+    ScheduleTemplates,
     Sessions,
     Attendance,
     Invoices,

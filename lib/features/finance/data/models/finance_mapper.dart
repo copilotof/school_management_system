@@ -8,6 +8,7 @@ extension PaymentMapper on Payment {
       id: id,
       studentId: studentId,
       groupId: groupId,
+      sessionId: sessionId,
       type: type,
       monthYear: monthYear,
       amount: amount,
@@ -25,6 +26,8 @@ extension PaymentMapper on Payment {
     return PaymentsCompanion.insert(
       studentId: entity.studentId,
       groupId: Value(entity.groupId),
+      sessionId: Value(entity.sessionId),
+      parentPaymentId: Value(entity.parentPaymentId),
       type: entity.type,
       monthYear: Value(entity.monthYear),
       amount: entity.amount,
