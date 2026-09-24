@@ -5,14 +5,112 @@ import 'package:school_management_system/core/services/language_cubit.dart';
 import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
+import '../../../../core/database/settings_local_source.dart';
+import '../../../../injection_container.dart';
 import '../../../grades/presentation/pages/grades_page.dart';
 import '../../../levels/presentation/pages/levels_page.dart';
 import '../../../subjects/presentation/pages/subjects_page.dart';
 
 /// 📁 صفحة الإعدادات
-
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  int _absenceLimit = 5; // ✅ حد الغيابات الافتراضي
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAbsenceLimit();
+  }
+
+  Future<void> _loadAbsenceLimit() async {
+    final settings = getIt<SettingsLocalDataSource>();
+    final limit = await settings.getAbsenceLimit();
+    if (mounted) {
+      setState(() => _absenceLimit = limit);
+    }
+  }
+
+  /* 
+  Future<void> _showAbsenceLimitDialog(BuildContext context) async {
+    final settings = getIt<SettingsLocalDataSource>();
+    final currentLimit = await settings.getAbsenceLimit();
+    final controller = TextEditingController(text: currentLimit.toString());
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('حد الغيابات المسموح'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'عدد الغيابات',
+            hintText: 'مثال: 5',
+            prefixIcon: Icon(Icons.event_busy),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final value = int.tryParse(controller.text);
+              if (value != null && value > 0) {
+                Navigator.of(dialogContext).pop(value);
+              }
+            },
+            child: const Text('حفظ'),
+          ),
+        ],
+      ),
+    );
+
+    controller.dispose();
+
+    if (result != null) {
+      await settings.setAbsenceLimit(result);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('تم حفظ الحد: $result غيابات')));
+        setState(
+          () => _absenceLimit = result,
+        ); // إعادة البناء لعرض القيمة الجديدة
+      }
+    }
+  }
+    */
+  Future<void> _showAbsenceLimitDialog(BuildContext context) async {
+    final settings = getIt<SettingsLocalDataSource>();
+    final currentLimit = await settings.getAbsenceLimit();
+
+    if (!context.mounted) return;
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) =>
+          _AbsenceLimitDialog(currentLimit: currentLimit),
+    );
+
+    if (result != null) {
+      await settings.setAbsenceLimit(result);
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('تم حفظ الحد: $result غيابات')));
+        _loadAbsenceLimit();
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +184,27 @@ class SettingsPage extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
 
-            // في ListView
+            // ====== قسم الإشعارات ======
+            _SectionTitle(title: 'الإشعارات', colors: colors),
+            SizedBox(height: 8.h),
+
+            Card(
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.event_busy, color: colors.primary),
+                    title: const Text('حد الغيابات المسموح'),
+                    subtitle: Text('$_absenceLimit غيابات'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      onPressed: () => _showAbsenceLimitDialog(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+
             // ====== قسم الإدارة ======
             _SectionTitle(title: 'الإدارة', colors: colors),
             SizedBox(height: 8.h),
@@ -126,6 +244,7 @@ class SettingsPage extends StatelessWidget {
                 ],
               ),
             ),
+            SizedBox(height: 16.h),
 
             // ====== قسم المعلومات ======
             _SectionTitle(title: 'معلومات', colors: colors),
@@ -134,19 +253,16 @@ class SettingsPage extends StatelessWidget {
             Card(
               child: Column(
                 children: [
-                  ListTile(
-                    leading: Icon(Icons.info_outline, color: colors.primary),
-                    title: const Text('إصدار التطبيق'),
-                    subtitle: const Text('1.0.0'),
+                  const ListTile(
+                    leading: Icon(Icons.info_outline),
+                    title: Text('إصدار التطبيق'),
+                    subtitle: Text('1.0.0'),
                   ),
                   Divider(height: 1, color: colors.surfaceVariant),
-                  ListTile(
-                    leading: Icon(
-                      Icons.description_outlined,
-                      color: colors.primary,
-                    ),
-                    title: const Text('حول التطبيق'),
-                    subtitle: const Text('نظام إدارة المدارس التعليمية الخاصة'),
+                  const ListTile(
+                    leading: Icon(Icons.description_outlined),
+                    title: Text('حول التطبيق'),
+                    subtitle: Text('نظام إدارة المدارس التعليمية الخاصة'),
                   ),
                 ],
               ),
@@ -162,7 +278,6 @@ class SettingsPage extends StatelessWidget {
                   style: TextStyle(color: colors.error),
                 ),
                 onTap: () {
-                  // العودة لصفحة تسجيل الدخول
                   Navigator.of(context).pushReplacementNamed('/login');
                 },
               ),
@@ -226,6 +341,68 @@ class _LanguageTile extends StatelessWidget {
       onTap: () {
         context.read<LanguageCubit>().changeLocale(Locale(code));
       },
+    );
+  }
+}
+
+/// 📁 حوار تعديل حد الغيابات
+class _AbsenceLimitDialog extends StatefulWidget {
+  final int currentLimit;
+
+  const _AbsenceLimitDialog({required this.currentLimit});
+
+  @override
+  State<_AbsenceLimitDialog> createState() => _AbsenceLimitDialogState();
+}
+
+class _AbsenceLimitDialogState extends State<_AbsenceLimitDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.currentLimit.toString());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('حد الغيابات المسموح'),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        autofocus: true,
+        decoration: const InputDecoration(
+          labelText: 'عدد الغيابات',
+          hintText: 'مثال: 5',
+          prefixIcon: Icon(Icons.event_busy),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final value = int.tryParse(_controller.text);
+            if (value != null && value > 0) {
+              Navigator.of(context).pop(value);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('يرجى إدخال رقم صحيح')),
+              );
+            }
+          },
+          child: const Text('حفظ'),
+        ),
+      ],
     );
   }
 }

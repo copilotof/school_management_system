@@ -14,6 +14,8 @@ import 'package:school_management_system/features/teachers/presentation/pages/te
 
 import '../../../attendance/presentation/pages/attendance_page.dart';
 import '../../../groups/presentation/bloc/groups_state.dart';
+import '../../../notifications/presentation/bloc/notification_bloc.dart';
+import '../../../notifications/presentation/pages/notifications_page.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
 // ============================================================
@@ -38,6 +40,7 @@ class DashboardPage extends StatelessWidget {
       context.read<StudentsBloc>().add(const FetchStudents());
       context.read<GroupsBloc>().add(const FetchGroups());
       context.read<EnrollmentBloc>().add(FetchEnrollments());
+      context.read<NotificationBloc>().add(FetchNotifications()); // ✅
     });
 
     return const DashboardView();
@@ -62,6 +65,60 @@ class DashboardView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('لوحة التحكم'),
         automaticallyImplyLeading: false,
+        actions: [
+          // ✅ زر الإشعارات مع Badge
+          BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, state) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: 'الإشعارات',
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  // Badge
+                  if (state.unreadCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 5.w,
+                          vertical: 2.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        constraints: BoxConstraints(
+                          minWidth: 16.w,
+                          minHeight: 16.h,
+                        ),
+                        child: Text(
+                          state.unreadCount > 99
+                              ? '99+'
+                              : '${state.unreadCount}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          SizedBox(width: 4.w),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -167,16 +224,6 @@ class DashboardView extends StatelessWidget {
                     color: const Color(0xFF9AA0A6),
                     onTap: () {},
                   ),
-                  /*        _QuickActionCard(
-                    title: 'المعلمون',
-                    icon: Icons.person_outline_rounded,
-                    color: const Color(0xFFF29900),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const TeachersPage()),
-                      );
-                    },
-                  ), */
                 ],
               ),
             ],

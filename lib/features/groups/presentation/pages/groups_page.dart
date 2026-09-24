@@ -17,6 +17,7 @@ import 'package:school_management_system/features/teachers/domain/entities/teach
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_event.dart';
 
+import '../../../enrollment/presentation/pages/enrollment_page.dart';
 import '../../../subjects/presentation/bloc/subjects_state.dart';
 import '../../../teachers/presentation/bloc/teachers_state.dart';
 
@@ -183,6 +184,15 @@ class GroupsView extends StatelessWidget {
                             ),
                           );
                         },
+                        // ✅ جديد
+                        onManageStudents: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  EnrollmentPage(initialGroupId: group.id),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),
@@ -208,12 +218,14 @@ class _GroupCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onDetails;
+  final VoidCallback onManageStudents; // ✅ جديد
 
   const _GroupCard({
     required this.group,
     required this.onEdit,
     required this.onDelete,
     required this.onDetails,
+    required this.onManageStudents, // ✅
   });
 
   @override
@@ -223,111 +235,139 @@ class _GroupCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.only(bottom: 10.h),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.r)),
-      child: InkWell(
-        // ✅ البطاقة كلها قابلة للضغط → تفتح التفاصيل
-        onTap: onDetails,
-        borderRadius: BorderRadius.circular(14.r),
-        child: Padding(
-          padding: EdgeInsets.all(12.w),
-          child: Column(
-            children: [
-              // ====== رأس البطاقة ======
-              Row(
-                children: [
-                  // الأيقونة
-                  Container(
-                    width: 44.w,
-                    height: 44.h,
-                    decoration: BoxDecoration(
-                      color: colors.secondaryContainer,
-                      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.all(12.w),
+        child: Column(
+          children: [
+            // ====== رأس البطاقة ======
+            InkWell(
+              onTap: onDetails,
+              borderRadius: BorderRadius.circular(10.r),
+              child: Padding(
+                padding: EdgeInsets.all(4.w),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44.w,
+                      height: 44.h,
+                      decoration: BoxDecoration(
+                        color: colors.secondaryContainer,
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Icon(
+                        Icons.groups,
+                        size: 22.sp,
+                        color: colors.onSecondaryContainer,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.groups,
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            group.name,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_left,
                       size: 22.sp,
-                      color: colors.onSecondaryContainer,
+                      color: colors.onSurfaceVariant,
                     ),
-                  ),
-                  SizedBox(width: 10.w),
-                  // معلومات الفوج
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          group.name,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  // ✅ سهم يشير إلى إمكانية الفتح
-                  Icon(
-                    Icons.chevron_left,
-                    size: 22.sp,
-                    color: colors.onSurfaceVariant,
-                  ),
-                ],
+                  ],
+                ),
               ),
-              SizedBox(height: 10.h),
+            ),
+            SizedBox(height: 10.h),
 
-              // =====️ شريط الأزرار =====
-              Row(
-                children: [
-                  // ✅ زر رئيسي: عرض التفاصيل
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: onDetails,
-                      icon: const Icon(Icons.visibility_outlined, size: 16),
-                      label: const Text(
-                        'عرض التفاصيل',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+            // ====== شريط الأزرار =====
+            Row(
+              children: [
+                // ✅ زر عرض التفاصيل (رئيسي)
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: onDetails,
+                    icon: const Icon(Icons.visibility_outlined, size: 14),
+                    label: const Text(
+                      'التفاصيل',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
                       ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: Size(0, 34.h),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(0, 34.h),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
                       ),
                     ),
                   ),
-                  SizedBox(width: 6.w),
-                  // زر تعديل
-                  _IconActionButton(
-                    icon: Icons.edit_outlined,
-                    color: colors.primary,
-                    tooltip: 'تعديل',
-                    onTap: onEdit,
+                ),
+                SizedBox(width: 6.w),
+
+                // ✅ زر إدارة الطلبة (جديد)
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: onManageStudents,
+                    icon: const Icon(Icons.person_add_outlined, size: 14),
+                    label: const Text(
+                      'الطلبة',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colors.secondary,
+                      foregroundColor: colors.onSecondary,
+                      minimumSize: Size(0, 34.h),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
                   ),
-                  SizedBox(width: 6.w),
-                  // زر حذف
-                  _IconActionButton(
-                    icon: Icons.delete_outline,
-                    color: colors.error,
-                    tooltip: 'حذف',
-                    onTap: onDelete,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                SizedBox(width: 6.w),
+
+                // زر تعديل
+                _IconActionButton(
+                  icon: Icons.edit_outlined,
+                  color: colors.primary,
+                  tooltip: 'تعديل',
+                  onTap: onEdit,
+                ),
+                SizedBox(width: 6.w),
+
+                // زر حذف
+                _IconActionButton(
+                  icon: Icons.delete_outline,
+                  color: colors.error,
+                  tooltip: 'حذف',
+                  onTap: onDelete,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

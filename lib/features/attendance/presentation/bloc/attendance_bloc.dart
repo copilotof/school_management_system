@@ -4,6 +4,8 @@ import 'package:school_management_system/features/attendance/domain/entities/att
 import 'package:school_management_system/features/attendance/domain/entities/session_entity.dart';
 import 'package:school_management_system/features/attendance/domain/repositories/attendance_repository.dart';
 
+import '../../../../core/database/settings_local_source.dart';
+import '../../../notifications/services/auto_notification_service.dart';
 import '../../domain/entities/schedule_template_entity.dart';
 
 // ============================================================
@@ -132,8 +134,14 @@ class ExemptStudentFromExtraFee extends AttendanceEvent {
 
 class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   final AttendanceRepository repository;
+  final AutoNotificationService autoNotificationService; // ✅
+  final SettingsLocalDataSource settingsLocalDataSource;
 
-  AttendanceBloc({required this.repository}) : super(const AttendanceState()) {
+  AttendanceBloc({
+    required this.repository,
+    required this.autoNotificationService,
+    required this.settingsLocalDataSource,
+  }) : super(const AttendanceState()) {
     on<FetchTodaySessions>(_onFetchTodaySessions);
     on<FetchSessionsByGroup>(_onFetchSessionsByGroup);
     on<FetchSessionsByDate>(_onFetchSessionsByDate);
@@ -313,9 +321,20 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     Emitter<AttendanceState> emit,
   ) async {
     final result = await repository.updateSession(event.session);
+
     result.fold(
       (failure) => emit(state.copyWith(errorMessage: failure.message)),
-      (_) => add(FetchTodaySessions()),
+      (_) async {
+        // ✅ إذا أصبحت الحصة ملغاة، أنشئ إشعارات
+        if (event.session.status == 'cancelled') {
+          await autoNotificationService.notifySessionCancelled(
+            sessionId: event.session.id!,
+            groupId: event.session.groupId,
+            reason: event.session.cancelReason ?? 'غير محدد',
+          );
+        }
+        add(FetchTodaySessions());
+      },
     );
   }
 
@@ -342,8 +361,30 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     );
     result.fold(
       (failure) => emit(state.copyWith(errorMessage: failure.message)),
-      (_) => add(FetchAttendanceBySession(event.sessionId)),
+      (_) async {
+        // ✅ فحص الغيابات
+        await _checkAttendanceLimits(event.attendanceList);
+
+        add(FetchAttendanceBySession(event.sessionId));
+      },
     );
+  }
+
+  /// ✅ فحص الغيابات لكل طالب
+  Future<void> _checkAttendanceLimits(
+    List<AttendanceEntity> attendanceList,
+  ) async {
+    // الحد الافتراضي للغياب
+    final threshold = await settingsLocalDataSource.getAbsenceLimit();
+
+    for (final attendance in attendanceList) {
+      if (attendance.status == 'absent') {
+        await autoNotificationService.checkAttendanceLimit(
+          studentId: attendance.studentId,
+          threshold: threshold,
+        );
+      }
+    }
   }
 
   // ====== ✅ توليد الحصص لتاريخ معين ======

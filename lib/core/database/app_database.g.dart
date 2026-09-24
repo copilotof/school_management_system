@@ -12555,17 +12555,32 @@ class $NotificationsTable extends Notifications
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _schoolIdMeta = const VerificationMeta(
-    'schoolId',
-  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
   @override
-  late final GeneratedColumn<int> schoolId = GeneratedColumn<int>(
-    'school_id',
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
     aliasedName,
     false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(1),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _recipientTypeMeta = const VerificationMeta(
     'recipientType',
@@ -12598,67 +12613,31 @@ class $NotificationsTable extends Notifications
     aliasedName,
     false,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('in_app'),
   );
-  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  static const VerificationMeta _isReadMeta = const VerificationMeta('isRead');
   @override
-  late final GeneratedColumn<String> title = GeneratedColumn<String>(
-    'title',
+  late final GeneratedColumn<bool> isRead = GeneratedColumn<bool>(
+    'is_read',
     aliasedName,
     false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 255,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_read" IN (0, 1))',
     ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    defaultValue: const Constant(false),
   );
-  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
-  @override
-  late final GeneratedColumn<String> body = GeneratedColumn<String>(
-    'body',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _triggerEventMeta = const VerificationMeta(
-    'triggerEvent',
+  static const VerificationMeta _metadataMeta = const VerificationMeta(
+    'metadata',
   );
   @override
-  late final GeneratedColumn<String> triggerEvent = GeneratedColumn<String>(
-    'trigger_event',
+  late final GeneratedColumn<String> metadata = GeneratedColumn<String>(
+    'metadata',
     aliasedName,
     true,
     type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('pending'),
-  );
-  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
-  @override
-  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
-    'sent_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _readAtMeta = const VerificationMeta('readAt');
-  @override
-  late final GeneratedColumn<DateTime> readAt = GeneratedColumn<DateTime>(
-    'read_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
@@ -12676,16 +12655,14 @@ class $NotificationsTable extends Notifications
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    schoolId,
+    title,
+    body,
+    type,
     recipientType,
     recipientId,
     channel,
-    title,
-    body,
-    triggerEvent,
-    status,
-    sentAt,
-    readAt,
+    isRead,
+    metadata,
     createdAt,
   ];
   @override
@@ -12703,11 +12680,29 @@ class $NotificationsTable extends Notifications
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
-    if (data.containsKey('school_id')) {
+    if (data.containsKey('title')) {
       context.handle(
-        _schoolIdMeta,
-        schoolId.isAcceptableOrUnknown(data['school_id']!, _schoolIdMeta),
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
       );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
     }
     if (data.containsKey('recipient_type')) {
       context.handle(
@@ -12734,50 +12729,17 @@ class $NotificationsTable extends Notifications
         _channelMeta,
         channel.isAcceptableOrUnknown(data['channel']!, _channelMeta),
       );
-    } else if (isInserting) {
-      context.missing(_channelMeta);
     }
-    if (data.containsKey('title')) {
+    if (data.containsKey('is_read')) {
       context.handle(
-        _titleMeta,
-        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_titleMeta);
-    }
-    if (data.containsKey('body')) {
-      context.handle(
-        _bodyMeta,
-        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_bodyMeta);
-    }
-    if (data.containsKey('trigger_event')) {
-      context.handle(
-        _triggerEventMeta,
-        triggerEvent.isAcceptableOrUnknown(
-          data['trigger_event']!,
-          _triggerEventMeta,
-        ),
+        _isReadMeta,
+        isRead.isAcceptableOrUnknown(data['is_read']!, _isReadMeta),
       );
     }
-    if (data.containsKey('status')) {
+    if (data.containsKey('metadata')) {
       context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
-    if (data.containsKey('sent_at')) {
-      context.handle(
-        _sentAtMeta,
-        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
-      );
-    }
-    if (data.containsKey('read_at')) {
-      context.handle(
-        _readAtMeta,
-        readAt.isAcceptableOrUnknown(data['read_at']!, _readAtMeta),
+        _metadataMeta,
+        metadata.isAcceptableOrUnknown(data['metadata']!, _metadataMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -12799,9 +12761,17 @@ class $NotificationsTable extends Notifications
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      schoolId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}school_id'],
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
       )!,
       recipientType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -12815,29 +12785,13 @@ class $NotificationsTable extends Notifications
         DriftSqlType.string,
         data['${effectivePrefix}channel'],
       )!,
-      title: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}title'],
+      isRead: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_read'],
       )!,
-      body: attachedDatabase.typeMapping.read(
+      metadata: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}body'],
-      )!,
-      triggerEvent: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}trigger_event'],
-      ),
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      sentAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}sent_at'],
-      ),
-      readAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}read_at'],
+        data['${effectivePrefix}metadata'],
       ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
@@ -12854,52 +12808,42 @@ class $NotificationsTable extends Notifications
 
 class Notification extends DataClass implements Insertable<Notification> {
   final int id;
-  final int schoolId;
+  final String title;
+  final String body;
+  final String type;
   final String recipientType;
   final int? recipientId;
   final String channel;
-  final String title;
-  final String body;
-  final String? triggerEvent;
-  final String status;
-  final DateTime? sentAt;
-  final DateTime? readAt;
+  final bool isRead;
+  final String? metadata;
   final DateTime createdAt;
   const Notification({
     required this.id,
-    required this.schoolId,
+    required this.title,
+    required this.body,
+    required this.type,
     required this.recipientType,
     this.recipientId,
     required this.channel,
-    required this.title,
-    required this.body,
-    this.triggerEvent,
-    required this.status,
-    this.sentAt,
-    this.readAt,
+    required this.isRead,
+    this.metadata,
     required this.createdAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['school_id'] = Variable<int>(schoolId);
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    map['type'] = Variable<String>(type);
     map['recipient_type'] = Variable<String>(recipientType);
     if (!nullToAbsent || recipientId != null) {
       map['recipient_id'] = Variable<int>(recipientId);
     }
     map['channel'] = Variable<String>(channel);
-    map['title'] = Variable<String>(title);
-    map['body'] = Variable<String>(body);
-    if (!nullToAbsent || triggerEvent != null) {
-      map['trigger_event'] = Variable<String>(triggerEvent);
-    }
-    map['status'] = Variable<String>(status);
-    if (!nullToAbsent || sentAt != null) {
-      map['sent_at'] = Variable<DateTime>(sentAt);
-    }
-    if (!nullToAbsent || readAt != null) {
-      map['read_at'] = Variable<DateTime>(readAt);
+    map['is_read'] = Variable<bool>(isRead);
+    if (!nullToAbsent || metadata != null) {
+      map['metadata'] = Variable<String>(metadata);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -12908,24 +12852,18 @@ class Notification extends DataClass implements Insertable<Notification> {
   NotificationsCompanion toCompanion(bool nullToAbsent) {
     return NotificationsCompanion(
       id: Value(id),
-      schoolId: Value(schoolId),
+      title: Value(title),
+      body: Value(body),
+      type: Value(type),
       recipientType: Value(recipientType),
       recipientId: recipientId == null && nullToAbsent
           ? const Value.absent()
           : Value(recipientId),
       channel: Value(channel),
-      title: Value(title),
-      body: Value(body),
-      triggerEvent: triggerEvent == null && nullToAbsent
+      isRead: Value(isRead),
+      metadata: metadata == null && nullToAbsent
           ? const Value.absent()
-          : Value(triggerEvent),
-      status: Value(status),
-      sentAt: sentAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(sentAt),
-      readAt: readAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(readAt),
+          : Value(metadata),
       createdAt: Value(createdAt),
     );
   }
@@ -12937,16 +12875,14 @@ class Notification extends DataClass implements Insertable<Notification> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Notification(
       id: serializer.fromJson<int>(json['id']),
-      schoolId: serializer.fromJson<int>(json['schoolId']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      type: serializer.fromJson<String>(json['type']),
       recipientType: serializer.fromJson<String>(json['recipientType']),
       recipientId: serializer.fromJson<int?>(json['recipientId']),
       channel: serializer.fromJson<String>(json['channel']),
-      title: serializer.fromJson<String>(json['title']),
-      body: serializer.fromJson<String>(json['body']),
-      triggerEvent: serializer.fromJson<String?>(json['triggerEvent']),
-      status: serializer.fromJson<String>(json['status']),
-      sentAt: serializer.fromJson<DateTime?>(json['sentAt']),
-      readAt: serializer.fromJson<DateTime?>(json['readAt']),
+      isRead: serializer.fromJson<bool>(json['isRead']),
+      metadata: serializer.fromJson<String?>(json['metadata']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
@@ -12955,51 +12891,47 @@ class Notification extends DataClass implements Insertable<Notification> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'schoolId': serializer.toJson<int>(schoolId),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'type': serializer.toJson<String>(type),
       'recipientType': serializer.toJson<String>(recipientType),
       'recipientId': serializer.toJson<int?>(recipientId),
       'channel': serializer.toJson<String>(channel),
-      'title': serializer.toJson<String>(title),
-      'body': serializer.toJson<String>(body),
-      'triggerEvent': serializer.toJson<String?>(triggerEvent),
-      'status': serializer.toJson<String>(status),
-      'sentAt': serializer.toJson<DateTime?>(sentAt),
-      'readAt': serializer.toJson<DateTime?>(readAt),
+      'isRead': serializer.toJson<bool>(isRead),
+      'metadata': serializer.toJson<String?>(metadata),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
   Notification copyWith({
     int? id,
-    int? schoolId,
+    String? title,
+    String? body,
+    String? type,
     String? recipientType,
     Value<int?> recipientId = const Value.absent(),
     String? channel,
-    String? title,
-    String? body,
-    Value<String?> triggerEvent = const Value.absent(),
-    String? status,
-    Value<DateTime?> sentAt = const Value.absent(),
-    Value<DateTime?> readAt = const Value.absent(),
+    bool? isRead,
+    Value<String?> metadata = const Value.absent(),
     DateTime? createdAt,
   }) => Notification(
     id: id ?? this.id,
-    schoolId: schoolId ?? this.schoolId,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    type: type ?? this.type,
     recipientType: recipientType ?? this.recipientType,
     recipientId: recipientId.present ? recipientId.value : this.recipientId,
     channel: channel ?? this.channel,
-    title: title ?? this.title,
-    body: body ?? this.body,
-    triggerEvent: triggerEvent.present ? triggerEvent.value : this.triggerEvent,
-    status: status ?? this.status,
-    sentAt: sentAt.present ? sentAt.value : this.sentAt,
-    readAt: readAt.present ? readAt.value : this.readAt,
+    isRead: isRead ?? this.isRead,
+    metadata: metadata.present ? metadata.value : this.metadata,
     createdAt: createdAt ?? this.createdAt,
   );
   Notification copyWithCompanion(NotificationsCompanion data) {
     return Notification(
       id: data.id.present ? data.id.value : this.id,
-      schoolId: data.schoolId.present ? data.schoolId.value : this.schoolId,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      type: data.type.present ? data.type.value : this.type,
       recipientType: data.recipientType.present
           ? data.recipientType.value
           : this.recipientType,
@@ -13007,14 +12939,8 @@ class Notification extends DataClass implements Insertable<Notification> {
           ? data.recipientId.value
           : this.recipientId,
       channel: data.channel.present ? data.channel.value : this.channel,
-      title: data.title.present ? data.title.value : this.title,
-      body: data.body.present ? data.body.value : this.body,
-      triggerEvent: data.triggerEvent.present
-          ? data.triggerEvent.value
-          : this.triggerEvent,
-      status: data.status.present ? data.status.value : this.status,
-      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
-      readAt: data.readAt.present ? data.readAt.value : this.readAt,
+      isRead: data.isRead.present ? data.isRead.value : this.isRead,
+      metadata: data.metadata.present ? data.metadata.value : this.metadata,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -13023,16 +12949,14 @@ class Notification extends DataClass implements Insertable<Notification> {
   String toString() {
     return (StringBuffer('Notification(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('type: $type, ')
           ..write('recipientType: $recipientType, ')
           ..write('recipientId: $recipientId, ')
           ..write('channel: $channel, ')
-          ..write('title: $title, ')
-          ..write('body: $body, ')
-          ..write('triggerEvent: $triggerEvent, ')
-          ..write('status: $status, ')
-          ..write('sentAt: $sentAt, ')
-          ..write('readAt: $readAt, ')
+          ..write('isRead: $isRead, ')
+          ..write('metadata: $metadata, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -13041,16 +12965,14 @@ class Notification extends DataClass implements Insertable<Notification> {
   @override
   int get hashCode => Object.hash(
     id,
-    schoolId,
+    title,
+    body,
+    type,
     recipientType,
     recipientId,
     channel,
-    title,
-    body,
-    triggerEvent,
-    status,
-    sentAt,
-    readAt,
+    isRead,
+    metadata,
     createdAt,
   );
   @override
@@ -13058,119 +12980,103 @@ class Notification extends DataClass implements Insertable<Notification> {
       identical(this, other) ||
       (other is Notification &&
           other.id == this.id &&
-          other.schoolId == this.schoolId &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.type == this.type &&
           other.recipientType == this.recipientType &&
           other.recipientId == this.recipientId &&
           other.channel == this.channel &&
-          other.title == this.title &&
-          other.body == this.body &&
-          other.triggerEvent == this.triggerEvent &&
-          other.status == this.status &&
-          other.sentAt == this.sentAt &&
-          other.readAt == this.readAt &&
+          other.isRead == this.isRead &&
+          other.metadata == this.metadata &&
           other.createdAt == this.createdAt);
 }
 
 class NotificationsCompanion extends UpdateCompanion<Notification> {
   final Value<int> id;
-  final Value<int> schoolId;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String> type;
   final Value<String> recipientType;
   final Value<int?> recipientId;
   final Value<String> channel;
-  final Value<String> title;
-  final Value<String> body;
-  final Value<String?> triggerEvent;
-  final Value<String> status;
-  final Value<DateTime?> sentAt;
-  final Value<DateTime?> readAt;
+  final Value<bool> isRead;
+  final Value<String?> metadata;
   final Value<DateTime> createdAt;
   const NotificationsCompanion({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.type = const Value.absent(),
     this.recipientType = const Value.absent(),
     this.recipientId = const Value.absent(),
     this.channel = const Value.absent(),
-    this.title = const Value.absent(),
-    this.body = const Value.absent(),
-    this.triggerEvent = const Value.absent(),
-    this.status = const Value.absent(),
-    this.sentAt = const Value.absent(),
-    this.readAt = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.metadata = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
   NotificationsCompanion.insert({
     this.id = const Value.absent(),
-    this.schoolId = const Value.absent(),
-    required String recipientType,
-    this.recipientId = const Value.absent(),
-    required String channel,
     required String title,
     required String body,
-    this.triggerEvent = const Value.absent(),
-    this.status = const Value.absent(),
-    this.sentAt = const Value.absent(),
-    this.readAt = const Value.absent(),
+    required String type,
+    required String recipientType,
+    this.recipientId = const Value.absent(),
+    this.channel = const Value.absent(),
+    this.isRead = const Value.absent(),
+    this.metadata = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : recipientType = Value(recipientType),
-       channel = Value(channel),
-       title = Value(title),
-       body = Value(body);
+  }) : title = Value(title),
+       body = Value(body),
+       type = Value(type),
+       recipientType = Value(recipientType);
   static Insertable<Notification> custom({
     Expression<int>? id,
-    Expression<int>? schoolId,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? type,
     Expression<String>? recipientType,
     Expression<int>? recipientId,
     Expression<String>? channel,
-    Expression<String>? title,
-    Expression<String>? body,
-    Expression<String>? triggerEvent,
-    Expression<String>? status,
-    Expression<DateTime>? sentAt,
-    Expression<DateTime>? readAt,
+    Expression<bool>? isRead,
+    Expression<String>? metadata,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (schoolId != null) 'school_id': schoolId,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (type != null) 'type': type,
       if (recipientType != null) 'recipient_type': recipientType,
       if (recipientId != null) 'recipient_id': recipientId,
       if (channel != null) 'channel': channel,
-      if (title != null) 'title': title,
-      if (body != null) 'body': body,
-      if (triggerEvent != null) 'trigger_event': triggerEvent,
-      if (status != null) 'status': status,
-      if (sentAt != null) 'sent_at': sentAt,
-      if (readAt != null) 'read_at': readAt,
+      if (isRead != null) 'is_read': isRead,
+      if (metadata != null) 'metadata': metadata,
       if (createdAt != null) 'created_at': createdAt,
     });
   }
 
   NotificationsCompanion copyWith({
     Value<int>? id,
-    Value<int>? schoolId,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String>? type,
     Value<String>? recipientType,
     Value<int?>? recipientId,
     Value<String>? channel,
-    Value<String>? title,
-    Value<String>? body,
-    Value<String?>? triggerEvent,
-    Value<String>? status,
-    Value<DateTime?>? sentAt,
-    Value<DateTime?>? readAt,
+    Value<bool>? isRead,
+    Value<String?>? metadata,
     Value<DateTime>? createdAt,
   }) {
     return NotificationsCompanion(
       id: id ?? this.id,
-      schoolId: schoolId ?? this.schoolId,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      type: type ?? this.type,
       recipientType: recipientType ?? this.recipientType,
       recipientId: recipientId ?? this.recipientId,
       channel: channel ?? this.channel,
-      title: title ?? this.title,
-      body: body ?? this.body,
-      triggerEvent: triggerEvent ?? this.triggerEvent,
-      status: status ?? this.status,
-      sentAt: sentAt ?? this.sentAt,
-      readAt: readAt ?? this.readAt,
+      isRead: isRead ?? this.isRead,
+      metadata: metadata ?? this.metadata,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -13181,8 +13087,14 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (schoolId.present) {
-      map['school_id'] = Variable<int>(schoolId.value);
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
     }
     if (recipientType.present) {
       map['recipient_type'] = Variable<String>(recipientType.value);
@@ -13193,23 +13105,11 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
     if (channel.present) {
       map['channel'] = Variable<String>(channel.value);
     }
-    if (title.present) {
-      map['title'] = Variable<String>(title.value);
+    if (isRead.present) {
+      map['is_read'] = Variable<bool>(isRead.value);
     }
-    if (body.present) {
-      map['body'] = Variable<String>(body.value);
-    }
-    if (triggerEvent.present) {
-      map['trigger_event'] = Variable<String>(triggerEvent.value);
-    }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
-    if (sentAt.present) {
-      map['sent_at'] = Variable<DateTime>(sentAt.value);
-    }
-    if (readAt.present) {
-      map['read_at'] = Variable<DateTime>(readAt.value);
+    if (metadata.present) {
+      map['metadata'] = Variable<String>(metadata.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -13221,16 +13121,14 @@ class NotificationsCompanion extends UpdateCompanion<Notification> {
   String toString() {
     return (StringBuffer('NotificationsCompanion(')
           ..write('id: $id, ')
-          ..write('schoolId: $schoolId, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('type: $type, ')
           ..write('recipientType: $recipientType, ')
           ..write('recipientId: $recipientId, ')
           ..write('channel: $channel, ')
-          ..write('title: $title, ')
-          ..write('body: $body, ')
-          ..write('triggerEvent: $triggerEvent, ')
-          ..write('status: $status, ')
-          ..write('sentAt: $sentAt, ')
-          ..write('readAt: $readAt, ')
+          ..write('isRead: $isRead, ')
+          ..write('metadata: $metadata, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -14883,6 +14781,301 @@ class FeeSettingsCompanion extends UpdateCompanion<FeeSetting> {
   }
 }
 
+class $SystemSettingsTable extends SystemSettings
+    with TableInfo<$SystemSettingsTable, SystemSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SystemSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, key, value, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'system_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SystemSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SystemSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SystemSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SystemSettingsTable createAlias(String alias) {
+    return $SystemSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class SystemSetting extends DataClass implements Insertable<SystemSetting> {
+  final int id;
+  final String key;
+  final String value;
+  final DateTime updatedAt;
+  const SystemSetting({
+    required this.id,
+    required this.key,
+    required this.value,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  SystemSettingsCompanion toCompanion(bool nullToAbsent) {
+    return SystemSettingsCompanion(
+      id: Value(id),
+      key: Value(key),
+      value: Value(value),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SystemSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SystemSetting(
+      id: serializer.fromJson<int>(json['id']),
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  SystemSetting copyWith({
+    int? id,
+    String? key,
+    String? value,
+    DateTime? updatedAt,
+  }) => SystemSetting(
+    id: id ?? this.id,
+    key: key ?? this.key,
+    value: value ?? this.value,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SystemSetting copyWithCompanion(SystemSettingsCompanion data) {
+    return SystemSetting(
+      id: data.id.present ? data.id.value : this.id,
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemSetting(')
+          ..write('id: $id, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, key, value, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SystemSetting &&
+          other.id == this.id &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SystemSettingsCompanion extends UpdateCompanion<SystemSetting> {
+  final Value<int> id;
+  final Value<String> key;
+  final Value<String> value;
+  final Value<DateTime> updatedAt;
+  const SystemSettingsCompanion({
+    this.id = const Value.absent(),
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  SystemSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    required String key,
+    required String value,
+    this.updatedAt = const Value.absent(),
+  }) : key = Value(key),
+       value = Value(value);
+  static Insertable<SystemSetting> custom({
+    Expression<int>? id,
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  SystemSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? key,
+    Value<String>? value,
+    Value<DateTime>? updatedAt,
+  }) {
+    return SystemSettingsCompanion(
+      id: id ?? this.id,
+      key: key ?? this.key,
+      value: value ?? this.value,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SystemSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -14911,6 +15104,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AuditLogsTable auditLogs = $AuditLogsTable(this);
   late final $ExtraFeesTable extraFees = $ExtraFeesTable(this);
   late final $FeeSettingsTable feeSettings = $FeeSettingsTable(this);
+  late final $SystemSettingsTable systemSettings = $SystemSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -14940,6 +15134,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     auditLogs,
     extraFees,
     feeSettings,
+    systemSettings,
   ];
 }
 
@@ -21577,31 +21772,27 @@ typedef $$ExamResultsTableProcessedTableManager =
 typedef $$NotificationsTableCreateCompanionBuilder =
     NotificationsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
-      required String recipientType,
-      Value<int?> recipientId,
-      required String channel,
       required String title,
       required String body,
-      Value<String?> triggerEvent,
-      Value<String> status,
-      Value<DateTime?> sentAt,
-      Value<DateTime?> readAt,
+      required String type,
+      required String recipientType,
+      Value<int?> recipientId,
+      Value<String> channel,
+      Value<bool> isRead,
+      Value<String?> metadata,
       Value<DateTime> createdAt,
     });
 typedef $$NotificationsTableUpdateCompanionBuilder =
     NotificationsCompanion Function({
       Value<int> id,
-      Value<int> schoolId,
+      Value<String> title,
+      Value<String> body,
+      Value<String> type,
       Value<String> recipientType,
       Value<int?> recipientId,
       Value<String> channel,
-      Value<String> title,
-      Value<String> body,
-      Value<String?> triggerEvent,
-      Value<String> status,
-      Value<DateTime?> sentAt,
-      Value<DateTime?> readAt,
+      Value<bool> isRead,
+      Value<String?> metadata,
       Value<DateTime> createdAt,
     });
 
@@ -21619,8 +21810,18 @@ class $$NotificationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21639,33 +21840,13 @@ class $$NotificationsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get title => $composableBuilder(
-    column: $table.title,
+  ColumnFilters<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get body => $composableBuilder(
-    column: $table.body,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get triggerEvent => $composableBuilder(
-    column: $table.triggerEvent,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get sentAt => $composableBuilder(
-    column: $table.sentAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get readAt => $composableBuilder(
-    column: $table.readAt,
+  ColumnFilters<String> get metadata => $composableBuilder(
+    column: $table.metadata,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21689,8 +21870,18 @@ class $$NotificationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get schoolId => $composableBuilder(
-    column: $table.schoolId,
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -21709,33 +21900,13 @@ class $$NotificationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get title => $composableBuilder(
-    column: $table.title,
+  ColumnOrderings<bool> get isRead => $composableBuilder(
+    column: $table.isRead,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get body => $composableBuilder(
-    column: $table.body,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get triggerEvent => $composableBuilder(
-    column: $table.triggerEvent,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
-    column: $table.sentAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get readAt => $composableBuilder(
-    column: $table.readAt,
+  ColumnOrderings<String> get metadata => $composableBuilder(
+    column: $table.metadata,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -21757,8 +21928,14 @@ class $$NotificationsTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<int> get schoolId =>
-      $composableBuilder(column: $table.schoolId, builder: (column) => column);
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
 
   GeneratedColumn<String> get recipientType => $composableBuilder(
     column: $table.recipientType,
@@ -21773,25 +21950,11 @@ class $$NotificationsTableAnnotationComposer
   GeneratedColumn<String> get channel =>
       $composableBuilder(column: $table.channel, builder: (column) => column);
 
-  GeneratedColumn<String> get title =>
-      $composableBuilder(column: $table.title, builder: (column) => column);
+  GeneratedColumn<bool> get isRead =>
+      $composableBuilder(column: $table.isRead, builder: (column) => column);
 
-  GeneratedColumn<String> get body =>
-      $composableBuilder(column: $table.body, builder: (column) => column);
-
-  GeneratedColumn<String> get triggerEvent => $composableBuilder(
-    column: $table.triggerEvent,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get sentAt =>
-      $composableBuilder(column: $table.sentAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get readAt =>
-      $composableBuilder(column: $table.readAt, builder: (column) => column);
+  GeneratedColumn<String> get metadata =>
+      $composableBuilder(column: $table.metadata, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -21829,57 +21992,49 @@ class $$NotificationsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> type = const Value.absent(),
                 Value<String> recipientType = const Value.absent(),
                 Value<int?> recipientId = const Value.absent(),
                 Value<String> channel = const Value.absent(),
-                Value<String> title = const Value.absent(),
-                Value<String> body = const Value.absent(),
-                Value<String?> triggerEvent = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<DateTime?> sentAt = const Value.absent(),
-                Value<DateTime?> readAt = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => NotificationsCompanion(
                 id: id,
-                schoolId: schoolId,
+                title: title,
+                body: body,
+                type: type,
                 recipientType: recipientType,
                 recipientId: recipientId,
                 channel: channel,
-                title: title,
-                body: body,
-                triggerEvent: triggerEvent,
-                status: status,
-                sentAt: sentAt,
-                readAt: readAt,
+                isRead: isRead,
+                metadata: metadata,
                 createdAt: createdAt,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> schoolId = const Value.absent(),
-                required String recipientType,
-                Value<int?> recipientId = const Value.absent(),
-                required String channel,
                 required String title,
                 required String body,
-                Value<String?> triggerEvent = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<DateTime?> sentAt = const Value.absent(),
-                Value<DateTime?> readAt = const Value.absent(),
+                required String type,
+                required String recipientType,
+                Value<int?> recipientId = const Value.absent(),
+                Value<String> channel = const Value.absent(),
+                Value<bool> isRead = const Value.absent(),
+                Value<String?> metadata = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => NotificationsCompanion.insert(
                 id: id,
-                schoolId: schoolId,
+                title: title,
+                body: body,
+                type: type,
                 recipientType: recipientType,
                 recipientId: recipientId,
                 channel: channel,
-                title: title,
-                body: body,
-                triggerEvent: triggerEvent,
-                status: status,
-                sentAt: sentAt,
-                readAt: readAt,
+                isRead: isRead,
+                metadata: metadata,
                 createdAt: createdAt,
               ),
           withReferenceMapper: (p0) => p0
@@ -22706,6 +22861,183 @@ typedef $$FeeSettingsTableProcessedTableManager =
       FeeSetting,
       PrefetchHooks Function()
     >;
+typedef $$SystemSettingsTableCreateCompanionBuilder =
+    SystemSettingsCompanion Function({
+      Value<int> id,
+      required String key,
+      required String value,
+      Value<DateTime> updatedAt,
+    });
+typedef $$SystemSettingsTableUpdateCompanionBuilder =
+    SystemSettingsCompanion Function({
+      Value<int> id,
+      Value<String> key,
+      Value<String> value,
+      Value<DateTime> updatedAt,
+    });
+
+class $$SystemSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SystemSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SystemSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SystemSettingsTable> {
+  $$SystemSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SystemSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SystemSettingsTable,
+          SystemSetting,
+          $$SystemSettingsTableFilterComposer,
+          $$SystemSettingsTableOrderingComposer,
+          $$SystemSettingsTableAnnotationComposer,
+          $$SystemSettingsTableCreateCompanionBuilder,
+          $$SystemSettingsTableUpdateCompanionBuilder,
+          (
+            SystemSetting,
+            BaseReferences<_$AppDatabase, $SystemSettingsTable, SystemSetting>,
+          ),
+          SystemSetting,
+          PrefetchHooks Function()
+        > {
+  $$SystemSettingsTableTableManager(
+    _$AppDatabase db,
+    $SystemSettingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SystemSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SystemSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SystemSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> key = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => SystemSettingsCompanion(
+                id: id,
+                key: key,
+                value: value,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String key,
+                required String value,
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => SystemSettingsCompanion.insert(
+                id: id,
+                key: key,
+                value: value,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SystemSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SystemSettingsTable,
+      SystemSetting,
+      $$SystemSettingsTableFilterComposer,
+      $$SystemSettingsTableOrderingComposer,
+      $$SystemSettingsTableAnnotationComposer,
+      $$SystemSettingsTableCreateCompanionBuilder,
+      $$SystemSettingsTableUpdateCompanionBuilder,
+      (
+        SystemSetting,
+        BaseReferences<_$AppDatabase, $SystemSettingsTable, SystemSetting>,
+      ),
+      SystemSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -22758,4 +23090,6 @@ class $AppDatabaseManager {
       $$ExtraFeesTableTableManager(_db, _db.extraFees);
   $$FeeSettingsTableTableManager get feeSettings =>
       $$FeeSettingsTableTableManager(_db, _db.feeSettings);
+  $$SystemSettingsTableTableManager get systemSettings =>
+      $$SystemSettingsTableTableManager(_db, _db.systemSettings);
 }

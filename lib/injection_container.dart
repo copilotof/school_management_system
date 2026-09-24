@@ -46,6 +46,7 @@ import 'package:school_management_system/features/teachers/domain/usecases/searc
 import 'package:school_management_system/features/teachers/domain/usecases/update_teacher.dart';
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 
+import 'core/database/settings_local_source.dart';
 import 'features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'features/attendance/data/sources/attendance_local_source.dart';
 import 'features/attendance/domain/repositories/attendance_repository.dart';
@@ -54,6 +55,11 @@ import 'features/finance/data/repositories/finance_repository_impl.dart';
 import 'features/finance/data/sources/finance_local_source.dart';
 import 'features/finance/domain/repositories/finance_repository.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
+import 'features/notifications/data/repositories/notification_repository_impl.dart';
+import 'features/notifications/data/sources/notification_local_source.dart';
+import 'features/notifications/domain/repositories/notification_repository.dart';
+import 'features/notifications/presentation/bloc/notification_bloc.dart';
+import 'features/notifications/services/auto_notification_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -269,8 +275,14 @@ Future<void> configureDependencies() async {
   }
 
   if (!getIt.isRegistered<FinanceBloc>()) {
-    getIt.registerFactory(() => FinanceBloc(repository: getIt()));
+    getIt.registerFactory(
+      () => FinanceBloc(
+        repository: getIt<FinanceRepository>(),
+        notificationRepository: getIt<NotificationRepository>(), // ✅
+      ),
+    );
   }
+
   if (!getIt.isRegistered<FinanceLocalDataSource>()) {
     getIt.registerSingleton<FinanceLocalDataSource>(
       FinanceLocalDataSource(db: getIt<AppDatabase>()),
@@ -291,7 +303,42 @@ Future<void> configureDependencies() async {
       ),
     );
   }
+
   if (!getIt.isRegistered<AttendanceBloc>()) {
-    getIt.registerFactory(() => AttendanceBloc(repository: getIt()));
+    getIt.registerFactory(
+      () => AttendanceBloc(
+        repository: getIt<AttendanceRepository>(),
+        autoNotificationService: getIt<AutoNotificationService>(),
+        settingsLocalDataSource: getIt<SettingsLocalDataSource>(),
+      ),
+    );
+  }
+  if (!getIt.isRegistered<NotificationLocalDataSource>()) {
+    getIt.registerSingleton<NotificationLocalDataSource>(
+      NotificationLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<NotificationRepository>()) {
+    getIt.registerSingleton<NotificationRepository>(
+      NotificationRepositoryImpl(
+        localDataSource: getIt<NotificationLocalDataSource>(),
+      ),
+    );
+  }
+  if (!getIt.isRegistered<NotificationBloc>()) {
+    getIt.registerFactory(() => NotificationBloc(repository: getIt()));
+  }
+
+  if (!getIt.isRegistered<AutoNotificationService>()) {
+    getIt.registerSingleton<AutoNotificationService>(
+      AutoNotificationService(db: getIt<AppDatabase>()),
+    );
+  }
+
+  // ✅ تسجيل SettingsLocalDataSource
+  if (!getIt.isRegistered<SettingsLocalDataSource>()) {
+    getIt.registerSingleton<SettingsLocalDataSource>(
+      SettingsLocalDataSource(db: getIt<AppDatabase>()),
+    );
   }
 }

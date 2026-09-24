@@ -42,6 +42,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   syncfusion_flutter_datepicker: ^34.2.5
+  telephony: ^0.2.0
+  permission_handler: ^13.0.2
 
 dev_dependencies:
   flutter_test:

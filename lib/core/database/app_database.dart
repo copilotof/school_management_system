@@ -301,16 +301,15 @@ class ExamResults extends Table {
 @DataClassName('Notification')
 class Notifications extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get schoolId => integer().withDefault(const Constant(1))();
-  TextColumn get recipientType => text()();
-  IntColumn get recipientId => integer().nullable()();
-  TextColumn get channel => text()();
-  TextColumn get title => text().withLength(min: 1, max: 255)();
+  TextColumn get title => text()();
   TextColumn get body => text()();
-  TextColumn get triggerEvent => text().nullable()();
-  TextColumn get status => text().withDefault(const Constant('pending'))();
-  DateTimeColumn get sentAt => dateTime().nullable()();
-  DateTimeColumn get readAt => dateTime().nullable()();
+  TextColumn get type => text()(); // attendance, payment, session, general
+  TextColumn get recipientType => text()(); // student, guardian, teacher, all
+  IntColumn get recipientId => integer().nullable()();
+  TextColumn get channel =>
+      text().withDefault(const Constant('in_app'))(); // in_app, sms, email
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+  TextColumn get metadata => text().nullable()(); // JSON للبيانات الإضافية
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
@@ -413,6 +412,14 @@ class Attendance extends Table {
   ];
 }
 
+@DataClassName('SystemSetting')
+class SystemSettings extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get key => text().unique()();
+  TextColumn get value => text()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ============== قاعدة البيانات ==============
 @DriftDatabase(
   tables: [
@@ -440,6 +447,7 @@ class Attendance extends Table {
     AuditLogs,
     ExtraFees, // ✅
     FeeSettings, // ✅
+    SystemSettings,
   ],
 )
 class AppDatabase extends _$AppDatabase {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 import 'package:school_management_system/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -6,6 +7,8 @@ import 'package:school_management_system/features/finance/presentation/pages/fin
 import 'package:school_management_system/features/groups/presentation/pages/groups_page.dart';
 import 'package:school_management_system/features/settings/presentation/pages/settings_page.dart';
 import 'package:school_management_system/features/students/presentation/pages/students_page.dart';
+
+import '../../../notifications/presentation/bloc/notification_bloc.dart';
 
 /// 📁 الصفحة الرئيسية مع نظام الملاحة
 /// تستخدم NavigationBar (Material 3)
@@ -19,6 +22,13 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationBloc>().add(FetchNotifications());
+    });
+  }
 
   // قائمة الصفحات
   static const List<Widget> _pages = [

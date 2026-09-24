@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/domain/repositories/finance_repository.dart';
+
+import '../../../notifications/domain/repositories/notification_repository.dart';
 
 // ====== Events ======
 abstract class FinanceEvent {}
@@ -57,8 +60,10 @@ class FinanceState {
 // ====== BLoC ======
 class FinanceBloc extends Bloc<FinanceEvent, FinanceState> {
   final FinanceRepository repository;
+  final NotificationRepository notificationRepository;
 
-  FinanceBloc({required this.repository}) : super(const FinanceState()) {
+  FinanceBloc({required this.repository, required this.notificationRepository})
+    : super(const FinanceState()) {
     on<FetchAllFinanceData>(_onFetchAll);
     on<FetchPayments>(_onFetchPayments);
     on<CreatePaymentEvent>(_onCreatePayment);
@@ -111,9 +116,24 @@ class FinanceBloc extends Bloc<FinanceEvent, FinanceState> {
     Emitter<FinanceState> emit,
   ) async {
     final result = await repository.createPayment(event.payment);
-    result.fold(
-      (failure) => emit(state.copyWith(errorMessage: failure.message)),
-      (_) => add(FetchAllFinanceData()),
+
+    await result.fold(
+      (failure) async {
+        emit(state.copyWith(errorMessage: failure.message));
+      },
+      (_) async {
+        // ✅ إذا كانت دفعة حقيقية (ليس إعفاء)، احذف إشعار الدفع
+        if (event.payment.type != 'exemption') {
+          await notificationRepository.deletePaymentNotificationsByStudent(
+            event.payment.studentId,
+          );
+          debugPrint(
+            '🟢 تم حذف إشعارات الدفع للطالب ${event.payment.studentId}',
+          );
+        }
+
+        add(FetchAllFinanceData());
+      },
     );
   }
 

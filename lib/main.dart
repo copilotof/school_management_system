@@ -162,6 +162,7 @@ import 'package:school_management_system/injection_container.dart';
 import 'features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
+import 'features/notifications/presentation/bloc/notification_bloc.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -209,6 +210,7 @@ class SchoolManagementApp extends StatelessWidget {
             BlocProvider(create: (_) => getIt<GroupsBloc>()),
             BlocProvider(create: (_) => getIt<FinanceBloc>()),
             BlocProvider(create: (_) => getIt<AttendanceBloc>()),
+            BlocProvider(create: (_) => getIt<NotificationBloc>()),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {

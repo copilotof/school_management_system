@@ -6,7 +6,9 @@ import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
 import '../../../../core/services/language_cubit.dart';
+import '../../../../injection_container.dart';
 import '../../../home/presentation/pages/home_page.dart';
+import '../../../notifications/services/auto_notification_service.dart';
 import '../../../students/presentation/pages/students_page.dart';
 
 /// 📁 صفحة تسجيل الدخول - مثال عملي للتصميم المتجاوب
@@ -35,9 +37,22 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _handleLogin() {
+    // ✅ فحص المتأخرات عند الدخول (بدون انتظار)
+    _checkOverdueInBackground();
     Navigator.of(
       context,
     ).pushReplacement(MaterialPageRoute(builder: (_) => const HomePage()));
+  }
+
+  /// ✅ فحص المتأخرات في الخلفية
+  Future<void> _checkOverdueInBackground() async {
+    try {
+      final service = getIt<AutoNotificationService>();
+      final count = await service.checkPaymentOverdue();
+      debugPrint('🟢 تم إنشاء $count إشعار دفع عند الدخول');
+    } catch (e) {
+      debugPrint('🔴 خطأ في فحص المتأخرات: $e');
+    }
   }
 
   @override

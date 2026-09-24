@@ -15,9 +15,11 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 
 import '../../../../core/states/ui_state.dart';
+import '../../../../injection_container.dart';
 import '../../../attendance/domain/entities/session_entity.dart';
 import '../../../enrollment/domain/entities/enrollment_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
+import '../../../notifications/services/auto_notification_service.dart';
 import 'add_payment_page.dart';
 
 // ============================================================
@@ -56,6 +58,25 @@ class FinancePage extends StatelessWidget {
           appBar: AppBar(
             title: const Text('الإدارة المالية'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.notifications_active_outlined),
+                tooltip: 'فحص المتأخرات',
+                onPressed: () async {
+                  final count = await getIt<AutoNotificationService>()
+                      .checkPaymentOverdue();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          count > 0
+                              ? 'تم إنشاء $count إشعار دفع'
+                              : 'لا توجد متأخرات جديدة',
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: 'تحديث',
