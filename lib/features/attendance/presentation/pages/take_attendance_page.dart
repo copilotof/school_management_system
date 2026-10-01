@@ -13,6 +13,10 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
 import '../../../groups/presentation/bloc/groups_event.dart';
+import '../../../homework/domain/entities/homework_entity.dart';
+import '../../../homework/presentation/bloc/homework_bloc.dart';
+import '../../../homework/presentation/widgets/add_homework_dialog.dart';
+import '../../../homework/presentation/widgets/homework_submissions_dialog.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
 // ثوابت التصميم
@@ -63,6 +67,7 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
       context.read<EnrollmentBloc>().add(FetchEnrollments());
       context.read<StudentsBloc>().add(const FetchStudents());
       context.read<GroupsBloc>().add(const FetchGroups());
+      context.read<HomeworkBloc>().add(FetchAllHomeworks());
 
       // ✅ إذا كانت حصة إضافية، جلب حالة الدفع
       if (_isExtraSession) {
@@ -241,6 +246,39 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
     }
   }
 
+  /// ✅ عرض نافذة إضافة واجب
+  Future<void> _showAddHomeworkDialog(BuildContext context) async {
+    final homeworkBloc = context.read<HomeworkBloc>();
+
+    await showDialog(
+      context: context,
+      builder: (_) => AddHomeworkDialog(
+        session: widget.session,
+        homeworkBloc: homeworkBloc,
+      ),
+    );
+  }
+
+  /// ✅ عرض نافذة تسليمات الواجب
+  Future<void> _showHomeworkDetails(
+    BuildContext context,
+    HomeworkEntity homework,
+  ) async {
+    final homeworkBloc = context.read<HomeworkBloc>();
+    homeworkBloc.add(FetchSubmissions(homework.id!));
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => HomeworkSubmissionsDialog(
+        homework: homework,
+        session: widget.session,
+        homeworkBloc: homeworkBloc,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -256,6 +294,11 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
       appBar: AppBar(
         title: Text(group?.name ?? 'تسجيل الحضور'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.assignment_add),
+            tooltip: 'إضافة واجب',
+            onPressed: () => _showAddHomeworkDialog(context),
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: _setAllStatus,
@@ -413,6 +456,110 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
                   ],
                 ),
               ),
+
+              // ✅ عرض واجبات الحصة السابقة
+              BlocBuilder<HomeworkBloc, HomeworkState>(
+                builder: (context, state) {
+                  if (state.homeworksState is! Success)
+                    return const SizedBox.shrink();
+                  final allHomeworks = state.homeworksState.data ?? [];
+
+                  // ✅ البحث: targetSessionId == session.id
+                  final homeworks = allHomeworks
+                      .where((h) => h.targetSessionId == widget.session.id)
+                      .toList();
+
+                  if (homeworks.isEmpty) return const SizedBox.shrink();
+
+                  /* 
+                  // الواجبات المرتبطة بهذه الحصة (targetSessionId == session.id)
+                  final homeworks = allHomeworks
+                      .where((h) => h.targetSessionId == widget.session.id)
+                      .toList();
+ */
+
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 12.w),
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: colors.tertiaryContainer.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(_kRadius),
+                      border: Border.all(
+                        color: colors.tertiary.withOpacity(0.4),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.assignment,
+                              size: 18.sp,
+                              color: colors.tertiary,
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'واجبات مستحقة التسليم',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.bold,
+                                color: colors.tertiary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8.h),
+                        ...homeworks.map(
+                          (hw) => Padding(
+                            padding: EdgeInsets.only(bottom: 6.h),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  size: 6.sp,
+                                  color: colors.tertiary,
+                                ),
+                                SizedBox(width: 6.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        hw.title,
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                OutlinedButton(
+                                  onPressed: () =>
+                                      _showHomeworkDetails(context, hw),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 8.w,
+                                    ),
+                                    minimumSize: Size(0, 28.h),
+                                  ),
+                                  child: const Text(
+                                    'التسليم',
+                                    style: TextStyle(fontSize: 11),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 8.h),
 
               // ====== حقل البحث ======
               Padding(

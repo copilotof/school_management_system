@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:school_management_system/features/finance/presentation/pages/student_finance_page.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
 
+import '../../../attendance/presentation/pages/attendance_report_page.dart';
+import '../../../enrollment/presentation/bloc/enrollment_bloc.dart';
+import '../../../groups/presentation/bloc/groups_bloc.dart';
+import '../../../groups/presentation/bloc/groups_state.dart';
 import 'student_card_page.dart';
 
 // ============================================================
@@ -67,6 +72,82 @@ class StudentDetailsPage extends StatelessWidget {
               );
             },
           ),
+
+          // بعد أيقونة المالية
+          BlocBuilder<EnrollmentBloc, EnrollmentState>(
+            builder: (context, enrollmentState) {
+              return BlocBuilder<GroupsBloc, GroupsState>(
+                builder: (context, groupsState) {
+                  final enrollments =
+                      enrollmentState.enrollmentsState.data ?? [];
+                  final groups = groupsState.groupsState.data ?? [];
+
+                  // الأفواج المسجل فيها الطالب
+                  final studentGroupIds = enrollments
+                      .where(
+                        (e) =>
+                            e.studentId == student.id && e.status == 'active',
+                      )
+                      .map((e) => e.groupId)
+                      .toSet();
+
+                  final studentGroups = groups
+                      .where((g) => studentGroupIds.contains(g.id))
+                      .toList();
+
+                  if (studentGroups.isEmpty) return const SizedBox.shrink();
+
+                  return IconButton(
+                    icon: const Icon(Icons.bar_chart, size: 20),
+                    tooltip: 'تقرير الحضور',
+                    onPressed: () {
+                      if (studentGroups.length == 1) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AttendanceReportPage(
+                              group: studentGroups.first,
+                              student: student,
+                            ),
+                          ),
+                        );
+                      } else {
+                        // اختيار الفوج
+                        showDialog(
+                          context: context,
+                          builder: (dialogContext) => AlertDialog(
+                            title: const Text('اختر الفوج'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: studentGroups
+                                  .map(
+                                    (g) => ListTile(
+                                      title: Text(g.name),
+                                      onTap: () {
+                                        Navigator.of(dialogContext).pop();
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                AttendanceReportPage(
+                                                  group: g,
+                                                  student: student,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  );
+                },
+              );
+            },
+          ),
+
           IconButton(
             icon: Icon(Icons.edit_outlined, size: 20.sp),
             tooltip: 'تعديل',

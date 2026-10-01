@@ -99,18 +99,21 @@ class AttendanceState {
   final UiState<List<AttendanceEntity>> attendanceState;
   final UiState<List<ScheduleTemplateEntity>> templatesState; // ✅ جديد
   final String? errorMessage;
+  final UiState<List<AttendanceEntity>> reportState;
 
   const AttendanceState({
     this.sessionsState = const Initial(),
     this.attendanceState = const Initial(),
     this.templatesState = const Initial(), // ✅
     this.errorMessage,
+    this.reportState = const Initial(),
   });
 
   AttendanceState copyWith({
     UiState<List<SessionEntity>>? sessionsState,
     UiState<List<AttendanceEntity>>? attendanceState,
     UiState<List<ScheduleTemplateEntity>>? templatesState,
+    UiState<List<AttendanceEntity>>? reportState,
     String? errorMessage,
   }) {
     return AttendanceState(
@@ -118,6 +121,7 @@ class AttendanceState {
       attendanceState: attendanceState ?? this.attendanceState,
       templatesState: templatesState ?? this.templatesState,
       errorMessage: errorMessage ?? this.errorMessage,
+      reportState: reportState ?? this.reportState,
     );
   }
 }
@@ -159,6 +163,9 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     on<GenerateTodaySessions>(_onGenerateTodaySessions);
     on<GenerateSessionsForDate>(_onGenerateSessionsForDate);
     on<ExemptStudentFromExtraFee>(_onExemptStudentFromExtraFee);
+
+    on<FetchAttendanceReportForStudent>(_onFetchReportForStudent);
+    on<FetchAttendanceReportForGroup>(_onFetchReportForGroup);
   }
 
   Future<void> _onUnexemptStudentFromExtraFee(
@@ -325,14 +332,6 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     result.fold(
       (failure) => emit(state.copyWith(errorMessage: failure.message)),
       (_) async {
-        // ✅ إذا أصبحت الحصة ملغاة، أنشئ إشعارات
-        if (event.session.status == 'cancelled') {
-          await autoNotificationService.notifySessionCancelled(
-            sessionId: event.session.id!,
-            groupId: event.session.groupId,
-            reason: event.session.cancelReason ?? 'غير محدد',
-          );
-        }
         add(FetchTodaySessions());
       },
     );
@@ -478,4 +477,79 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       },
     );
   }
+
+  Future<void> _onFetchReportForStudent(
+    FetchAttendanceReportForStudent event,
+    Emitter<AttendanceState> emit,
+  ) async {
+    emit(state.copyWith(reportState: const Loading()));
+    final result = await repository.getAttendanceByStudentAndDateRange(
+      studentId: event.studentId,
+      from: event.from,
+      to: event.to,
+    );
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          reportState: Error(failure.message),
+          errorMessage: failure.message,
+        ),
+      ),
+      (attendance) => emit(
+        state.copyWith(
+          reportState: attendance.isEmpty ? const Empty() : Success(attendance),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onFetchReportForGroup(
+    FetchAttendanceReportForGroup event,
+    Emitter<AttendanceState> emit,
+  ) async {
+    emit(state.copyWith(reportState: const Loading()));
+    final result = await repository.getAttendanceByGroupAndDateRange(
+      groupId: event.groupId,
+      from: event.from,
+      to: event.to,
+    );
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          reportState: Error(failure.message),
+          errorMessage: failure.message,
+        ),
+      ),
+      (attendance) => emit(
+        state.copyWith(
+          reportState: attendance.isEmpty ? const Empty() : Success(attendance),
+        ),
+      ),
+    );
+  }
+}
+
+// Events
+class FetchAttendanceReportForStudent extends AttendanceEvent {
+  final int studentId;
+  final int groupId;
+  final DateTime from;
+  final DateTime to;
+  FetchAttendanceReportForStudent({
+    required this.studentId,
+    required this.groupId,
+    required this.from,
+    required this.to,
+  });
+}
+
+class FetchAttendanceReportForGroup extends AttendanceEvent {
+  final int groupId;
+  final DateTime from;
+  final DateTime to;
+  FetchAttendanceReportForGroup({
+    required this.groupId,
+    required this.from,
+    required this.to,
+  });
 }

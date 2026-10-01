@@ -7,6 +7,11 @@ import 'package:school_management_system/core/widgets/confirm_dialog.dart';
 import 'package:school_management_system/features/notifications/domain/entities/notification_entity.dart';
 import 'package:school_management_system/features/notifications/presentation/bloc/notification_bloc.dart';
 
+import '../../../../core/database/app_database.dart';
+import '../../../../injection_container.dart';
+import '../../services/sms_service.dart';
+import '../widgets/sms_dialog.dart';
+
 // ============================================================
 // 🎨 نظام تصميم محلي (خاص بهذا الملف) — Material 3
 // ============================================================
@@ -217,6 +222,14 @@ class _NotificationCard extends StatelessWidget {
             }
             _showDetails(context, notification, typeColor, typeIcon);
           },
+          // ✅ ضغط مطول: إرسال SMS
+          onLongPress: () {
+            if (notification.type == 'attendance' ||
+                notification.type == 'payment') {
+              _showSmsDialog(context, notification);
+            }
+          },
+
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(_Rad.card),
@@ -321,6 +334,33 @@ class _NotificationCard extends StatelessWidget {
                                         color: colors.onSurfaceVariant,
                                       ),
                                     ),
+
+                                    const Spacer(),
+                                    // ✅ تلميح: ضغط مطول للإجراءات
+                                    if (notification.type == 'attendance' ||
+                                        notification.type == 'payment')
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 4.h),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              Icons.touch_app_outlined,
+                                              size: 10.sp,
+                                              color: colors.onSurfaceVariant
+                                                  .withOpacity(0.6),
+                                            ),
+                                            SizedBox(width: 4.w),
+                                            Text(
+                                              'اضغط مطولاً لإرسال رسالة قصيرة',
+                                              style: TextStyle(
+                                                fontSize: 9.sp,
+                                                color: colors.onSurfaceVariant
+                                                    .withOpacity(0.6),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     const Spacer(),
                                     // شارة النوع
                                     Container(
@@ -357,6 +397,54 @@ class _NotificationCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _showSmsDialog(
+    BuildContext context,
+    NotificationEntity notification,
+  ) async {
+    final smsService = getIt<SmsService>();
+
+    // ✅ جلب رقم هاتف ولي الأمر (student.phone)
+    final db = getIt<AppDatabase>();
+    String? phone;
+    String? studentName;
+
+    if (notification.recipientId != null) {
+      final student =
+          await (db.select(db.students)
+                ..where((t) => t.id.equals(notification.recipientId!)))
+              .getSingleOrNull();
+
+      if (student != null) {
+        phone = student.phone;
+        studentName = '${student.firstName} ${student.lastName}'.trim();
+      }
+    }
+
+    if (phone == null || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد رقم هاتف لهذا الطالب')),
+      );
+      return;
+    }
+
+    final recipient = SmsRecipient(
+      id: notification.recipientId,
+      name: studentName ?? notification.title,
+      phone: phone,
+    );
+
+    if (!context.mounted) return;
+
+    await showDialog(
+      context: context,
+      builder: (_) => SmsDialog(
+        recipients: [recipient],
+        initialMessage: notification.body,
+        smsService: smsService,
       ),
     );
   }

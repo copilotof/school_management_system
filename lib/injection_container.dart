@@ -55,11 +55,18 @@ import 'features/finance/data/repositories/finance_repository_impl.dart';
 import 'features/finance/data/sources/finance_local_source.dart';
 import 'features/finance/domain/repositories/finance_repository.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
+import 'features/homework/data/repositories/homework_repository_impl.dart';
+import 'features/homework/data/sources/homework_local_source.dart';
+import 'features/homework/domain/repositories/homework_repository.dart';
+import 'features/homework/domain/usecases/homework_usecases.dart';
+import 'features/homework/presentation/bloc/homework_bloc.dart';
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/notifications/data/sources/notification_local_source.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'features/notifications/services/auto_notification_service.dart';
+import 'features/notifications/services/sms_service.dart';
+import 'features/notifications/services/template_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -339,6 +346,86 @@ Future<void> configureDependencies() async {
   if (!getIt.isRegistered<SettingsLocalDataSource>()) {
     getIt.registerSingleton<SettingsLocalDataSource>(
       SettingsLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+
+  if (!getIt.isRegistered<SmsService>()) {
+    getIt.registerLazySingleton<SmsService>(() => SmsService());
+  }
+
+  /*   if (!getIt.isRegistered<SmsService>()) {
+    getIt.registerLazySingleton<SmsService>(() => SmsService());
+  }
+*/
+  if (!getIt.isRegistered<TemplateService>()) {
+    getIt.registerLazySingleton<TemplateService>(() => TemplateService());
+  }
+
+  // ====== الواجبات ======
+  if (!getIt.isRegistered<HomeworkLocalDataSource>()) {
+    getIt.registerSingleton<HomeworkLocalDataSource>(
+      HomeworkLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<HomeworkRepository>()) {
+    getIt.registerSingleton<HomeworkRepository>(
+      HomeworkRepositoryImpl(
+        localDataSource: getIt<HomeworkLocalDataSource>(),
+        db: getIt<AppDatabase>(), // ✅
+      ),
+    );
+  }
+
+  // ✅ UseCases
+  if (!getIt.isRegistered<GetAllHomeworks>()) {
+    getIt.registerFactory(() => GetAllHomeworks(repository: getIt()));
+  }
+  if (!getIt.isRegistered<GetHomeworksByGroup>()) {
+    getIt.registerFactory(() => GetHomeworksByGroup(repository: getIt()));
+  }
+  if (!getIt.isRegistered<GetHomeworksBySession>()) {
+    getIt.registerFactory(() => GetHomeworksBySession(repository: getIt()));
+  }
+  if (!getIt.isRegistered<CreateHomework>()) {
+    getIt.registerFactory(() => CreateHomework(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateHomework>()) {
+    getIt.registerFactory(() => UpdateHomework(repository: getIt()));
+  }
+  if (!getIt.isRegistered<DeleteHomework>()) {
+    getIt.registerFactory(() => DeleteHomework(repository: getIt()));
+  }
+  if (!getIt.isRegistered<GetSubmissionsByHomework>()) {
+    getIt.registerFactory(() => GetSubmissionsByHomework(repository: getIt()));
+  }
+  if (!getIt.isRegistered<UpdateSubmission>()) {
+    getIt.registerFactory(() => UpdateSubmission(repository: getIt()));
+  }
+
+  if (!getIt.isRegistered<GetUpcomingSessions>()) {
+    getIt.registerFactory(() => GetUpcomingSessions(repository: getIt()));
+  }
+
+  if (!getIt.isRegistered<GetHomeworksByGroupAndDateRange>()) {
+    getIt.registerFactory(
+      () => GetHomeworksByGroupAndDateRange(repository: getIt()),
+    );
+  }
+
+  // ✅ BLoC
+  if (!getIt.isRegistered<HomeworkBloc>()) {
+    getIt.registerFactory(
+      () => HomeworkBloc(
+        getAllHomeworks: getIt(),
+        getHomeworksByGroup: getIt(),
+        getHomeworksBySession: getIt(),
+        getHomeworksByGroupAndDateRange: getIt(),
+        createHomework: getIt(),
+        updateHomework: getIt(),
+        deleteHomework: getIt(),
+        getSubmissionsByHomework: getIt(),
+        updateSubmission: getIt(),
+      ),
     );
   }
 }

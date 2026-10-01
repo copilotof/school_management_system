@@ -21,6 +21,7 @@ import '../../../enrollment/domain/entities/enrollment_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../../../notifications/services/auto_notification_service.dart';
 import 'add_payment_page.dart';
+import 'financial_reports_page.dart';
 
 // ============================================================
 // 🎨 ثوابت التصميم
@@ -60,10 +61,10 @@ class FinancePage extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications_active_outlined),
-                tooltip: 'فحص المتأخرات',
+                tooltip: 'فحص المتأخرات وإنشاء إشعارات',
                 onPressed: () async {
-                  final count = await getIt<AutoNotificationService>()
-                      .checkPaymentOverdue();
+                  final service = getIt<AutoNotificationService>();
+                  final count = await service.checkPaymentOverdue();
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -75,6 +76,17 @@ class FinancePage extends StatelessWidget {
                       ),
                     );
                   }
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.assessment),
+                tooltip: 'التقارير المالية',
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const FinancialReportsPage(),
+                    ),
+                  );
                 },
               ),
               IconButton(

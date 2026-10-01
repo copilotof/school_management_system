@@ -162,6 +162,7 @@ import 'package:school_management_system/injection_container.dart';
 import 'features/attendance/presentation/bloc/attendance_bloc.dart';
 import 'features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
+import 'features/homework/presentation/bloc/homework_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 
 Future<void> main() async {
@@ -179,6 +180,7 @@ Future<void> main() async {
   } catch (e) {
     debugPrint('خطأ في حذف قاعدة البيانات: $e');
   }
+
  */
   await configureDependencies();
   runApp(const SchoolManagementApp());
@@ -211,6 +213,7 @@ class SchoolManagementApp extends StatelessWidget {
             BlocProvider(create: (_) => getIt<FinanceBloc>()),
             BlocProvider(create: (_) => getIt<AttendanceBloc>()),
             BlocProvider(create: (_) => getIt<NotificationBloc>()),
+            BlocProvider(create: (_) => getIt<HomeworkBloc>()),
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {

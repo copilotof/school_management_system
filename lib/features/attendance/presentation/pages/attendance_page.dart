@@ -15,6 +15,11 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
+import '../../../../injection_container.dart';
+import '../../../notifications/presentation/widgets/sms_dialog.dart';
+import '../../../notifications/services/sms_service.dart';
+import '../../../notifications/services/template_service.dart';
+
 // ثوابت التصميم
 class _Gap {
   static double get xs => 4.h;
@@ -676,8 +681,81 @@ class _SessionCard extends StatelessWidget {
                 },
               ),
             ],
+
+            // ✅ للحصص التعويضية: إرسال SMS
+            if (session.type == 'makeup')
+              ListTile(
+                leading: Icon(
+                  Icons.sms,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text('إرسال SMS للأولياء'),
+                onTap: () {
+                  Navigator.of(sheetContext).pop();
+                  _showSmsDialogForMakeup(context);
+                },
+              ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _showSmsDialogForMakeup(BuildContext context) async {
+    final templateService = getIt<TemplateService>();
+    final smsService = getIt<SmsService>();
+
+    final groups = context.read<GroupsBloc>().state.groupsState.data ?? [];
+    final group = groups.where((g) => g.id == session.groupId).firstOrNull;
+    if (group == null) return;
+
+    final enrollments =
+        context.read<EnrollmentBloc>().state.enrollmentsState.data ?? [];
+    final students =
+        context.read<StudentsBloc>().state.studentsState.data ?? [];
+
+    final studentIds = enrollments
+        .where((e) => e.groupId == session.groupId && e.status == 'active')
+        .map((e) => e.studentId)
+        .toSet();
+
+    final groupStudents = students
+        .where((s) => studentIds.contains(s.id))
+        .toList();
+
+    final recipients = <SmsRecipient>[];
+    for (final student in groupStudents) {
+      if (student.phone != null && student.phone!.isNotEmpty) {
+        recipients.add(
+          SmsRecipient(
+            id: student.id,
+            name: 'ولي أمر ${student.fullName}',
+            phone: student.phone!,
+          ),
+        );
+      }
+    }
+
+    if (recipients.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا توجد أرقام هواتف')));
+      return;
+    }
+
+    final message = templateService.renderMakeupSession(
+      groupName: group.name,
+      date: DateFormat('yyyy/MM/dd').format(session.sessionDate),
+      startTime: DateFormat('HH:mm').format(session.startTime),
+      endTime: DateFormat('HH:mm').format(session.endTime),
+    );
+
+    await showDialog(
+      context: context,
+      builder: (_) => SmsDialog(
+        recipients: recipients,
+        initialMessage: message,
+        smsService: smsService,
       ),
     );
   }
@@ -769,16 +847,93 @@ class _SessionCard extends StatelessWidget {
       ),
     );
 
-    // ✅ لا تستخدم reasonController بعد إغلاق الـ dialog
     if (reason != null && context.mounted) {
       final updated = session.copyWith(
         status: 'cancelled',
         cancelReason: reason.isEmpty ? null : reason,
       );
       attendanceBloc.add(UpdateSessionEvent(updated));
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('تم إلغاء الحصة')));
+
+      // ✅ عرض حوار إرسال SMS
+      await _showSmsDialogForGroup(context, reason);
+    }
+  }
+
+  /// ✅ عرض حوار إرسال SMS لأولياء أمور الفوج
+  Future<void> _showSmsDialogForGroup(
+    BuildContext context,
+    String reason,
+  ) async {
+    final templateService = getIt<TemplateService>();
+    final smsService = getIt<SmsService>();
+
+    // جلب اسم الفوج
+    final groups = context.read<GroupsBloc>().state.groupsState.data ?? [];
+    final group = groups.where((g) => g.id == session.groupId).firstOrNull;
+    if (group == null) return;
+
+    // جلب طلاب الفوج
+    final enrollments =
+        context.read<EnrollmentBloc>().state.enrollmentsState.data ?? [];
+    final students =
+        context.read<StudentsBloc>().state.studentsState.data ?? [];
+
+    final studentIds = enrollments
+        .where((e) => e.groupId == session.groupId && e.status == 'active')
+        .map((e) => e.studentId)
+        .toSet();
+
+    final groupStudents = students
+        .where((s) => studentIds.contains(s.id))
+        .toList();
+
+    // جلب أولياء الأمور (لاحقاً: من Guardian)
+    // حالياً: نستخدم رقم الطالب أو نطلب إضافته
+    final recipients = <SmsRecipient>[];
+    for (final student in groupStudents) {
+      if (student.phone != null && student.phone!.isNotEmpty) {
+        recipients.add(
+          SmsRecipient(
+            id: student.id,
+            name: 'ولي أمر ${student.fullName}',
+            phone: student.phone!,
+          ),
+        );
+      }
+    }
+
+    if (recipients.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('لا توجد أرقام هواتف للأولياء')),
+        );
+      }
+      return;
+    }
+
+    // توليد الرسالة
+    final message = templateService.renderSessionCancelled(
+      groupName: group.name,
+      date: DateFormat('yyyy/MM/dd').format(session.sessionDate),
+      startTime: DateFormat('HH:mm').format(session.startTime),
+      endTime: DateFormat('HH:mm').format(session.endTime),
+      reason: reason.isEmpty ? 'غير محدد' : reason,
+    );
+
+    // عرض حوار SMS
+    if (context.mounted) {
+      await showDialog(
+        context: context,
+        builder: (_) => SmsDialog(
+          recipients: recipients,
+          initialMessage: message,
+          smsService: smsService,
+        ),
+      );
     }
   }
 

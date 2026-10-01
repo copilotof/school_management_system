@@ -9,6 +9,7 @@ import '../../../../core/database/settings_local_source.dart';
 import '../../../../injection_container.dart';
 import '../../../grades/presentation/pages/grades_page.dart';
 import '../../../levels/presentation/pages/levels_page.dart';
+import '../../../notifications/presentation/pages/sms_log_page.dart';
 import '../../../subjects/presentation/pages/subjects_page.dart';
 
 /// 📁 صفحة الإعدادات
@@ -191,6 +192,18 @@ class _SettingsPageState extends State<SettingsPage> {
             Card(
               child: Column(
                 children: [
+                  // ✅ جديد: سجل SMS
+                  ListTile(
+                    leading: Icon(Icons.sms_outlined, color: colors.primary),
+                    title: const Text('سجل الرسائل القصيرة'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SmsLogPage()),
+                      );
+                    },
+                  ),
+
                   ListTile(
                     leading: Icon(Icons.event_busy, color: colors.primary),
                     title: const Text('حد الغيابات المسموح'),

@@ -51,6 +51,11 @@ abstract class AttendanceRepository {
   Future<Either<Failure, bool>> updateTemplate(ScheduleTemplateEntity template);
   Future<Either<Failure, bool>> deleteTemplate(int id);
 
+  Future<Either<Failure, SessionEntity?>> getNextSession(
+    int groupId,
+    DateTime after,
+  );
+
   // ✅ جديد: الحصة الإضافية المدفوعة
   Future<Either<Failure, void>> applyExtraFeeToStudents({
     required int sessionId,
@@ -66,5 +71,19 @@ abstract class AttendanceRepository {
   Future<Either<Failure, double>> getStudentExtraFeeRemaining({
     required int sessionId,
     required int studentId,
+  });
+
+  Future<Either<Failure, List<AttendanceEntity>>>
+  getAttendanceByStudentAndDateRange({
+    required int studentId,
+    required DateTime from,
+    required DateTime to,
+  });
+
+  Future<Either<Failure, List<AttendanceEntity>>>
+  getAttendanceByGroupAndDateRange({
+    required int groupId,
+    required DateTime from,
+    required DateTime to,
   });
 }

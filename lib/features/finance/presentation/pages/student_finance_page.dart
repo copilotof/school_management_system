@@ -11,6 +11,7 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/groups/presentation/bloc/groups_state.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 
+import 'account_statement_page.dart';
 import 'add_payment_page.dart';
 import 'receipt_page.dart';
 
@@ -298,6 +299,38 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                         },
                       ),
                       SizedBox(height: _Gap.lg),
+                      // ✅ زر كشف الحساب
+                      SizedBox(height: 8.h),
+                      BlocBuilder<GroupsBloc, GroupsState>(
+                        builder: (context, groupsState) {
+                          final groups = groupsState.groupsState.data ?? [];
+                          final selectedGroup = groups
+                              .where((g) => g.id == _selectedGroupId)
+                              .firstOrNull;
+
+                          if (selectedGroup == null)
+                            return const SizedBox.shrink();
+
+                          return OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => AccountStatementPage(
+                                    student: widget.student,
+                                    group: selectedGroup,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.receipt_long, size: 16),
+                            label: const Text('عرض كشف الحساب'),
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: Size(double.infinity, 40.h),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: _Gap.md),
                     ],
 
                     /*                     if (_selectedGroupId != null)

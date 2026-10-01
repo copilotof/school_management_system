@@ -15076,6 +15076,1790 @@ class SystemSettingsCompanion extends UpdateCompanion<SystemSetting> {
   }
 }
 
+class $SmsLogsTable extends SmsLogs with TableInfo<$SmsLogsTable, SmsLog> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmsLogsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _notificationIdMeta = const VerificationMeta(
+    'notificationId',
+  );
+  @override
+  late final GeneratedColumn<int> notificationId = GeneratedColumn<int>(
+    'notification_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _errorMessageMeta = const VerificationMeta(
+    'errorMessage',
+  );
+  @override
+  late final GeneratedColumn<String> errorMessage = GeneratedColumn<String>(
+    'error_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recipientIdMeta = const VerificationMeta(
+    'recipientId',
+  );
+  @override
+  late final GeneratedColumn<int> recipientId = GeneratedColumn<int>(
+    'recipient_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recipientNameMeta = const VerificationMeta(
+    'recipientName',
+  );
+  @override
+  late final GeneratedColumn<String> recipientName = GeneratedColumn<String>(
+    'recipient_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _eventCodeMeta = const VerificationMeta(
+    'eventCode',
+  );
+  @override
+  late final GeneratedColumn<String> eventCode = GeneratedColumn<String>(
+    'event_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sentAtMeta = const VerificationMeta('sentAt');
+  @override
+  late final GeneratedColumn<DateTime> sentAt = GeneratedColumn<DateTime>(
+    'sent_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    notificationId,
+    phone,
+    body,
+    status,
+    errorMessage,
+    recipientId,
+    recipientName,
+    eventCode,
+    sentAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'sms_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SmsLog> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('notification_id')) {
+      context.handle(
+        _notificationIdMeta,
+        notificationId.isAcceptableOrUnknown(
+          data['notification_id']!,
+          _notificationIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_phoneMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('error_message')) {
+      context.handle(
+        _errorMessageMeta,
+        errorMessage.isAcceptableOrUnknown(
+          data['error_message']!,
+          _errorMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recipient_id')) {
+      context.handle(
+        _recipientIdMeta,
+        recipientId.isAcceptableOrUnknown(
+          data['recipient_id']!,
+          _recipientIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recipient_name')) {
+      context.handle(
+        _recipientNameMeta,
+        recipientName.isAcceptableOrUnknown(
+          data['recipient_name']!,
+          _recipientNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('event_code')) {
+      context.handle(
+        _eventCodeMeta,
+        eventCode.isAcceptableOrUnknown(data['event_code']!, _eventCodeMeta),
+      );
+    }
+    if (data.containsKey('sent_at')) {
+      context.handle(
+        _sentAtMeta,
+        sentAt.isAcceptableOrUnknown(data['sent_at']!, _sentAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SmsLog map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmsLog(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      notificationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}notification_id'],
+      ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      errorMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_message'],
+      ),
+      recipientId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recipient_id'],
+      ),
+      recipientName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recipient_name'],
+      ),
+      eventCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_code'],
+      ),
+      sentAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sent_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SmsLogsTable createAlias(String alias) {
+    return $SmsLogsTable(attachedDatabase, alias);
+  }
+}
+
+class SmsLog extends DataClass implements Insertable<SmsLog> {
+  final int id;
+  final int? notificationId;
+  final String phone;
+  final String body;
+  final String status;
+  final String? errorMessage;
+  final int? recipientId;
+  final String? recipientName;
+  final String? eventCode;
+  final DateTime sentAt;
+  const SmsLog({
+    required this.id,
+    this.notificationId,
+    required this.phone,
+    required this.body,
+    required this.status,
+    this.errorMessage,
+    this.recipientId,
+    this.recipientName,
+    this.eventCode,
+    required this.sentAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || notificationId != null) {
+      map['notification_id'] = Variable<int>(notificationId);
+    }
+    map['phone'] = Variable<String>(phone);
+    map['body'] = Variable<String>(body);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || errorMessage != null) {
+      map['error_message'] = Variable<String>(errorMessage);
+    }
+    if (!nullToAbsent || recipientId != null) {
+      map['recipient_id'] = Variable<int>(recipientId);
+    }
+    if (!nullToAbsent || recipientName != null) {
+      map['recipient_name'] = Variable<String>(recipientName);
+    }
+    if (!nullToAbsent || eventCode != null) {
+      map['event_code'] = Variable<String>(eventCode);
+    }
+    map['sent_at'] = Variable<DateTime>(sentAt);
+    return map;
+  }
+
+  SmsLogsCompanion toCompanion(bool nullToAbsent) {
+    return SmsLogsCompanion(
+      id: Value(id),
+      notificationId: notificationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notificationId),
+      phone: Value(phone),
+      body: Value(body),
+      status: Value(status),
+      errorMessage: errorMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorMessage),
+      recipientId: recipientId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recipientId),
+      recipientName: recipientName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recipientName),
+      eventCode: eventCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventCode),
+      sentAt: Value(sentAt),
+    );
+  }
+
+  factory SmsLog.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmsLog(
+      id: serializer.fromJson<int>(json['id']),
+      notificationId: serializer.fromJson<int?>(json['notificationId']),
+      phone: serializer.fromJson<String>(json['phone']),
+      body: serializer.fromJson<String>(json['body']),
+      status: serializer.fromJson<String>(json['status']),
+      errorMessage: serializer.fromJson<String?>(json['errorMessage']),
+      recipientId: serializer.fromJson<int?>(json['recipientId']),
+      recipientName: serializer.fromJson<String?>(json['recipientName']),
+      eventCode: serializer.fromJson<String?>(json['eventCode']),
+      sentAt: serializer.fromJson<DateTime>(json['sentAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'notificationId': serializer.toJson<int?>(notificationId),
+      'phone': serializer.toJson<String>(phone),
+      'body': serializer.toJson<String>(body),
+      'status': serializer.toJson<String>(status),
+      'errorMessage': serializer.toJson<String?>(errorMessage),
+      'recipientId': serializer.toJson<int?>(recipientId),
+      'recipientName': serializer.toJson<String?>(recipientName),
+      'eventCode': serializer.toJson<String?>(eventCode),
+      'sentAt': serializer.toJson<DateTime>(sentAt),
+    };
+  }
+
+  SmsLog copyWith({
+    int? id,
+    Value<int?> notificationId = const Value.absent(),
+    String? phone,
+    String? body,
+    String? status,
+    Value<String?> errorMessage = const Value.absent(),
+    Value<int?> recipientId = const Value.absent(),
+    Value<String?> recipientName = const Value.absent(),
+    Value<String?> eventCode = const Value.absent(),
+    DateTime? sentAt,
+  }) => SmsLog(
+    id: id ?? this.id,
+    notificationId: notificationId.present
+        ? notificationId.value
+        : this.notificationId,
+    phone: phone ?? this.phone,
+    body: body ?? this.body,
+    status: status ?? this.status,
+    errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
+    recipientId: recipientId.present ? recipientId.value : this.recipientId,
+    recipientName: recipientName.present
+        ? recipientName.value
+        : this.recipientName,
+    eventCode: eventCode.present ? eventCode.value : this.eventCode,
+    sentAt: sentAt ?? this.sentAt,
+  );
+  SmsLog copyWithCompanion(SmsLogsCompanion data) {
+    return SmsLog(
+      id: data.id.present ? data.id.value : this.id,
+      notificationId: data.notificationId.present
+          ? data.notificationId.value
+          : this.notificationId,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      body: data.body.present ? data.body.value : this.body,
+      status: data.status.present ? data.status.value : this.status,
+      errorMessage: data.errorMessage.present
+          ? data.errorMessage.value
+          : this.errorMessage,
+      recipientId: data.recipientId.present
+          ? data.recipientId.value
+          : this.recipientId,
+      recipientName: data.recipientName.present
+          ? data.recipientName.value
+          : this.recipientName,
+      eventCode: data.eventCode.present ? data.eventCode.value : this.eventCode,
+      sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmsLog(')
+          ..write('id: $id, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('phone: $phone, ')
+          ..write('body: $body, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('recipientId: $recipientId, ')
+          ..write('recipientName: $recipientName, ')
+          ..write('eventCode: $eventCode, ')
+          ..write('sentAt: $sentAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    notificationId,
+    phone,
+    body,
+    status,
+    errorMessage,
+    recipientId,
+    recipientName,
+    eventCode,
+    sentAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmsLog &&
+          other.id == this.id &&
+          other.notificationId == this.notificationId &&
+          other.phone == this.phone &&
+          other.body == this.body &&
+          other.status == this.status &&
+          other.errorMessage == this.errorMessage &&
+          other.recipientId == this.recipientId &&
+          other.recipientName == this.recipientName &&
+          other.eventCode == this.eventCode &&
+          other.sentAt == this.sentAt);
+}
+
+class SmsLogsCompanion extends UpdateCompanion<SmsLog> {
+  final Value<int> id;
+  final Value<int?> notificationId;
+  final Value<String> phone;
+  final Value<String> body;
+  final Value<String> status;
+  final Value<String?> errorMessage;
+  final Value<int?> recipientId;
+  final Value<String?> recipientName;
+  final Value<String?> eventCode;
+  final Value<DateTime> sentAt;
+  const SmsLogsCompanion({
+    this.id = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.body = const Value.absent(),
+    this.status = const Value.absent(),
+    this.errorMessage = const Value.absent(),
+    this.recipientId = const Value.absent(),
+    this.recipientName = const Value.absent(),
+    this.eventCode = const Value.absent(),
+    this.sentAt = const Value.absent(),
+  });
+  SmsLogsCompanion.insert({
+    this.id = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    required String phone,
+    required String body,
+    required String status,
+    this.errorMessage = const Value.absent(),
+    this.recipientId = const Value.absent(),
+    this.recipientName = const Value.absent(),
+    this.eventCode = const Value.absent(),
+    this.sentAt = const Value.absent(),
+  }) : phone = Value(phone),
+       body = Value(body),
+       status = Value(status);
+  static Insertable<SmsLog> custom({
+    Expression<int>? id,
+    Expression<int>? notificationId,
+    Expression<String>? phone,
+    Expression<String>? body,
+    Expression<String>? status,
+    Expression<String>? errorMessage,
+    Expression<int>? recipientId,
+    Expression<String>? recipientName,
+    Expression<String>? eventCode,
+    Expression<DateTime>? sentAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (notificationId != null) 'notification_id': notificationId,
+      if (phone != null) 'phone': phone,
+      if (body != null) 'body': body,
+      if (status != null) 'status': status,
+      if (errorMessage != null) 'error_message': errorMessage,
+      if (recipientId != null) 'recipient_id': recipientId,
+      if (recipientName != null) 'recipient_name': recipientName,
+      if (eventCode != null) 'event_code': eventCode,
+      if (sentAt != null) 'sent_at': sentAt,
+    });
+  }
+
+  SmsLogsCompanion copyWith({
+    Value<int>? id,
+    Value<int?>? notificationId,
+    Value<String>? phone,
+    Value<String>? body,
+    Value<String>? status,
+    Value<String?>? errorMessage,
+    Value<int?>? recipientId,
+    Value<String?>? recipientName,
+    Value<String?>? eventCode,
+    Value<DateTime>? sentAt,
+  }) {
+    return SmsLogsCompanion(
+      id: id ?? this.id,
+      notificationId: notificationId ?? this.notificationId,
+      phone: phone ?? this.phone,
+      body: body ?? this.body,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+      recipientId: recipientId ?? this.recipientId,
+      recipientName: recipientName ?? this.recipientName,
+      eventCode: eventCode ?? this.eventCode,
+      sentAt: sentAt ?? this.sentAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (notificationId.present) {
+      map['notification_id'] = Variable<int>(notificationId.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (errorMessage.present) {
+      map['error_message'] = Variable<String>(errorMessage.value);
+    }
+    if (recipientId.present) {
+      map['recipient_id'] = Variable<int>(recipientId.value);
+    }
+    if (recipientName.present) {
+      map['recipient_name'] = Variable<String>(recipientName.value);
+    }
+    if (eventCode.present) {
+      map['event_code'] = Variable<String>(eventCode.value);
+    }
+    if (sentAt.present) {
+      map['sent_at'] = Variable<DateTime>(sentAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmsLogsCompanion(')
+          ..write('id: $id, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('phone: $phone, ')
+          ..write('body: $body, ')
+          ..write('status: $status, ')
+          ..write('errorMessage: $errorMessage, ')
+          ..write('recipientId: $recipientId, ')
+          ..write('recipientName: $recipientName, ')
+          ..write('eventCode: $eventCode, ')
+          ..write('sentAt: $sentAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomeworksTable extends Homeworks
+    with TableInfo<$HomeworksTable, Homework> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomeworksTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _targetSessionIdMeta = const VerificationMeta(
+    'targetSessionId',
+  );
+  @override
+  late final GeneratedColumn<int> targetSessionId = GeneratedColumn<int>(
+    'target_session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<int> groupId = GeneratedColumn<int>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 255,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
+    'due_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isCompletedMeta = const VerificationMeta(
+    'isCompleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isCompleted = GeneratedColumn<bool>(
+    'is_completed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_completed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sessionId,
+    targetSessionId,
+    groupId,
+    title,
+    description,
+    dueDate,
+    isCompleted,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'homeworks';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Homework> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('target_session_id')) {
+      context.handle(
+        _targetSessionIdMeta,
+        targetSessionId.isAcceptableOrUnknown(
+          data['target_session_id']!,
+          _targetSessionIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueDateMeta);
+    }
+    if (data.containsKey('is_completed')) {
+      context.handle(
+        _isCompletedMeta,
+        isCompleted.isAcceptableOrUnknown(
+          data['is_completed']!,
+          _isCompletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Homework map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Homework(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}session_id'],
+      )!,
+      targetSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_session_id'],
+      ),
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}group_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_date'],
+      )!,
+      isCompleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_completed'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HomeworksTable createAlias(String alias) {
+    return $HomeworksTable(attachedDatabase, alias);
+  }
+}
+
+class Homework extends DataClass implements Insertable<Homework> {
+  final int id;
+  final int sessionId;
+  final int? targetSessionId;
+  final int groupId;
+  final String title;
+  final String description;
+  final DateTime dueDate;
+  final bool isCompleted;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Homework({
+    required this.id,
+    required this.sessionId,
+    this.targetSessionId,
+    required this.groupId,
+    required this.title,
+    required this.description,
+    required this.dueDate,
+    required this.isCompleted,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['session_id'] = Variable<int>(sessionId);
+    if (!nullToAbsent || targetSessionId != null) {
+      map['target_session_id'] = Variable<int>(targetSessionId);
+    }
+    map['group_id'] = Variable<int>(groupId);
+    map['title'] = Variable<String>(title);
+    map['description'] = Variable<String>(description);
+    map['due_date'] = Variable<DateTime>(dueDate);
+    map['is_completed'] = Variable<bool>(isCompleted);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HomeworksCompanion toCompanion(bool nullToAbsent) {
+    return HomeworksCompanion(
+      id: Value(id),
+      sessionId: Value(sessionId),
+      targetSessionId: targetSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetSessionId),
+      groupId: Value(groupId),
+      title: Value(title),
+      description: Value(description),
+      dueDate: Value(dueDate),
+      isCompleted: Value(isCompleted),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Homework.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Homework(
+      id: serializer.fromJson<int>(json['id']),
+      sessionId: serializer.fromJson<int>(json['sessionId']),
+      targetSessionId: serializer.fromJson<int?>(json['targetSessionId']),
+      groupId: serializer.fromJson<int>(json['groupId']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String>(json['description']),
+      dueDate: serializer.fromJson<DateTime>(json['dueDate']),
+      isCompleted: serializer.fromJson<bool>(json['isCompleted']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sessionId': serializer.toJson<int>(sessionId),
+      'targetSessionId': serializer.toJson<int?>(targetSessionId),
+      'groupId': serializer.toJson<int>(groupId),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String>(description),
+      'dueDate': serializer.toJson<DateTime>(dueDate),
+      'isCompleted': serializer.toJson<bool>(isCompleted),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Homework copyWith({
+    int? id,
+    int? sessionId,
+    Value<int?> targetSessionId = const Value.absent(),
+    int? groupId,
+    String? title,
+    String? description,
+    DateTime? dueDate,
+    bool? isCompleted,
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Homework(
+    id: id ?? this.id,
+    sessionId: sessionId ?? this.sessionId,
+    targetSessionId: targetSessionId.present
+        ? targetSessionId.value
+        : this.targetSessionId,
+    groupId: groupId ?? this.groupId,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    dueDate: dueDate ?? this.dueDate,
+    isCompleted: isCompleted ?? this.isCompleted,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Homework copyWithCompanion(HomeworksCompanion data) {
+    return Homework(
+      id: data.id.present ? data.id.value : this.id,
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      targetSessionId: data.targetSessionId.present
+          ? data.targetSessionId.value
+          : this.targetSessionId,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      isCompleted: data.isCompleted.present
+          ? data.isCompleted.value
+          : this.isCompleted,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Homework(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('targetSessionId: $targetSessionId, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sessionId,
+    targetSessionId,
+    groupId,
+    title,
+    description,
+    dueDate,
+    isCompleted,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Homework &&
+          other.id == this.id &&
+          other.sessionId == this.sessionId &&
+          other.targetSessionId == this.targetSessionId &&
+          other.groupId == this.groupId &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.dueDate == this.dueDate &&
+          other.isCompleted == this.isCompleted &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HomeworksCompanion extends UpdateCompanion<Homework> {
+  final Value<int> id;
+  final Value<int> sessionId;
+  final Value<int?> targetSessionId;
+  final Value<int> groupId;
+  final Value<String> title;
+  final Value<String> description;
+  final Value<DateTime> dueDate;
+  final Value<bool> isCompleted;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const HomeworksCompanion({
+    this.id = const Value.absent(),
+    this.sessionId = const Value.absent(),
+    this.targetSessionId = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.isCompleted = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  HomeworksCompanion.insert({
+    this.id = const Value.absent(),
+    required int sessionId,
+    this.targetSessionId = const Value.absent(),
+    required int groupId,
+    required String title,
+    required String description,
+    required DateTime dueDate,
+    this.isCompleted = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : sessionId = Value(sessionId),
+       groupId = Value(groupId),
+       title = Value(title),
+       description = Value(description),
+       dueDate = Value(dueDate);
+  static Insertable<Homework> custom({
+    Expression<int>? id,
+    Expression<int>? sessionId,
+    Expression<int>? targetSessionId,
+    Expression<int>? groupId,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<DateTime>? dueDate,
+    Expression<bool>? isCompleted,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sessionId != null) 'session_id': sessionId,
+      if (targetSessionId != null) 'target_session_id': targetSessionId,
+      if (groupId != null) 'group_id': groupId,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (dueDate != null) 'due_date': dueDate,
+      if (isCompleted != null) 'is_completed': isCompleted,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  HomeworksCompanion copyWith({
+    Value<int>? id,
+    Value<int>? sessionId,
+    Value<int?>? targetSessionId,
+    Value<int>? groupId,
+    Value<String>? title,
+    Value<String>? description,
+    Value<DateTime>? dueDate,
+    Value<bool>? isCompleted,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return HomeworksCompanion(
+      id: id ?? this.id,
+      sessionId: sessionId ?? this.sessionId,
+      targetSessionId: targetSessionId ?? this.targetSessionId,
+      groupId: groupId ?? this.groupId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      dueDate: dueDate ?? this.dueDate,
+      isCompleted: isCompleted ?? this.isCompleted,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sessionId.present) {
+      map['session_id'] = Variable<int>(sessionId.value);
+    }
+    if (targetSessionId.present) {
+      map['target_session_id'] = Variable<int>(targetSessionId.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<int>(groupId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<DateTime>(dueDate.value);
+    }
+    if (isCompleted.present) {
+      map['is_completed'] = Variable<bool>(isCompleted.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeworksCompanion(')
+          ..write('id: $id, ')
+          ..write('sessionId: $sessionId, ')
+          ..write('targetSessionId: $targetSessionId, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('isCompleted: $isCompleted, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HomeworkSubmissionsTable extends HomeworkSubmissions
+    with TableInfo<$HomeworkSubmissionsTable, HomeworkSubmission> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HomeworkSubmissionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _homeworkIdMeta = const VerificationMeta(
+    'homeworkId',
+  );
+  @override
+  late final GeneratedColumn<int> homeworkId = GeneratedColumn<int>(
+    'homework_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<int> studentId = GeneratedColumn<int>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _submittedAtMeta = const VerificationMeta(
+    'submittedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> submittedAt = GeneratedColumn<DateTime>(
+    'submitted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    homeworkId,
+    studentId,
+    status,
+    submittedAt,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'homework_submissions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HomeworkSubmission> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('homework_id')) {
+      context.handle(
+        _homeworkIdMeta,
+        homeworkId.isAcceptableOrUnknown(data['homework_id']!, _homeworkIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_homeworkIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('submitted_at')) {
+      context.handle(
+        _submittedAtMeta,
+        submittedAt.isAcceptableOrUnknown(
+          data['submitted_at']!,
+          _submittedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {homeworkId, studentId},
+  ];
+  @override
+  HomeworkSubmission map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HomeworkSubmission(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      homeworkId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}homework_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}student_id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      submittedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}submitted_at'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HomeworkSubmissionsTable createAlias(String alias) {
+    return $HomeworkSubmissionsTable(attachedDatabase, alias);
+  }
+}
+
+class HomeworkSubmission extends DataClass
+    implements Insertable<HomeworkSubmission> {
+  final int id;
+  final int homeworkId;
+  final int studentId;
+  final String status;
+  final DateTime? submittedAt;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const HomeworkSubmission({
+    required this.id,
+    required this.homeworkId,
+    required this.studentId,
+    required this.status,
+    this.submittedAt,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['homework_id'] = Variable<int>(homeworkId);
+    map['student_id'] = Variable<int>(studentId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || submittedAt != null) {
+      map['submitted_at'] = Variable<DateTime>(submittedAt);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  HomeworkSubmissionsCompanion toCompanion(bool nullToAbsent) {
+    return HomeworkSubmissionsCompanion(
+      id: Value(id),
+      homeworkId: Value(homeworkId),
+      studentId: Value(studentId),
+      status: Value(status),
+      submittedAt: submittedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(submittedAt),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory HomeworkSubmission.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HomeworkSubmission(
+      id: serializer.fromJson<int>(json['id']),
+      homeworkId: serializer.fromJson<int>(json['homeworkId']),
+      studentId: serializer.fromJson<int>(json['studentId']),
+      status: serializer.fromJson<String>(json['status']),
+      submittedAt: serializer.fromJson<DateTime?>(json['submittedAt']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'homeworkId': serializer.toJson<int>(homeworkId),
+      'studentId': serializer.toJson<int>(studentId),
+      'status': serializer.toJson<String>(status),
+      'submittedAt': serializer.toJson<DateTime?>(submittedAt),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  HomeworkSubmission copyWith({
+    int? id,
+    int? homeworkId,
+    int? studentId,
+    String? status,
+    Value<DateTime?> submittedAt = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => HomeworkSubmission(
+    id: id ?? this.id,
+    homeworkId: homeworkId ?? this.homeworkId,
+    studentId: studentId ?? this.studentId,
+    status: status ?? this.status,
+    submittedAt: submittedAt.present ? submittedAt.value : this.submittedAt,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  HomeworkSubmission copyWithCompanion(HomeworkSubmissionsCompanion data) {
+    return HomeworkSubmission(
+      id: data.id.present ? data.id.value : this.id,
+      homeworkId: data.homeworkId.present
+          ? data.homeworkId.value
+          : this.homeworkId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      status: data.status.present ? data.status.value : this.status,
+      submittedAt: data.submittedAt.present
+          ? data.submittedAt.value
+          : this.submittedAt,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeworkSubmission(')
+          ..write('id: $id, ')
+          ..write('homeworkId: $homeworkId, ')
+          ..write('studentId: $studentId, ')
+          ..write('status: $status, ')
+          ..write('submittedAt: $submittedAt, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    homeworkId,
+    studentId,
+    status,
+    submittedAt,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HomeworkSubmission &&
+          other.id == this.id &&
+          other.homeworkId == this.homeworkId &&
+          other.studentId == this.studentId &&
+          other.status == this.status &&
+          other.submittedAt == this.submittedAt &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class HomeworkSubmissionsCompanion extends UpdateCompanion<HomeworkSubmission> {
+  final Value<int> id;
+  final Value<int> homeworkId;
+  final Value<int> studentId;
+  final Value<String> status;
+  final Value<DateTime?> submittedAt;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const HomeworkSubmissionsCompanion({
+    this.id = const Value.absent(),
+    this.homeworkId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.submittedAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  HomeworkSubmissionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int homeworkId,
+    required int studentId,
+    this.status = const Value.absent(),
+    this.submittedAt = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : homeworkId = Value(homeworkId),
+       studentId = Value(studentId);
+  static Insertable<HomeworkSubmission> custom({
+    Expression<int>? id,
+    Expression<int>? homeworkId,
+    Expression<int>? studentId,
+    Expression<String>? status,
+    Expression<DateTime>? submittedAt,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (homeworkId != null) 'homework_id': homeworkId,
+      if (studentId != null) 'student_id': studentId,
+      if (status != null) 'status': status,
+      if (submittedAt != null) 'submitted_at': submittedAt,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  HomeworkSubmissionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? homeworkId,
+    Value<int>? studentId,
+    Value<String>? status,
+    Value<DateTime?>? submittedAt,
+    Value<String?>? notes,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return HomeworkSubmissionsCompanion(
+      id: id ?? this.id,
+      homeworkId: homeworkId ?? this.homeworkId,
+      studentId: studentId ?? this.studentId,
+      status: status ?? this.status,
+      submittedAt: submittedAt ?? this.submittedAt,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (homeworkId.present) {
+      map['homework_id'] = Variable<int>(homeworkId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<int>(studentId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (submittedAt.present) {
+      map['submitted_at'] = Variable<DateTime>(submittedAt.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HomeworkSubmissionsCompanion(')
+          ..write('id: $id, ')
+          ..write('homeworkId: $homeworkId, ')
+          ..write('studentId: $studentId, ')
+          ..write('status: $status, ')
+          ..write('submittedAt: $submittedAt, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -15105,6 +16889,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ExtraFeesTable extraFees = $ExtraFeesTable(this);
   late final $FeeSettingsTable feeSettings = $FeeSettingsTable(this);
   late final $SystemSettingsTable systemSettings = $SystemSettingsTable(this);
+  late final $SmsLogsTable smsLogs = $SmsLogsTable(this);
+  late final $HomeworksTable homeworks = $HomeworksTable(this);
+  late final $HomeworkSubmissionsTable homeworkSubmissions =
+      $HomeworkSubmissionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -15135,6 +16923,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     extraFees,
     feeSettings,
     systemSettings,
+    smsLogs,
+    homeworks,
+    homeworkSubmissions,
   ];
 }
 
@@ -23038,6 +24829,876 @@ typedef $$SystemSettingsTableProcessedTableManager =
       SystemSetting,
       PrefetchHooks Function()
     >;
+typedef $$SmsLogsTableCreateCompanionBuilder =
+    SmsLogsCompanion Function({
+      Value<int> id,
+      Value<int?> notificationId,
+      required String phone,
+      required String body,
+      required String status,
+      Value<String?> errorMessage,
+      Value<int?> recipientId,
+      Value<String?> recipientName,
+      Value<String?> eventCode,
+      Value<DateTime> sentAt,
+    });
+typedef $$SmsLogsTableUpdateCompanionBuilder =
+    SmsLogsCompanion Function({
+      Value<int> id,
+      Value<int?> notificationId,
+      Value<String> phone,
+      Value<String> body,
+      Value<String> status,
+      Value<String?> errorMessage,
+      Value<int?> recipientId,
+      Value<String?> recipientName,
+      Value<String?> eventCode,
+      Value<DateTime> sentAt,
+    });
+
+class $$SmsLogsTableFilterComposer
+    extends Composer<_$AppDatabase, $SmsLogsTable> {
+  $$SmsLogsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recipientId => $composableBuilder(
+    column: $table.recipientId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recipientName => $composableBuilder(
+    column: $table.recipientName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventCode => $composableBuilder(
+    column: $table.eventCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SmsLogsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SmsLogsTable> {
+  $$SmsLogsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recipientId => $composableBuilder(
+    column: $table.recipientId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recipientName => $composableBuilder(
+    column: $table.recipientName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventCode => $composableBuilder(
+    column: $table.eventCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sentAt => $composableBuilder(
+    column: $table.sentAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SmsLogsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SmsLogsTable> {
+  $$SmsLogsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get errorMessage => $composableBuilder(
+    column: $table.errorMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recipientId => $composableBuilder(
+    column: $table.recipientId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recipientName => $composableBuilder(
+    column: $table.recipientName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventCode =>
+      $composableBuilder(column: $table.eventCode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get sentAt =>
+      $composableBuilder(column: $table.sentAt, builder: (column) => column);
+}
+
+class $$SmsLogsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmsLogsTable,
+          SmsLog,
+          $$SmsLogsTableFilterComposer,
+          $$SmsLogsTableOrderingComposer,
+          $$SmsLogsTableAnnotationComposer,
+          $$SmsLogsTableCreateCompanionBuilder,
+          $$SmsLogsTableUpdateCompanionBuilder,
+          (SmsLog, BaseReferences<_$AppDatabase, $SmsLogsTable, SmsLog>),
+          SmsLog,
+          PrefetchHooks Function()
+        > {
+  $$SmsLogsTableTableManager(_$AppDatabase db, $SmsLogsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SmsLogsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SmsLogsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SmsLogsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                Value<String> phone = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> errorMessage = const Value.absent(),
+                Value<int?> recipientId = const Value.absent(),
+                Value<String?> recipientName = const Value.absent(),
+                Value<String?> eventCode = const Value.absent(),
+                Value<DateTime> sentAt = const Value.absent(),
+              }) => SmsLogsCompanion(
+                id: id,
+                notificationId: notificationId,
+                phone: phone,
+                body: body,
+                status: status,
+                errorMessage: errorMessage,
+                recipientId: recipientId,
+                recipientName: recipientName,
+                eventCode: eventCode,
+                sentAt: sentAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                required String phone,
+                required String body,
+                required String status,
+                Value<String?> errorMessage = const Value.absent(),
+                Value<int?> recipientId = const Value.absent(),
+                Value<String?> recipientName = const Value.absent(),
+                Value<String?> eventCode = const Value.absent(),
+                Value<DateTime> sentAt = const Value.absent(),
+              }) => SmsLogsCompanion.insert(
+                id: id,
+                notificationId: notificationId,
+                phone: phone,
+                body: body,
+                status: status,
+                errorMessage: errorMessage,
+                recipientId: recipientId,
+                recipientName: recipientName,
+                eventCode: eventCode,
+                sentAt: sentAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmsLogsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmsLogsTable,
+      SmsLog,
+      $$SmsLogsTableFilterComposer,
+      $$SmsLogsTableOrderingComposer,
+      $$SmsLogsTableAnnotationComposer,
+      $$SmsLogsTableCreateCompanionBuilder,
+      $$SmsLogsTableUpdateCompanionBuilder,
+      (SmsLog, BaseReferences<_$AppDatabase, $SmsLogsTable, SmsLog>),
+      SmsLog,
+      PrefetchHooks Function()
+    >;
+typedef $$HomeworksTableCreateCompanionBuilder =
+    HomeworksCompanion Function({
+      Value<int> id,
+      required int sessionId,
+      Value<int?> targetSessionId,
+      required int groupId,
+      required String title,
+      required String description,
+      required DateTime dueDate,
+      Value<bool> isCompleted,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$HomeworksTableUpdateCompanionBuilder =
+    HomeworksCompanion Function({
+      Value<int> id,
+      Value<int> sessionId,
+      Value<int?> targetSessionId,
+      Value<int> groupId,
+      Value<String> title,
+      Value<String> description,
+      Value<DateTime> dueDate,
+      Value<bool> isCompleted,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$HomeworksTableFilterComposer
+    extends Composer<_$AppDatabase, $HomeworksTable> {
+  $$HomeworksTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get targetSessionId => $composableBuilder(
+    column: $table.targetSessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HomeworksTableOrderingComposer
+    extends Composer<_$AppDatabase, $HomeworksTable> {
+  $$HomeworksTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get targetSessionId => $composableBuilder(
+    column: $table.targetSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HomeworksTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HomeworksTable> {
+  $$HomeworksTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<int> get targetSessionId => $composableBuilder(
+    column: $table.targetSessionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get isCompleted => $composableBuilder(
+    column: $table.isCompleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$HomeworksTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HomeworksTable,
+          Homework,
+          $$HomeworksTableFilterComposer,
+          $$HomeworksTableOrderingComposer,
+          $$HomeworksTableAnnotationComposer,
+          $$HomeworksTableCreateCompanionBuilder,
+          $$HomeworksTableUpdateCompanionBuilder,
+          (Homework, BaseReferences<_$AppDatabase, $HomeworksTable, Homework>),
+          Homework,
+          PrefetchHooks Function()
+        > {
+  $$HomeworksTableTableManager(_$AppDatabase db, $HomeworksTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HomeworksTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HomeworksTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HomeworksTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> sessionId = const Value.absent(),
+                Value<int?> targetSessionId = const Value.absent(),
+                Value<int> groupId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<DateTime> dueDate = const Value.absent(),
+                Value<bool> isCompleted = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeworksCompanion(
+                id: id,
+                sessionId: sessionId,
+                targetSessionId: targetSessionId,
+                groupId: groupId,
+                title: title,
+                description: description,
+                dueDate: dueDate,
+                isCompleted: isCompleted,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int sessionId,
+                Value<int?> targetSessionId = const Value.absent(),
+                required int groupId,
+                required String title,
+                required String description,
+                required DateTime dueDate,
+                Value<bool> isCompleted = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeworksCompanion.insert(
+                id: id,
+                sessionId: sessionId,
+                targetSessionId: targetSessionId,
+                groupId: groupId,
+                title: title,
+                description: description,
+                dueDate: dueDate,
+                isCompleted: isCompleted,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HomeworksTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HomeworksTable,
+      Homework,
+      $$HomeworksTableFilterComposer,
+      $$HomeworksTableOrderingComposer,
+      $$HomeworksTableAnnotationComposer,
+      $$HomeworksTableCreateCompanionBuilder,
+      $$HomeworksTableUpdateCompanionBuilder,
+      (Homework, BaseReferences<_$AppDatabase, $HomeworksTable, Homework>),
+      Homework,
+      PrefetchHooks Function()
+    >;
+typedef $$HomeworkSubmissionsTableCreateCompanionBuilder =
+    HomeworkSubmissionsCompanion Function({
+      Value<int> id,
+      required int homeworkId,
+      required int studentId,
+      Value<String> status,
+      Value<DateTime?> submittedAt,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$HomeworkSubmissionsTableUpdateCompanionBuilder =
+    HomeworkSubmissionsCompanion Function({
+      Value<int> id,
+      Value<int> homeworkId,
+      Value<int> studentId,
+      Value<String> status,
+      Value<DateTime?> submittedAt,
+      Value<String?> notes,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$HomeworkSubmissionsTableFilterComposer
+    extends Composer<_$AppDatabase, $HomeworkSubmissionsTable> {
+  $$HomeworkSubmissionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get homeworkId => $composableBuilder(
+    column: $table.homeworkId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HomeworkSubmissionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HomeworkSubmissionsTable> {
+  $$HomeworkSubmissionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get homeworkId => $composableBuilder(
+    column: $table.homeworkId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get studentId => $composableBuilder(
+    column: $table.studentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HomeworkSubmissionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HomeworkSubmissionsTable> {
+  $$HomeworkSubmissionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get homeworkId => $composableBuilder(
+    column: $table.homeworkId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get studentId =>
+      $composableBuilder(column: $table.studentId, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get submittedAt => $composableBuilder(
+    column: $table.submittedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$HomeworkSubmissionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HomeworkSubmissionsTable,
+          HomeworkSubmission,
+          $$HomeworkSubmissionsTableFilterComposer,
+          $$HomeworkSubmissionsTableOrderingComposer,
+          $$HomeworkSubmissionsTableAnnotationComposer,
+          $$HomeworkSubmissionsTableCreateCompanionBuilder,
+          $$HomeworkSubmissionsTableUpdateCompanionBuilder,
+          (
+            HomeworkSubmission,
+            BaseReferences<
+              _$AppDatabase,
+              $HomeworkSubmissionsTable,
+              HomeworkSubmission
+            >,
+          ),
+          HomeworkSubmission,
+          PrefetchHooks Function()
+        > {
+  $$HomeworkSubmissionsTableTableManager(
+    _$AppDatabase db,
+    $HomeworkSubmissionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HomeworkSubmissionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HomeworkSubmissionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$HomeworkSubmissionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> homeworkId = const Value.absent(),
+                Value<int> studentId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> submittedAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeworkSubmissionsCompanion(
+                id: id,
+                homeworkId: homeworkId,
+                studentId: studentId,
+                status: status,
+                submittedAt: submittedAt,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int homeworkId,
+                required int studentId,
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> submittedAt = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => HomeworkSubmissionsCompanion.insert(
+                id: id,
+                homeworkId: homeworkId,
+                studentId: studentId,
+                status: status,
+                submittedAt: submittedAt,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HomeworkSubmissionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HomeworkSubmissionsTable,
+      HomeworkSubmission,
+      $$HomeworkSubmissionsTableFilterComposer,
+      $$HomeworkSubmissionsTableOrderingComposer,
+      $$HomeworkSubmissionsTableAnnotationComposer,
+      $$HomeworkSubmissionsTableCreateCompanionBuilder,
+      $$HomeworkSubmissionsTableUpdateCompanionBuilder,
+      (
+        HomeworkSubmission,
+        BaseReferences<
+          _$AppDatabase,
+          $HomeworkSubmissionsTable,
+          HomeworkSubmission
+        >,
+      ),
+      HomeworkSubmission,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -23092,4 +25753,10 @@ class $AppDatabaseManager {
       $$FeeSettingsTableTableManager(_db, _db.feeSettings);
   $$SystemSettingsTableTableManager get systemSettings =>
       $$SystemSettingsTableTableManager(_db, _db.systemSettings);
+  $$SmsLogsTableTableManager get smsLogs =>
+      $$SmsLogsTableTableManager(_db, _db.smsLogs);
+  $$HomeworksTableTableManager get homeworks =>
+      $$HomeworksTableTableManager(_db, _db.homeworks);
+  $$HomeworkSubmissionsTableTableManager get homeworkSubmissions =>
+      $$HomeworkSubmissionsTableTableManager(_db, _db.homeworkSubmissions);
 }

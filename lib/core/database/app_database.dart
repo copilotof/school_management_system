@@ -420,6 +420,55 @@ class SystemSettings extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+@DataClassName('SmsLog')
+class SmsLogs extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get notificationId => integer().nullable()();
+  TextColumn get phone => text()();
+  TextColumn get body => text()();
+  TextColumn get status => text()(); // sent, failed, cancelled
+  TextColumn get errorMessage => text().nullable()();
+  IntColumn get recipientId => integer().nullable()();
+  TextColumn get recipientName => text().nullable()();
+  TextColumn get eventCode => text().nullable()();
+  DateTimeColumn get sentAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول الواجبات ==============
+@DataClassName('Homework')
+class Homeworks extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get sessionId => integer()(); // الحصة التي أُعطي فيها
+  IntColumn get targetSessionId =>
+      integer().nullable()(); // الحصة التي تُسلَّم فيها
+  IntColumn get groupId => integer()();
+  TextColumn get title => text().withLength(min: 1, max: 255)();
+  TextColumn get description => text()();
+  DateTimeColumn get dueDate => dateTime()();
+  BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ============== جدول تسليمات الواجب ==============
+@DataClassName('HomeworkSubmission')
+class HomeworkSubmissions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get homeworkId => integer()();
+  IntColumn get studentId => integer()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  DateTimeColumn get submittedAt => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {homeworkId, studentId},
+  ];
+}
+
 // ============== قاعدة البيانات ==============
 @DriftDatabase(
   tables: [
@@ -445,9 +494,12 @@ class SystemSettings extends Table {
     ExamResults,
     Notifications,
     AuditLogs,
-    ExtraFees, // ✅
-    FeeSettings, // ✅
+    ExtraFees,
+    FeeSettings,
     SystemSettings,
+    SmsLogs,
+    Homeworks,
+    HomeworkSubmissions,
   ],
 )
 class AppDatabase extends _$AppDatabase {

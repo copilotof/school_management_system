@@ -73,6 +73,28 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
+  Future<Either<Failure, SessionEntity?>> getNextSession(
+    int groupId,
+    DateTime after,
+  ) async {
+    try {
+      final session =
+          await (db.select(db.sessions)
+                ..where(
+                  (t) =>
+                      t.groupId.equals(groupId) &
+                      t.sessionDate.isBiggerThanValue(after),
+                )
+                ..orderBy([(t) => OrderingTerm(expression: t.sessionDate)])
+                ..limit(1))
+              .getSingleOrNull();
+      return Right(session?.toEntity());
+    } catch (e) {
+      return Left(DatabaseFailure('فشل: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, int>> createSession(SessionEntity session) async {
     try {
       final companion = SessionMapper.fromEntity(session);
@@ -460,6 +482,63 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
 
       if (payment == null) return const Right(0);
       return Right(payment.remainingAmount);
+    } catch (e) {
+      return Left(DatabaseFailure('فشل: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<AttendanceEntity>>>
+  getAttendanceByStudentAndDateRange({
+    required int studentId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    try {
+      final rows =
+          await (db.select(db.attendance)
+                ..where(
+                  (t) =>
+                      t.studentId.equals(studentId) &
+                      t.createdAt.isBiggerOrEqualValue(from) &
+                      t.createdAt.isSmallerOrEqualValue(to),
+                )
+                ..orderBy([(t) => OrderingTerm(expression: t.createdAt)]))
+              .get();
+      return Right(rows.map((r) => r.toEntity()).toList());
+    } catch (e) {
+      return Left(DatabaseFailure('فشل: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<AttendanceEntity>>>
+  getAttendanceByGroupAndDateRange({
+    required int groupId,
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    try {
+      // جلب حصص الفوج في الفترة
+      final sessions =
+          await (db.select(db.sessions)..where(
+                (t) =>
+                    t.groupId.equals(groupId) &
+                    t.sessionDate.isBiggerOrEqualValue(from) &
+                    t.sessionDate.isSmallerOrEqualValue(to),
+              ))
+              .get();
+
+      if (sessions.isEmpty) return const Right([]);
+
+      final sessionIds = sessions.map((s) => s.id).toList();
+
+      // جلب الحضور لهذه الحصص
+      final rows = await (db.select(
+        db.attendance,
+      )..where((t) => t.sessionId.isIn(sessionIds))).get();
+
+      return Right(rows.map((r) => r.toEntity()).toList());
     } catch (e) {
       return Left(DatabaseFailure('فشل: $e'));
     }

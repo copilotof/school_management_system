@@ -19,6 +19,10 @@ import 'package:school_management_system/features/subjects/presentation/bloc/sub
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_state.dart';
 
+import '../../../attendance/presentation/pages/attendance_report_page.dart';
+import '../../../homework/presentation/pages/homework_report_page.dart';
+import 'group_full_report_page.dart';
+
 // ثوابت التصميم
 class _Gap {
   static double get xs => 4.h;
@@ -470,18 +474,75 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
         ),
         child: SafeArea(
           top: false,
-          child: SizedBox(
-            height: 48.h,
-            child: ElevatedButton.icon(
-              onPressed: _openEnrollmentPage,
-              icon: const Icon(Icons.person_add, size: 18),
-              label: const Text('إدارة الطلاب (إضافة/إلغاء)'),
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(_kRadius),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // زر إدارة الطلاب
+              SizedBox(
+                height: 48.h,
+                child: ElevatedButton.icon(
+                  onPressed: _openEnrollmentPage,
+                  icon: const Icon(Icons.person_add, size: 18),
+                  label: const Text('إدارة الطلاب (إضافة/إلغاء)'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(_kRadius),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              SizedBox(height: 8.h),
+              // ✅ زر تقرير الحضور المضاف حديثاً
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => AttendanceReportPage(group: widget.group),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.bar_chart, size: 18),
+                label: const Text('تقرير الحضور'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 48.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(_kRadius),
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 8.h),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => HomeworkReportPage(group: widget.group),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.assignment, size: 18),
+                label: const Text('تقرير الواجبات'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 48.h),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => GroupFullReportPage(group: widget.group),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.description, size: 18),
+                label: const Text('تقرير الفوج الشامل'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 48.h),
+                ),
+              ),
+            ],
           ),
         ),
       ),
