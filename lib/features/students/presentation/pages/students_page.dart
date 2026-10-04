@@ -11,6 +11,8 @@ import 'package:school_management_system/features/students/presentation/pages/ed
 import 'package:school_management_system/features/students/presentation/pages/student_details_page.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import 'students_qr_print_page.dart';
+
 // ============================================================
 // 🎨 ثوابت التصميم الموحدة
 // ============================================================
@@ -44,7 +46,20 @@ class StudentsView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة الطلاب')),
+      appBar: AppBar(
+        title: const Text('إدارة الطلاب'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_2),
+            tooltip: 'طباعة رموز QR',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const StudentsQrPrintPage()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // ====== بطاقة البحث ======

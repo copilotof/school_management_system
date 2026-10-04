@@ -10,6 +10,10 @@
             <data android:scheme="smsto" />
         </intent>
     </queries> 
+
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+
     <application
         android:label="school_management_system"
         android:name="${applicationName}"

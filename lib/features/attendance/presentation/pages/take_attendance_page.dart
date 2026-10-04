@@ -18,6 +18,7 @@ import '../../../homework/presentation/bloc/homework_bloc.dart';
 import '../../../homework/presentation/widgets/add_homework_dialog.dart';
 import '../../../homework/presentation/widgets/homework_submissions_dialog.dart';
 import '../../../students/presentation/bloc/students_state.dart';
+import 'qr_scanner_page.dart';
 
 // ثوابت التصميم
 class _Gap {
@@ -294,6 +295,13 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
       appBar: AppBar(
         title: Text(group?.name ?? 'تسجيل الحضور'),
         actions: [
+          // ✅ زر مسح QR
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'مسح QR',
+            onPressed: () => _openQrScanner(context),
+          ),
+          // زر إضافة واجب
           IconButton(
             icon: const Icon(Icons.assignment_add),
             tooltip: 'إضافة واجب',
@@ -744,6 +752,114 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
         ),
       ),
     );
+  }
+
+  /// ✅ فتح صفحة المسح المتسلسل
+  Future<void> _openQrScanner(BuildContext context) async {
+    // ✅ جلب طلاب الفوج
+    final enrollments =
+        context.read<EnrollmentBloc>().state.enrollmentsState.data ?? [];
+    final students =
+        context.read<StudentsBloc>().state.studentsState.data ?? [];
+
+    final groupStudentIds = enrollments
+        .where(
+          (e) => e.groupId == widget.session.groupId && e.status == 'active',
+        )
+        .map((e) => e.studentId)
+        .toSet();
+
+    final groupStudents = students
+        .where((s) => groupStudentIds.contains(s.id))
+        .toList();
+
+    if (groupStudents.isEmpty) {
+      _showSnack('لا يوجد طلاب في هذا الفوج');
+      return;
+    }
+
+    // ✅ فتح صفحة المسح
+    final result = await Navigator.of(context).push<QrScanResult>(
+      MaterialPageRoute(
+        builder: (_) => QrScannerPage(
+          groupStudents: groupStudents,
+          initialAttendance: Map.from(_attendanceStatus),
+        ),
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    // ✅ تحديث الحضور
+    if (result.saved) {
+      setState(() {
+        _attendanceStatus.clear();
+        _attendanceStatus.addAll(result.attendanceMap);
+      });
+
+      _showSnack(
+        'تم مسح ${result.attendanceMap.values.where((s) => s == 'present').length} طالب',
+      );
+    }
+  }
+
+  /// ✅ عرض تأكيد المسح
+  void _showQrSuccess(String studentName) {
+    final colors = Theme.of(context).colorScheme;
+
+    // صوت/اهتزاز (اختياري)
+    // SystemSound.play(SystemSoundType.click);
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        // إغلاق تلقائي بعد 1.5 ثانية
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+        });
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: colors.secondary,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle, size: 64.sp, color: Colors.white),
+                SizedBox(height: 12.h),
+                Text(
+                  studentName,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  'تم تسجيل الحضور ✓',
+                  style: TextStyle(fontSize: 12.sp, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// ✅ عرض SnackBar
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
