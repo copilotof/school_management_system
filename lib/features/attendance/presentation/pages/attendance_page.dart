@@ -15,6 +15,7 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../../injection_container.dart';
 import '../../../notifications/presentation/widgets/sms_dialog.dart';
 import '../../../notifications/services/sms_service.dart';
@@ -30,86 +31,6 @@ class _Gap {
 
 const double _kRadius = 14;
 
-/* /// 📁 صفحة الحضور والغياب الرئيسية
-class AttendancePage extends StatelessWidget {
-  const AttendancePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AttendanceBloc>().add(FetchTodaySessions());
-      context.read<GroupsBloc>().add(const FetchGroups());
-      context.read<EnrollmentBloc>().add(FetchEnrollments());
-      context.read<StudentsBloc>().add(const FetchStudents());
-    });
-
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('الحضور والغياب'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: 'تحديث',
-              onPressed: () {
-                context.read<AttendanceBloc>().add(FetchTodaySessions());
-              },
-            ),
-          ],
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'حصص اليوم', icon: Icon(Icons.today, size: 18)),
-              Tab(text: 'كل الحصص', icon: Icon(Icons.history, size: 18)),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: [_TodaySessionsTab(), _AllSessionsTab()],
-        ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'add_session_fab',
-          onPressed: () => _showCreateSessionDialog(context),
-          child: const Icon(Icons.add),
-        ),
-      ),
-    );
-  }
-
-  void _showCreateSessionDialog(BuildContext context) {
-    final attendanceBloc = context.read<AttendanceBloc>();
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return BlocBuilder<GroupsBloc, GroupsState>(
-          builder: (dialogContext, groupsState) {
-            final groups = groupsState.groupsState.data ?? [];
-
-            if (groups.isEmpty) {
-              return AlertDialog(
-                title: const Text('تنبيه'),
-                content: const Text('لا توجد أفواج. يرجى إضافة الأفواج أولاً.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('حسناً'),
-                  ),
-                ],
-              );
-            }
-
-            return _CreateSessionDialog(
-              groups: groups,
-              attendanceBloc: attendanceBloc,
-            );
-          },
-        );
-      },
-    );
-  }
-}
- */
 /// 📁 صفحة الحضور والغياب الرئيسية
 class AttendancePage extends StatelessWidget {
   const AttendancePage({super.key});
@@ -127,20 +48,26 @@ class AttendancePage extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('الحضور والغياب'),
+          title: Text(context.tr('attendance.title')),
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
-              tooltip: 'تحديث',
+              tooltip: context.tr('common.refresh'),
               onPressed: () {
                 context.read<AttendanceBloc>().add(FetchTodaySessions());
               },
             ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'حصص اليوم', icon: Icon(Icons.today, size: 18)),
-              Tab(text: 'كل الحصص', icon: Icon(Icons.history, size: 18)),
+              Tab(
+                text: context.tr('attendance.todaySessions'),
+                icon: Icon(Icons.today, size: 18),
+              ),
+              Tab(
+                text: context.tr('attendance.allSessions'),
+                icon: Icon(Icons.history, size: 18),
+              ),
             ],
           ),
         ),
@@ -209,9 +136,9 @@ class _TodaySessionsTab extends StatelessWidget {
         return switch (state.sessionsState) {
           Initial() => const SizedBox.shrink(),
           Loading() => const Center(child: CircularProgressIndicator()),
-          Empty() => const _EmptyState(
+          Empty() => _EmptyState(
             icon: Icons.event_busy,
-            message: 'لا توجد حصص اليوم',
+            message: context.tr('attendance.noSessionsToday'),
           ),
           Error(message: final msg) => Center(child: Text(msg)),
           Success(data: final sessions) =>
@@ -293,16 +220,15 @@ class _AllSessionsTabState extends State<_AllSessionsTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'التاريخ المحدد',
+                        context.tr('attendance.sessionDate'),
                         style: TextStyle(
                           fontSize: 10.sp,
                           color: colors.onSurfaceVariant,
                         ),
                       ),
                       Text(
-                        DateFormat(
-                          'EEEE، d MMMM yyyy',
-                          'ar',
+                        DateFormat.yMMMMEEEEd(
+                          Localizations.localeOf(context).languageCode,
                         ).format(_selectedDate),
                         style: TextStyle(
                           fontSize: 13.sp,
@@ -316,7 +242,9 @@ class _AllSessionsTabState extends State<_AllSessionsTab> {
                 // أزرار التنقل السريع
                 IconButton(
                   icon: Icon(Icons.chevron_right, color: colors.primary),
-                  tooltip: 'اليوم السابق',
+                  tooltip: context.tr(
+                    'attendance.yesterday',
+                  ), // لـ chevron_right
                   onPressed: () {
                     final newDate = _selectedDate.subtract(
                       const Duration(days: 1),
@@ -327,12 +255,14 @@ class _AllSessionsTabState extends State<_AllSessionsTab> {
                 ),
                 IconButton(
                   icon: Icon(Icons.calendar_month, color: colors.primary),
-                  tooltip: 'اختيار تاريخ',
+                  tooltip: context.tr(
+                    'attendance.pickDate',
+                  ), // لـ calendar_month
                   onPressed: _pickDate,
                 ),
                 IconButton(
                   icon: Icon(Icons.chevron_left, color: colors.primary),
-                  tooltip: 'اليوم التالي',
+                  tooltip: context.tr('attendance.tomorrow'), // لـ chevron_left
                   onPressed: () {
                     final newDate = _selectedDate.add(const Duration(days: 1));
                     setState(() => _selectedDate = newDate);
@@ -351,9 +281,9 @@ class _AllSessionsTabState extends State<_AllSessionsTab> {
               return switch (state.sessionsState) {
                 Initial() => const SizedBox.shrink(),
                 Loading() => const Center(child: CircularProgressIndicator()),
-                Empty() => const _EmptyState(
+                Empty() => _EmptyState(
                   icon: Icons.event_busy,
-                  message: 'لا توجد حصص في هذا التاريخ',
+                  message: context.tr('attendance.noSessionsDate'),
                 ),
                 Error(message: final msg) => Center(child: Text(msg)),
                 Success(data: final sessions) => (() {
@@ -412,11 +342,14 @@ class _SessionCard extends StatelessWidget {
         final group = groups.where((g) => g.id == session.groupId).firstOrNull;
 
         final (statusColor, statusLabel) = switch (session.status) {
-          'completed' => (colors.secondary, 'مكتملة'),
-          'cancelled' => (colors.error, 'ملغاة'),
-          'postponed' => (colors.primary, 'مؤجلة'),
-          'in_progress' => (colors.primary, 'قيد التنفيذ'),
-          _ => (Colors.blue, 'مجدولة'),
+          'completed' => (colors.secondary, context.tr('attendance.completed')),
+          'cancelled' => (colors.error, context.tr('attendance.cancelled')),
+          'postponed' => (colors.primary, context.tr('attendance.postponed')),
+          'in_progress' => (
+            colors.primary,
+            context.tr('attendance.inProgress'),
+          ),
+          _ => (Colors.blue, context.tr('attendance.scheduled')),
         };
 
         return Card(
@@ -429,8 +362,8 @@ class _SessionCard extends StatelessWidget {
             onTap: () {
               if (session.status == 'cancelled') {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('لا يمكن تسجيل الحضور في حصة ملغاة'),
+                  SnackBar(
+                    content: Text(context.tr('attendance.noSessionsDate')),
                   ),
                 );
                 return;
@@ -545,7 +478,7 @@ class _SessionCard extends StatelessWidget {
                         ),
                         SizedBox(width: 4.w),
                         Text(
-                          '${session.price!.toStringAsFixed(0)} دج',
+                          '${session.price!.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           style: TextStyle(
                             fontSize: 11.sp,
                             color: colors.tertiary,
@@ -617,7 +550,7 @@ class _SessionCard extends StatelessWidget {
                   Icons.edit_outlined,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text('تعديل الحصة'),
+                title: Text(context.tr('attendance.editSession')),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _showEditSessionDialog(context, attendanceBloc);
@@ -625,8 +558,8 @@ class _SessionCard extends StatelessWidget {
               ),
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Colors.red),
-                title: const Text(
-                  'حذف الحصة',
+                title: Text(
+                  context.tr('attendance.deleteSession'),
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {
@@ -643,8 +576,8 @@ class _SessionCard extends StatelessWidget {
                     Icons.cancel_outlined,
                     color: Colors.orange,
                   ),
-                  title: const Text(
-                    'إلغاء الحصة',
+                  title: Text(
+                    context.tr('attendance.cancelSession'),
                     style: TextStyle(color: Colors.orange),
                   ),
                   onTap: () {
@@ -659,7 +592,7 @@ class _SessionCard extends StatelessWidget {
                     color: Theme.of(context).colorScheme.secondary,
                   ),
                   title: Text(
-                    'إعادة إلى "عادية"',
+                    context.tr('attendance.restoreSession'),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.secondary,
                     ),
@@ -671,8 +604,8 @@ class _SessionCard extends StatelessWidget {
                 ),
               ListTile(
                 leading: const Icon(Icons.post_add, color: Colors.blue),
-                title: const Text(
-                  'تأجيل الحصة',
+                title: Text(
+                  context.tr('attendance.postponeSession'),
                   style: TextStyle(color: Colors.blue),
                 ),
                 onTap: () {
@@ -689,7 +622,7 @@ class _SessionCard extends StatelessWidget {
                   Icons.sms,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: const Text('إرسال SMS للأولياء'),
+                title: Text(context.tr('notifications.sendSms')),
                 onTap: () {
                   Navigator.of(sheetContext).pop();
                   _showSmsDialogForMakeup(context);
@@ -786,19 +719,19 @@ class _SessionCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من حذف هذه الحصة؟'),
+        title: Text(context.tr('dialogs.confirmDelete')),
+        content: Text(context.tr('attendance.deleteSessionConfirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(context.tr('common.cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('حذف'),
+            child: Text(context.tr('common.delete')),
           ),
         ],
       ),
@@ -821,27 +754,27 @@ class _SessionCard extends StatelessWidget {
     final reason = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('إلغاء الحصة'),
+        title: Text(context.tr('attendance.cancelSession')),
         content: TextField(
           controller: reasonController,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'سبب الإلغاء (اختياري)',
-            hintText: 'مثال: عطلة رسمية',
+          decoration: InputDecoration(
+            labelText: context.tr('attendance.cancelReason'),
+            hintText: context.tr('attendance.cancelReasonHint'),
           ),
           maxLines: 2,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(null),
-            child: const Text('تراجع'),
+            child: Text(context.tr('common.back')),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(dialogContext).pop(reasonController.text);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text('تأكيد الإلغاء'),
+            child: Text(context.tr('common.confirm')),
           ),
         ],
       ),
@@ -986,7 +919,7 @@ class _SessionCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'تم تأجيل الحصة إلى ${DateFormat('yyyy/MM/dd').format(picked)}',
+            '${context.tr('attendance.postponeSession')}: ${DateFormat('yyyy/MM/dd').format(picked)}',
           ),
         ),
       );
@@ -1093,7 +1026,7 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
       ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الفوج')));
       return;
     }
-
+    /* 
     if (_sessionType == 'extra') {
       final price = double.tryParse(_priceController.text) ?? 0;
       if (price <= 0) {
@@ -1103,7 +1036,7 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
         return;
       }
     }
-
+ */
     final sessionDate = DateTime(
       _sessionDate.year,
       _sessionDate.month,
@@ -1186,7 +1119,7 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                   ),
                   SizedBox(width: 10.w),
                   Text(
-                    'إنشاء حصة استثنائية',
+                    context.tr('attendance.createSession'),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
@@ -1200,8 +1133,8 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
               DropdownButtonFormField<int>(
                 isExpanded: true,
                 initialValue: _selectedGroupId,
-                decoration: const InputDecoration(
-                  labelText: 'الفوج *',
+                decoration: InputDecoration(
+                  labelText: '${context.tr('groups.title')} *',
                   prefixIcon: Icon(Icons.groups_outlined, size: 18),
                   isDense: true,
                 ),
@@ -1219,14 +1152,20 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
               DropdownButtonFormField<String>(
                 isExpanded: true,
                 initialValue: _sessionType,
-                decoration: const InputDecoration(
-                  labelText: 'نوع الحصة *',
+                decoration: InputDecoration(
+                  labelText: '${context.tr('attendance.sessionType')} *',
                   prefixIcon: Icon(Icons.label_outline, size: 18),
                   isDense: true,
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'makeup', child: Text('تعويضية')),
-                  DropdownMenuItem(value: 'extra', child: Text('إضافية')),
+                items: [
+                  DropdownMenuItem(
+                    value: 'makeup',
+                    child: Text(context.tr('attendance.makeup')),
+                  ),
+                  DropdownMenuItem(
+                    value: 'extra',
+                    child: Text(context.tr('attendance.extra')),
+                  ),
                 ],
                 onChanged: (value) =>
                     setState(() => _sessionType = value ?? 'makeup'),
@@ -1238,8 +1177,8 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                 onTap: _pickDate,
                 borderRadius: BorderRadius.circular(10.r),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'التاريخ *',
+                  decoration: InputDecoration(
+                    labelText: '${context.tr('common.date')} *',
                     prefixIcon: Icon(Icons.calendar_today, size: 18),
                     isDense: true,
                   ),
@@ -1259,9 +1198,9 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                       onTap: () => _pickTime(true),
                       borderRadius: BorderRadius.circular(10.r),
                       child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'من',
-                          prefixIcon: Icon(Icons.schedule, size: 18),
+                        decoration: InputDecoration(
+                          labelText: context.tr('groups.startTime'),
+                          prefixIcon: const Icon(Icons.schedule, size: 18),
                           isDense: true,
                         ),
                         child: Text(
@@ -1277,9 +1216,9 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                       onTap: () => _pickTime(false),
                       borderRadius: BorderRadius.circular(10.r),
                       child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'إلى',
-                          prefixIcon: Icon(Icons.schedule, size: 18),
+                        decoration: InputDecoration(
+                          labelText: context.tr('groups.endTime'),
+                          prefixIcon: const Icon(Icons.schedule, size: 18),
                           isDense: true,
                         ),
                         child: Text(
@@ -1298,9 +1237,10 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                 TextField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'سعر الحصة (دج) *',
-                    prefixIcon: Icon(Icons.payments_outlined, size: 18),
+                  decoration: InputDecoration(
+                    labelText:
+                        '${context.tr('attendance.extraPrice')} (${context.tr('common.currency')}) *',
+                    prefixIcon: const Icon(Icons.payments_outlined, size: 18),
                     isDense: true,
                   ),
                 ),
@@ -1310,9 +1250,9 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
               // موضوع الدرس
               TextField(
                 controller: _topicController,
-                decoration: const InputDecoration(
-                  labelText: 'موضوع الدرس (اختياري)',
-                  prefixIcon: Icon(Icons.book_outlined, size: 18),
+                decoration: InputDecoration(
+                  labelText: context.tr('homework.content'),
+                  prefixIcon: const Icon(Icons.book_outlined, size: 18),
                   isDense: true,
                 ),
               ),
@@ -1322,9 +1262,9 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
               TextField(
                 controller: _notesController,
                 maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات (اختياري)',
-                  prefixIcon: Icon(Icons.notes, size: 18),
+                decoration: InputDecoration(
+                  labelText: context.tr('common.notes'),
+                  prefixIcon: const Icon(Icons.notes, size: 18),
                   isDense: true,
                 ),
               ),
@@ -1335,14 +1275,14 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('إلغاء'),
+                      child: Text(context.tr('common.cancel')),
                     ),
                   ),
                   SizedBox(width: 10.w),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _submit,
-                      child: const Text('إنشاء'),
+                      child: Text(context.tr('common.create')),
                     ),
                   ),
                 ],
@@ -1453,7 +1393,7 @@ class _EditSessionDialogState extends State<_EditSessionDialog> {
       final price = double.tryParse(_priceController.text) ?? 0;
       if (price <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى إدخال سعر الحصة الإضافية')),
+          SnackBar(content: Text(context.tr('attendance.extraPrice'))),
         );
         return;
       }

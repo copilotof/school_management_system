@@ -9,6 +9,8 @@ import 'package:school_management_system/features/subjects/presentation/bloc/sub
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_state.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
+
 class SubjectsPage extends StatelessWidget {
   const SubjectsPage({super.key});
 
@@ -25,75 +27,12 @@ class SubjectsView extends StatelessWidget {
   const SubjectsView({super.key});
 
   void _showAddDialog(BuildContext context, {SubjectEntity? subject}) {
-    final subjectsBloc = context.read<SubjectsBloc>();
-    final nameController = TextEditingController(text: subject?.name ?? '');
-    final codeController = TextEditingController(text: subject?.code ?? '');
-    final descriptionController = TextEditingController(
-      text: subject?.description ?? '',
-    );
-
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(subject == null ? 'إضافة مادة' : 'تعديل مادة'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'اسم المادة *'),
-                ),
-                SizedBox(height: 12.h),
-                TextField(
-                  controller: codeController,
-                  decoration: const InputDecoration(
-                    labelText: 'الرمز (اختياري)',
-                  ),
-                ),
-                SizedBox(height: 12.h),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: 'الوصف (اختياري)',
-                  ),
-                  maxLines: 2,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إلغاء'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.trim().isEmpty) return;
-                final entity = SubjectEntity(
-                  id: subject?.id,
-                  name: nameController.text.trim(),
-                  code: codeController.text.trim().isEmpty
-                      ? null
-                      : codeController.text.trim(),
-                  description: descriptionController.text.trim().isEmpty
-                      ? null
-                      : descriptionController.text.trim(),
-                  isActive: subject?.isActive ?? true,
-                );
-                if (subject == null) {
-                  subjectsBloc.add(CreateSubjectEvent(entity));
-                } else {
-                  subjectsBloc.add(UpdateSubjectEvent(entity));
-                }
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(subject == null ? 'إضافة' : 'حفظ'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _AddSubjectDialog(
+        subject: subject,
+        subjectsBloc: context.read<SubjectsBloc>(),
+      ),
     );
   }
 
@@ -103,8 +42,10 @@ class SubjectsView extends StatelessWidget {
   ) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف المادة "${subject.name}"؟',
+      title: context.tr('common.confirm'),
+      message: context.tr(
+        '${context.tr('dialogs.confirmDelete')} ${subject.name}"؟',
+      ),
     );
     if (confirmed && context.mounted) {
       context.read<SubjectsBloc>().add(DeleteSubjectEvent(subject.id!));
@@ -116,10 +57,7 @@ class SubjectsView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('المواد الدراسية'),
-        // ✅ سهم رجوع
-      ),
+      appBar: AppBar(title: Text(context.tr('subjects.title'))),
       body: Column(
         children: [
           Padding(
@@ -129,7 +67,7 @@ class SubjectsView extends StatelessWidget {
                 context.read<SubjectsBloc>().add(SearchSubjectsEvent(query));
               },
               decoration: InputDecoration(
-                hintText: 'ابحث عن مادة...',
+                hintText: context.tr('subjects.search_hint'),
                 prefixIcon: const Icon(Icons.search),
               ),
             ),
@@ -142,20 +80,20 @@ class SubjectsView extends StatelessWidget {
                 return switch (state.subjectsState) {
                   Initial() => const SizedBox.shrink(),
                   Loading() => const Center(child: CircularProgressIndicator()),
-                  Empty() => const Center(child: Text('لا توجد مواد')),
+                  Empty() => Center(child: Text(context.tr('subjects.empty'))),
                   Error(message: final msg) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(msg),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
                             context.read<SubjectsBloc>().add(
                               const FetchSubjects(),
                             );
                           },
-                          child: const Text('إعادة المحاولة'),
+                          child: Text(context.tr('common.retry')),
                         ),
                       ],
                     ),
@@ -178,7 +116,9 @@ class SubjectsView extends StatelessWidget {
                           ),
                           title: Text(subject.name),
                           subtitle: subject.code != null
-                              ? Text('الرمز: ${subject.code}')
+                              ? Text(
+                                  '${context.tr('subjects.code')}: ${subject.code}',
+                                )
                               : null,
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -188,6 +128,7 @@ class SubjectsView extends StatelessWidget {
                                   Icons.edit_outlined,
                                   color: colors.primary,
                                 ),
+                                tooltip: context.tr('common.edit'),
                                 onPressed: () =>
                                     _showAddDialog(context, subject: subject),
                               ),
@@ -196,6 +137,7 @@ class SubjectsView extends StatelessWidget {
                                   Icons.delete_outline,
                                   color: colors.error,
                                 ),
+                                tooltip: context.tr('common.delete'),
                                 onPressed: () =>
                                     _deleteSubject(context, subject),
                               ),
@@ -216,6 +158,151 @@ class SubjectsView extends StatelessWidget {
         onPressed: () => _showAddDialog(context),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _AddSubjectDialog extends StatefulWidget {
+  final SubjectEntity? subject;
+  final SubjectsBloc subjectsBloc;
+
+  const _AddSubjectDialog({this.subject, required this.subjectsBloc});
+
+  @override
+  State<_AddSubjectDialog> createState() => _AddSubjectDialogState();
+}
+
+class _AddSubjectDialogState extends State<_AddSubjectDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _codeController;
+  late final TextEditingController _descriptionController;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.subject?.name ?? '');
+    _codeController = TextEditingController(text: widget.subject?.code ?? '');
+    _descriptionController = TextEditingController(
+      text: widget.subject?.description ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _codeController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    setState(() => _errorMessage = null);
+
+    if (_nameController.text.trim().isEmpty) {
+      setState(
+        () => _errorMessage =
+            '${context.tr('subjects.name')}: ${context.tr('validators.required')}',
+      );
+      return;
+    }
+
+    final entity = SubjectEntity(
+      id: widget.subject?.id,
+      name: _nameController.text.trim(),
+      code: _codeController.text.trim().isEmpty
+          ? null
+          : _codeController.text.trim(),
+      description: _descriptionController.text.trim().isEmpty
+          ? null
+          : _descriptionController.text.trim(),
+      isActive: widget.subject?.isActive ?? true,
+    );
+
+    if (widget.subject == null) {
+      widget.subjectsBloc.add(CreateSubjectEvent(entity));
+    } else {
+      widget.subjectsBloc.add(UpdateSubjectEvent(entity));
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      title: Text(
+        widget.subject == null
+            ? context.tr('subjects.add')
+            : context.tr('subjects.edit'),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: '${context.tr('subjects.name')} *',
+              ),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _codeController,
+              decoration: InputDecoration(
+                labelText: context.tr('subjects.code'),
+              ),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _descriptionController,
+              decoration: InputDecoration(
+                labelText: context.tr('subjects.description'),
+              ),
+              maxLines: 2,
+            ),
+            if (_errorMessage != null) ...[
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: colors.errorContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: colors.error.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, size: 18.sp, color: colors.error),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(fontSize: 12.sp, color: colors.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.tr('common.cancel')),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(
+            widget.subject == null
+                ? context.tr('subjects.add')
+                : context.tr('common.save'),
+          ),
+        ),
+      ],
     );
   }
 }

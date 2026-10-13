@@ -6,6 +6,7 @@ import 'package:school_management_system/features/finance/presentation/pages/stu
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/pages/edit_student_page.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../attendance/presentation/pages/attendance_report_page.dart';
 import '../../../enrollment/presentation/bloc/enrollment_bloc.dart';
 import '../../../groups/presentation/bloc/groups_bloc.dart';
@@ -48,11 +49,11 @@ class StudentDetailsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تفاصيل الطالب'),
+        title: Text(context.tr('students.details')),
         actions: [
           IconButton(
             icon: Icon(Icons.badge_outlined, size: 20.sp),
-            tooltip: 'بطاقة الطالب',
+            tooltip: context.tr('students.card'),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -63,7 +64,7 @@ class StudentDetailsPage extends StatelessWidget {
           ),
           IconButton(
             icon: Icon(Icons.payments_outlined, size: 20.sp),
-            tooltip: 'الحالة المالية',
+            tooltip: context.tr('finance.studentFinance'),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -99,7 +100,7 @@ class StudentDetailsPage extends StatelessWidget {
 
                   return IconButton(
                     icon: const Icon(Icons.bar_chart, size: 20),
-                    tooltip: 'تقرير الحضور',
+                    tooltip: context.tr('students.attendanceReport'),
                     onPressed: () {
                       if (studentGroups.length == 1) {
                         Navigator.of(context).push(
@@ -150,7 +151,7 @@ class StudentDetailsPage extends StatelessWidget {
 
           IconButton(
             icon: Icon(Icons.edit_outlined, size: 20.sp),
-            tooltip: 'تعديل',
+            tooltip: context.tr('common.edit'),
             onPressed: () async {
               final result = await Navigator.of(context).push<bool>(
                 MaterialPageRoute(
@@ -224,17 +225,19 @@ class StudentDetailsPage extends StatelessWidget {
             // ====== المعلومات الشخصية ======
             _InfoCard(
               icon: Icons.person_outline,
-              title: 'المعلومات الشخصية',
+              title: context.tr('students.personalInfo'),
               children: [
                 _InfoRow(
                   icon: Icons.cake_outlined,
-                  label: 'العمر',
-                  value: age > 0 ? '$age سنة' : 'غير محدد',
+                  label: context.tr('students.age'),
+                  value: age > 0
+                      ? '$age ${context.tr('students.years')}'
+                      : '-', // ✅
                 ),
                 Divider(height: 1, color: colors.surfaceVariant),
                 _InfoRow(
                   icon: Icons.calendar_today,
-                  label: 'تاريخ الميلاد',
+                  label: context.tr('students.dateOfBirth'),
                   value: student.dateOfBirth != null
                       ? DateFormat('yyyy/MM/dd').format(student.dateOfBirth!)
                       : 'غير محدد',
@@ -242,12 +245,12 @@ class StudentDetailsPage extends StatelessWidget {
                 Divider(height: 1, color: colors.surfaceVariant),
                 _InfoRow(
                   icon: Icons.wc,
-                  label: 'الجنس',
+                  label: context.tr('students.gender'),
                   value: student.gender == 'male'
-                      ? 'ذكر'
+                      ? context.tr('students.male')
                       : student.gender == 'female'
-                      ? 'أنثى'
-                      : 'غير محدد',
+                      ? context.tr('students.female')
+                      : context.tr('students.notSpecified'),
                 ),
               ],
             ),
@@ -256,18 +259,18 @@ class StudentDetailsPage extends StatelessWidget {
             // ====== معلومات الاتصال ======
             _InfoCard(
               icon: Icons.phone_outlined,
-              title: 'معلومات الاتصال',
+              title: context.tr('students.contactInfo'),
               children: [
                 _InfoRow(
                   icon: Icons.phone,
-                  label: 'الهاتف',
-                  value: student.phone ?? 'غير محدد',
+                  label: context.tr('students.phone'),
+                  value: student.phone ?? context.tr('students.notSpecified'),
                 ),
                 Divider(height: 1, color: colors.surfaceVariant),
                 _InfoRow(
                   icon: Icons.location_on_outlined,
-                  label: 'العنوان',
-                  value: student.address ?? 'غير محدد',
+                  label: context.tr('students.address'),
+                  value: student.address ?? context.tr('students.notSpecified'),
                 ),
               ],
             ),
@@ -277,7 +280,7 @@ class StudentDetailsPage extends StatelessWidget {
             if (student.notes != null && student.notes!.isNotEmpty) ...[
               _InfoCard(
                 icon: Icons.notes,
-                title: 'ملاحظات',
+                title: context.tr('students.notes'),
                 children: [
                   Text(
                     student.notes!,
@@ -395,10 +398,16 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, label) = switch (status) {
-      'active' => (const Color(0xFF34A853), 'نشط'),
-      'inactive' => (const Color(0xFFF29900), 'غير نشط'),
-      'withdrawn' => (const Color(0xFFD93025), 'منسحب'),
-      _ => (const Color(0xFF9AA0A6), 'غير معروف'),
+      'active' => (const Color(0xFF34A853), context.tr('students.active')), // ✅
+      'inactive' => (
+        const Color(0xFFF29900),
+        context.tr('students.inactive'),
+      ), // ✅
+      'withdrawn' => (
+        const Color(0xFFD93025),
+        context.tr('students.withdrawn'),
+      ), // ✅
+      _ => (const Color(0xFF9AA0A6), '?'),
     };
 
     return Container(

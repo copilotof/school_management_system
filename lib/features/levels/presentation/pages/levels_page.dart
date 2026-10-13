@@ -7,6 +7,8 @@ import 'package:school_management_system/features/levels/domain/entities/level_e
 import 'package:school_management_system/features/levels/presentation/bloc/levels_bloc.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
+
 class LevelsPage extends StatelessWidget {
   const LevelsPage({super.key});
 
@@ -33,20 +35,28 @@ class LevelsView extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: Text(level == null ? 'إضافة مستوى' : 'تعديل مستوى'),
+          title: Text(
+            level == null
+                ? context.tr('levels.add_level')
+                : context.tr('levels.edit_level'),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'اسم المستوى *'),
+                  decoration: InputDecoration(
+                    labelText: context.tr('levels.name'),
+                  ),
                 ),
                 SizedBox(height: 12.h),
                 TextField(
                   controller: orderController,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'الترتيب'),
+                  decoration: InputDecoration(
+                    labelText: context.tr('levels.order'),
+                  ),
                 ),
               ],
             ),
@@ -54,7 +64,7 @@ class LevelsView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إلغاء'),
+              child: Text(context.tr('levels.cancel')),
             ),
             ElevatedButton(
               onPressed: () {
@@ -72,7 +82,11 @@ class LevelsView extends StatelessWidget {
                 }
                 Navigator.of(dialogContext).pop();
               },
-              child: Text(level == null ? 'إضافة' : 'حفظ'),
+              child: Text(
+                level == null
+                    ? context.tr('levels.add')
+                    : context.tr('levels.edit'),
+              ),
             ),
           ],
         );
@@ -83,8 +97,11 @@ class LevelsView extends StatelessWidget {
   Future<void> _deleteLevel(BuildContext context, LevelEntity level) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف المستوى "${level.name}"؟',
+      title: context.tr('levels.delete_level'),
+      message: context.tr(
+        'dialogs.confirmDelete',
+        params: {'level_name': level.name},
+      ),
     );
     if (confirmed && context.mounted) {
       context.read<LevelsBloc>().add(DeleteLevelEvent(level.id!));
@@ -97,7 +114,7 @@ class LevelsView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المستويات الدراسية'),
+        title: Text(context.tr('levels.title')),
         // ✅ بدون automaticallyImplyLeading: false
       ),
       body: BlocBuilder<LevelsBloc, LevelsState>(
@@ -105,7 +122,7 @@ class LevelsView extends StatelessWidget {
           return switch (state.levelsState) {
             Initial() => const SizedBox.shrink(),
             Loading() => const Center(child: CircularProgressIndicator()),
-            Empty() => const Center(child: Text('لا توجد مستويات')),
+            Empty() => const Center(child: Text('levels.no_levels')),
             Error(message: final msg) => Center(child: Text(msg)),
             Success(data: final levels) => ListView.builder(
               padding: const EdgeInsets.all(12),
@@ -124,7 +141,7 @@ class LevelsView extends StatelessWidget {
                       ),
                     ),
                     title: Text(level.name),
-                    subtitle: Text('الترتيب: ${level.orderIndex}'),
+                    subtitle: Text('levels.order_value: ${level.orderIndex}'),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

@@ -19,6 +19,7 @@ import 'package:school_management_system/features/subjects/presentation/bloc/sub
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_state.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../attendance/presentation/pages/attendance_report_page.dart';
 import '../../../homework/presentation/pages/homework_report_page.dart';
 import 'group_full_report_page.dart';
@@ -191,7 +192,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                   ),
                   SizedBox(height: _Gap.sm),
                   Text(
-                    'الرسوم الشهرية: ${widget.group.monthlyFee.toStringAsFixed(0)} دج',
+                    '${context.tr('groups.monthlyFee')}: ${widget.group.monthlyFee.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     style: TextStyle(
                       fontSize: 13.sp,
                       color: Colors.white.withOpacity(0.8),
@@ -219,30 +220,30 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
 
                         return _InfoCard(
                           icon: Icons.info_outline,
-                          title: 'معلومات الفوج',
+                          title: context.tr('groups.details'),
                           children: [
                             _InfoRow(
                               icon: Icons.class_outlined,
-                              label: 'الصف',
+                              label: context.tr('groups.grade'),
                               value: gradeName,
                             ),
                             Divider(height: 1, color: colors.surfaceVariant),
                             _InfoRow(
                               icon: Icons.book_outlined,
-                              label: 'المادة',
+                              label: context.tr('groups.subject'),
                               value: subjectName,
                             ),
                             Divider(height: 1, color: colors.surfaceVariant),
                             _InfoRow(
                               icon: Icons.people_outline,
-                              label: 'عدد الطلاب المسجلين',
+                              label: context.tr('groups.studentsCount'),
                               value: '$studentsCount طالب',
                             ),
                             Divider(height: 1, color: colors.surfaceVariant),
                             _InfoRow(
                               icon: Icons.people_outline,
-                              label: 'الطاقة الاستيعابية',
-                              value: '${widget.group.maxStudents} طالب',
+                              label: context.tr('groups.maxStudents'),
+                              value: '${widget.group.maxStudents} ',
                             ),
                           ],
                         );
@@ -257,7 +258,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
             // ====== 3. ✅ الجدول الأسبوعي (هنا القسم الجديد) ======
             _InfoCard(
               icon: Icons.schedule,
-              title: 'الجدول الأسبوعي',
+              title: context.tr('groups.weeklySchedule'),
               children: [
                 BlocBuilder<AttendanceBloc, AttendanceState>(
                   builder: (context, state) {
@@ -272,7 +273,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                       Empty() => Column(
                         children: [
                           Text(
-                            'لا توجد مواعيد أسبوعية',
+                            context.tr('groups.noSchedule'),
                             style: TextStyle(
                               fontSize: 12.sp,
                               color: colors.onSurfaceVariant,
@@ -282,7 +283,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                           OutlinedButton.icon(
                             onPressed: () => _showAddTemplateDialog(context),
                             icon: const Icon(Icons.add, size: 16),
-                            label: const Text('إضافة موعد'),
+                            label: Text(context.tr('groups.addTimeSlot')),
                           ),
                         ],
                       ),
@@ -320,7 +321,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
 
             // ====== 4. الطلاب المسجلون ======
             Text(
-              'الطلاب المسجلون',
+              context.tr('groups.enrolledStudents'),
               style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: _Gap.sm),
@@ -343,7 +344,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                       borderRadius: BorderRadius.circular(_kRadius),
                     ),
                     child: Text(
-                      'لا يوجد طلاب مسجلون في هذا الفوج',
+                      context.tr('students.empty'),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13.sp,
@@ -410,7 +411,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                                     ),
                                     SizedBox(height: 2.h),
                                     Text(
-                                      'الرقم: ${student.studentCode}',
+                                      '${context.tr('students.studentCode')}: ${student.studentCode}',
                                       style: TextStyle(
                                         fontSize: 11.sp,
                                         color: colors.onSurfaceVariant,
@@ -439,7 +440,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                                     ),
                                   ),
                                   Text(
-                                    'تاريخ الانضمام',
+                                    context.tr('groups.enrollmentDate'),
                                     style: TextStyle(
                                       fontSize: 9.sp,
                                       color: colors.onSurfaceVariant,
@@ -484,7 +485,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                 child: ElevatedButton.icon(
                   onPressed: _openEnrollmentPage,
                   icon: const Icon(Icons.person_add, size: 18),
-                  label: const Text('إدارة الطلاب (إضافة/إلغاء)'),
+                  label: Text(context.tr('groups.manageStudents')),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),
@@ -503,7 +504,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                   );
                 },
                 icon: const Icon(Icons.bar_chart, size: 18),
-                label: const Text('تقرير الحضور'),
+                label: Text(context.tr('groups.attendanceReport')),
                 style: OutlinedButton.styleFrom(
                   minimumSize: Size(double.infinity, 48.h),
                   shape: RoundedRectangleBorder(
@@ -522,7 +523,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                   );
                 },
                 icon: const Icon(Icons.assignment, size: 18),
-                label: const Text('تقرير الواجبات'),
+                label: Text(context.tr('groups.homeworkReport')),
                 style: OutlinedButton.styleFrom(
                   minimumSize: Size(double.infinity, 48.h),
                 ),
@@ -537,7 +538,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                   );
                 },
                 icon: const Icon(Icons.description, size: 18),
-                label: const Text('تقرير الفوج الشامل'),
+                label: Text(context.tr('groups.fullReport')),
                 style: OutlinedButton.styleFrom(
                   minimumSize: Size(double.infinity, 48.h),
                 ),
@@ -672,7 +673,8 @@ class _TemplateRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: Text(
-              template.dayLabel,
+              _getDayLabel(context, template.dayOfWeek),
+              // template.dayLabel,
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.bold,
@@ -705,5 +707,18 @@ class _TemplateRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getDayLabel(BuildContext context, int dayOfWeek) {
+    const keys = [
+      'days.sunday',
+      'days.monday',
+      'days.tuesday',
+      'days.wednesday',
+      'days.thursday',
+      'days.friday',
+      'days.saturday',
+    ];
+    return context.tr(keys[dayOfWeek % 7]);
   }
 }

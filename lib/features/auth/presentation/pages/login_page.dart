@@ -6,6 +6,7 @@ import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 
 import '../../../../core/services/language_cubit.dart';
+import '../../../../core/utils/translation_extension.dart';
 import '../../../../injection_container.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../../notifications/services/auto_notification_service.dart';
@@ -116,12 +117,23 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: 24.h),
                 Text(
-                  'نظام إدارة المدارس',
+                  context.tr('app.name'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  context.tr('app.subtitle'), // ✅
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimary.withOpacity(0.8),
                   ),
                 ),
               ],
@@ -157,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
             Icon(Icons.school, size: 64.sp, color: colors.primary),
             SizedBox(height: 16.h),
             Text(
-              'نظام إدارة المدارس',
+              context.tr('app.name'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 24.sp,
@@ -168,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 32.h),
           ] else ...[
             Text(
-              'تسجيل الدخول',
+              context.tr('auth.loginTitle'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 28.sp,
@@ -184,9 +196,9 @@ class _LoginPageState extends State<LoginPage> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'البريد الإلكتروني',
-              hintText: 'example@email.com',
+            decoration: InputDecoration(
+              labelText: context.tr('auth.email'), // ✅
+              hintText: context.tr('auth.emailHint'),
               prefixIcon: Icon(Icons.email_outlined),
             ),
           ),
@@ -199,7 +211,8 @@ class _LoginPageState extends State<LoginPage> {
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _handleLogin(),
             decoration: InputDecoration(
-              labelText: 'كلمة المرور',
+              labelText: context.tr('auth.password'),
+              hintText: context.tr('auth.password'),
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
@@ -216,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
           // زر تسجيل الدخول
           ElevatedButton(
             onPressed: _handleLogin,
-            child: const Text('تسجيل الدخول'),
+            child: Text(context.tr('auth.loginButton')),
           ),
           SizedBox(height: 16.h),
 
@@ -231,7 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'الوضع الداكن',
+                        context.tr('settings.darkMode'),
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: colors.onSurfaceVariant,
@@ -255,7 +268,7 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'اللغة',
+                        context.tr('settings.language'),
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: colors.onSurfaceVariant,
@@ -266,18 +279,18 @@ class _LoginPageState extends State<LoginPage> {
                           return DropdownButton<Locale>(
                             value: locale,
                             underline: const SizedBox.shrink(),
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: Locale('ar'),
-                                child: Text('العربية'),
+                                child: Text(context.tr('settings.arabic')),
                               ),
                               DropdownMenuItem(
                                 value: Locale('en'),
-                                child: Text('English'),
+                                child: Text(context.tr('settings.english')),
                               ),
                               DropdownMenuItem(
                                 value: Locale('fr'),
-                                child: Text('Français'),
+                                child: Text(context.tr('settings.french')),
                               ),
                             ],
                             onChanged: (newLocale) {

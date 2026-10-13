@@ -47,6 +47,7 @@ import 'package:school_management_system/features/teachers/domain/usecases/updat
 import 'package:school_management_system/features/teachers/presentation/bloc/teachers_bloc.dart';
 
 import 'core/database/settings_local_source.dart';
+import 'core/services/backup_service.dart';
 import 'features/attendance/data/repositories/attendance_repository_impl.dart';
 import 'features/attendance/data/sources/attendance_local_source.dart';
 import 'features/attendance/domain/repositories/attendance_repository.dart';
@@ -410,6 +411,10 @@ Future<void> configureDependencies() async {
     getIt.registerFactory(
       () => GetHomeworksByGroupAndDateRange(repository: getIt()),
     );
+  }
+
+  if (!getIt.isRegistered<BackupService>()) {
+    getIt.registerLazySingleton<BackupService>(() => BackupService());
   }
 
   // ✅ BLoC

@@ -11,6 +11,7 @@ import '../../../grades/presentation/pages/grades_page.dart';
 import '../../../levels/presentation/pages/levels_page.dart';
 import '../../../notifications/presentation/pages/sms_log_page.dart';
 import '../../../subjects/presentation/pages/subjects_page.dart';
+import 'backup_page.dart';
 
 /// 📁 صفحة الإعدادات
 class SettingsPage extends StatefulWidget {
@@ -192,6 +193,17 @@ class _SettingsPageState extends State<SettingsPage> {
             Card(
               child: Column(
                 children: [
+                  ListTile(
+                    leading: Icon(Icons.backup_outlined, color: colors.primary),
+                    title: const Text('النسخ الاحتياطي'),
+                    subtitle: const Text('نسخ واستعادة قاعدة البيانات'),
+                    trailing: const Icon(Icons.chevron_left),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const BackupPage()),
+                      );
+                    },
+                  ),
                   // ✅ جديد: سجل SMS
                   ListTile(
                     leading: Icon(Icons.sms_outlined, color: colors.primary),

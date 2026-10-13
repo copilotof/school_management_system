@@ -10,6 +10,8 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
+
 // ============================================================
 // 🎨 ثوابت التصميم الموحدة
 // ============================================================
@@ -125,7 +127,7 @@ class _StickyActionBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(_kRadius),
                   ),
                 ),
-                child: const Text('إلغاء'),
+                child: Text(context.tr('common.cancel')),
               ),
             ),
             SizedBox(width: 10.w),
@@ -262,7 +264,7 @@ class _AddStudentViewState extends State<AddStudentView> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('إضافة طالب جديد')),
+        appBar: AppBar(title: Text(context.tr('students.add'))),
         body: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -272,14 +274,14 @@ class _AddStudentViewState extends State<AddStudentView> {
               children: [
                 _FormCard(
                   icon: Icons.person_outline,
-                  title: 'المعلومات الأساسية',
+                  title: context.tr('students.basicInfo'),
                   child: Column(
                     children: [
                       TextFormField(
                         controller: _firstNameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'الاسم الأول *',
+                        decoration: InputDecoration(
+                          labelText: '${context.tr('students.firstName')} *',
                           prefixIcon: Icon(Icons.person, size: 18),
                           isDense: true,
                         ),
@@ -291,8 +293,8 @@ class _AddStudentViewState extends State<AddStudentView> {
                       TextFormField(
                         controller: _lastNameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'اللقب *',
+                        decoration: InputDecoration(
+                          labelText: '${context.tr('students.lastName')} *',
                           prefixIcon: Icon(Icons.person, size: 18),
                           isDense: true,
                         ),
@@ -306,8 +308,9 @@ class _AddStudentViewState extends State<AddStudentView> {
                           Expanded(
                             child: TextFormField(
                               controller: _studentCodeController,
-                              decoration: const InputDecoration(
-                                labelText: 'رقم الطالب *',
+                              decoration: InputDecoration(
+                                labelText:
+                                    '${context.tr('students.studentCode')} *',
                                 prefixIcon: Icon(
                                   Icons.badge_outlined,
                                   size: 18,
@@ -332,7 +335,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                               color: Theme.of(context).colorScheme.primary,
                               size: 20.sp,
                             ),
-                            tooltip: 'توليد رقم تلقائي',
+                            tooltip: context.tr('students.generateCode'),
                           ),
                         ],
                       ),
@@ -341,15 +344,18 @@ class _AddStudentViewState extends State<AddStudentView> {
                         onTap: _pickDateOfBirth,
                         borderRadius: BorderRadius.circular(10.r),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'تاريخ الميلاد',
-                            prefixIcon: Icon(Icons.calendar_today, size: 18),
+                          decoration: InputDecoration(
+                            labelText: context.tr('students.dateOfBirth'),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                            ),
                             isDense: true,
                           ),
                           child: Text(
                             _dateOfBirth != null
                                 ? DateFormat('yyyy/MM/dd').format(_dateOfBirth!)
-                                : 'اختر التاريخ',
+                                : context.tr('students.selectDate'),
                             style: TextStyle(fontSize: 13.sp),
                           ),
                         ),
@@ -357,16 +363,19 @@ class _AddStudentViewState extends State<AddStudentView> {
                       SizedBox(height: _Gap.md),
                       DropdownButtonFormField<String>(
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'الجنس',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.gender'),
                           prefixIcon: Icon(Icons.wc, size: 18),
                           isDense: true,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'male', child: Text('ذكر')),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'male',
+                            child: Text(context.tr('students.male')),
+                          ),
                           DropdownMenuItem(
                             value: 'female',
-                            child: Text('أنثى'),
+                            child: Text(context.tr('students.female')),
                           ),
                         ],
                         onChanged: (value) => setState(() => _gender = value),
@@ -377,14 +386,14 @@ class _AddStudentViewState extends State<AddStudentView> {
                 SizedBox(height: _Gap.md),
                 _FormCard(
                   icon: Icons.phone_outlined,
-                  title: 'معلومات الاتصال',
+                  title: context.tr('students.contactInfo'),
                   child: Column(
                     children: [
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'رقم الهاتف',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.phone'),
                           prefixIcon: Icon(Icons.phone, size: 18),
                           isDense: true,
                         ),
@@ -393,8 +402,8 @@ class _AddStudentViewState extends State<AddStudentView> {
                       TextFormField(
                         controller: _addressController,
                         maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'العنوان',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.address'),
                           prefixIcon: Icon(
                             Icons.location_on_outlined,
                             size: 18,
@@ -408,26 +417,29 @@ class _AddStudentViewState extends State<AddStudentView> {
                 SizedBox(height: _Gap.md),
                 _FormCard(
                   icon: Icons.info_outline,
-                  title: 'معلومات إضافية',
+                  title: context.tr('students.additionalInfo'),
                   child: Column(
                     children: [
                       DropdownButtonFormField<String>(
                         initialValue: _status,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'الحالة',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.status'),
                           prefixIcon: Icon(Icons.info, size: 18),
                           isDense: true,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'active', child: Text('نشط')),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'active',
+                            child: Text(context.tr('students.active')),
+                          ),
                           DropdownMenuItem(
                             value: 'inactive',
-                            child: Text('غير نشط'),
+                            child: Text(context.tr('students.inactive')),
                           ),
                           DropdownMenuItem(
                             value: 'withdrawn',
-                            child: Text('منسحب'),
+                            child: Text(context.tr('students.withdrawn')),
                           ),
                         ],
                         onChanged: (value) => setState(() => _status = value),
@@ -436,8 +448,8 @@ class _AddStudentViewState extends State<AddStudentView> {
                       TextFormField(
                         controller: _notesController,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'ملاحظات',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.notes'),
                           prefixIcon: Icon(Icons.notes, size: 18),
                           isDense: true,
                         ),
@@ -450,7 +462,7 @@ class _AddStudentViewState extends State<AddStudentView> {
           ),
         ),
         bottomNavigationBar: _StickyActionBar(
-          submitLabel: 'إضافة الطالب',
+          submitLabel: context.tr('students.add'),
           submitIcon: Icons.person_add,
           onSubmit: _submit,
           isSubmitting: _isSubmitting,

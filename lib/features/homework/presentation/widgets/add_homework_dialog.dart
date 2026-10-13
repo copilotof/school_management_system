@@ -10,6 +10,7 @@ import 'package:school_management_system/features/homework/domain/entities/homew
 import 'package:school_management_system/features/homework/presentation/bloc/homework_bloc.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../attendance/data/models/attendance_mapper.dart';
 
 class _Gap {
@@ -327,7 +328,9 @@ class _AddHomeworkDialogState extends State<AddHomeworkDialog> {
                   SizedBox(width: 10.w),
                   Expanded(
                     child: Text(
-                      widget.homework == null ? 'إضافة واجب' : 'تعديل الواجب',
+                      widget.homework == null
+                          ? context.tr('homework.add')
+                          : context.tr('homework.edit'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
@@ -354,9 +357,9 @@ class _AddHomeworkDialogState extends State<AddHomeworkDialog> {
                     // ====== العنوان ======
                     TextField(
                       controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'عنوان الواجب *',
-                        prefixIcon: Icon(Icons.title, size: 18),
+                      decoration: InputDecoration(
+                        labelText: '${context.tr('homework.homeworkTitle')} *',
+                        prefixIcon: const Icon(Icons.title, size: 18),
                         isDense: true,
                       ),
                     ),
@@ -367,9 +370,8 @@ class _AddHomeworkDialogState extends State<AddHomeworkDialog> {
                       controller: _descriptionController,
                       maxLines: 4,
                       minLines: 3,
-                      decoration: const InputDecoration(
-                        labelText: 'محتوى الواجب *',
-                        hintText: 'مثال: حل التمارين 1-5 ص 42',
+                      decoration: InputDecoration(
+                        labelText: '${context.tr('homework.content')} *',
                         alignLabelWithHint: true,
                         isDense: true,
                       ),

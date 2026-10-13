@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'package:school_management_system/features/enrollment/presentation/pages/enrollment_page.dart';
@@ -10,8 +9,8 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 import 'package:school_management_system/features/subjects/presentation/pages/subjects_page.dart';
-import 'package:school_management_system/features/teachers/presentation/pages/teachers_page.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../attendance/presentation/pages/attendance_page.dart';
 import '../../../groups/presentation/bloc/groups_state.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
@@ -50,11 +49,10 @@ class DashboardPage extends StatelessWidget {
 class DashboardView extends StatelessWidget {
   const DashboardView({super.key});
 
-  String _greeting() {
+  String _greeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'صباح الخير';
-    if (hour < 18) return 'مساء الخير';
-    return 'مساء الخير';
+    if (hour < 12) return context.tr('dashboard.greetingMorning');
+    return context.tr('dashboard.greetingEvening');
   }
 
   @override
@@ -63,7 +61,7 @@ class DashboardView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('لوحة التحكم'),
+        title: Text(context.tr('dashboard.title')),
         automaticallyImplyLeading: false,
         actions: [
           // ✅ زر الإشعارات مع Badge
@@ -127,12 +125,12 @@ class DashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // ====== بطاقة الترحيب ======
-              _WelcomeCard(greeting: _greeting()),
+              _WelcomeCard(greeting: _greeting(context)),
               SizedBox(height: _Gap.lg),
 
               // ====== الإحصائيات ======
               Text(
-                'الإحصائيات',
+                context.tr('dashboard.statistics'),
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: _Gap.sm),
@@ -149,14 +147,14 @@ class DashboardView extends StatelessWidget {
                       return Row(
                         children: [
                           _StatCard(
-                            title: 'الطلاب',
+                            title: context.tr('dashboard.studentsCount'),
                             value: '$studentsCount',
                             icon: Icons.people_alt_rounded,
                             color: const Color(0xFF1A73E8),
                           ),
                           SizedBox(width: 10.w),
                           _StatCard(
-                            title: 'الأفواج',
+                            title: context.tr('dashboard.groupsCount'),
                             value: '$groupsCount',
                             icon: Icons.groups_rounded,
                             color: const Color(0xFF34A853),
@@ -171,7 +169,7 @@ class DashboardView extends StatelessWidget {
 
               // ====== أقسام سريعة ======
               Text(
-                'أقسام سريعة',
+                context.tr('dashboard.quickActions'),
                 style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: _Gap.sm),
@@ -184,7 +182,7 @@ class DashboardView extends StatelessWidget {
                 childAspectRatio: 1.4,
                 children: [
                   _QuickActionCard(
-                    title: 'تسجيل طالب',
+                    title: context.tr('dashboard.enrollStudent'),
                     icon: Icons.link_rounded,
                     color: const Color(0xFF34A853),
                     onTap: () {
@@ -196,7 +194,7 @@ class DashboardView extends StatelessWidget {
                     },
                   ),
                   _QuickActionCard(
-                    title: 'المواد الدراسية',
+                    title: context.tr('dashboard.subjects'),
                     icon: Icons.menu_book_rounded,
                     color: const Color(0xFF1A73E8),
                     onTap: () {
@@ -206,7 +204,7 @@ class DashboardView extends StatelessWidget {
                     },
                   ),
                   _QuickActionCard(
-                    title: 'الحضور',
+                    title: context.tr('dashboard.attendance'),
                     icon: Icons.check_circle_outline_rounded,
                     color: const Color(0xFFFBBC04),
                     onTap: () {
@@ -219,7 +217,7 @@ class DashboardView extends StatelessWidget {
                   ),
 
                   _QuickActionCard(
-                    title: 'الإعدادات',
+                    title: context.tr('dashboard.settings'),
                     icon: Icons.settings_rounded,
                     color: const Color(0xFF9AA0A6),
                     onTap: () {},
@@ -279,7 +277,7 @@ class _WelcomeCard extends StatelessWidget {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  'نظام إدارة المدرسة',
+                  context.tr('app.name'),
                   style: TextStyle(
                     fontSize: 17.sp,
                     fontWeight: FontWeight.bold,

@@ -17,6 +17,7 @@ import 'package:school_management_system/features/homework/presentation/bloc/hom
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
 class _Gap {
@@ -298,7 +299,11 @@ class _HomeworkReportPageState extends State<HomeworkReportPage> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text('تقرير الواجبات: ${widget.group.name}')),
+      appBar: AppBar(
+        title: Text(
+          '${context.tr('homework.reportTitle')}: ${widget.group.name}',
+        ),
+      ),
       body: BlocBuilder<HomeworkBloc, HomeworkState>(
         builder: (context, state) {
           final homeworks = state.homeworksState.data ?? [];
@@ -322,9 +327,12 @@ class _HomeworkReportPageState extends State<HomeworkReportPage> {
                       child: InkWell(
                         onTap: () => _pickDate(true),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'من',
-                            prefixIcon: Icon(Icons.calendar_today, size: 16),
+                          decoration: InputDecoration(
+                            labelText: context.tr('reports.fromDate'),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                            ),
                             isDense: true,
                           ),
                           child: Text(
@@ -339,9 +347,12 @@ class _HomeworkReportPageState extends State<HomeworkReportPage> {
                       child: InkWell(
                         onTap: () => _pickDate(false),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'إلى',
-                            prefixIcon: Icon(Icons.calendar_today, size: 16),
+                          decoration: InputDecoration(
+                            labelText: context.tr('reports.toDate'),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                            ),
                             isDense: true,
                           ),
                           child: Text(
@@ -371,7 +382,7 @@ class _HomeworkReportPageState extends State<HomeworkReportPage> {
                         ),
                         SizedBox(height: 12.h),
                         Text(
-                          'لا توجد واجبات في هذه الفترة',
+                          context.tr('homework.noHomeworksPeriod'),
                           style: TextStyle(color: colors.onSurfaceVariant),
                         ),
                       ],
@@ -504,7 +515,7 @@ class _HomeworkReportCard extends StatelessWidget {
                     size: 18.sp,
                     color: colors.primary,
                   ),
-                  tooltip: 'عرض التسليمات',
+                  tooltip: context.tr('homework.submissions'),
                   onPressed: () {
                     _showSubmissionsDialog(context, homework, homeworkBloc);
                   },
@@ -528,7 +539,7 @@ class _HomeworkReportCard extends StatelessWidget {
                 ),
                 SizedBox(width: 4.w),
                 Text(
-                  'التسليم: ${DateFormat('yyyy/MM/dd').format(homework.dueDate)}',
+                  '${context.tr('homework.dueDate')}: ${DateFormat('yyyy/MM/dd').format(homework.dueDate)}',
                   style: TextStyle(
                     fontSize: 10.sp,
                     color: colors.onSurfaceVariant,
@@ -671,7 +682,7 @@ class _SubmissionsDialogState extends State<_SubmissionsDialog> {
                 children: [
                   Expanded(
                     child: _MiniStat(
-                      label: 'سلّم',
+                      label: context.tr('homework.submitted'),
                       value: '$submitted',
                       color: colors.secondary,
                     ),
@@ -679,7 +690,7 @@ class _SubmissionsDialogState extends State<_SubmissionsDialog> {
                   SizedBox(width: 6.w),
                   Expanded(
                     child: _MiniStat(
-                      label: 'متأخر',
+                      label: context.tr('homework.late'),
                       value: '$late',
                       color: colors.primary,
                     ),
@@ -687,7 +698,7 @@ class _SubmissionsDialogState extends State<_SubmissionsDialog> {
                   SizedBox(width: 6.w),
                   Expanded(
                     child: _MiniStat(
-                      label: 'لم يسلّم',
+                      label: context.tr('homework.missing'),
                       value: '$missing',
                       color: colors.error,
                     ),
@@ -793,10 +804,18 @@ class _SubmissionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final (statusColor, statusIcon, statusLabel) = switch (submission.status) {
-      'submitted' => (colors.secondary, Icons.check_circle, 'سلّم'),
-      'late' => (colors.primary, Icons.timelapse, 'متأخر'),
-      'missing' => (colors.error, Icons.cancel, 'لم يسلّم'),
-      _ => (colors.onSurfaceVariant, Icons.pending_outlined, 'معلّق'),
+      'submitted' => (
+        colors.secondary,
+        Icons.check_circle,
+        context.tr('homework.submitted'),
+      ),
+      'late' => (colors.primary, Icons.timelapse, context.tr('homework.late')),
+      'missing' => (colors.error, Icons.cancel, context.tr('homework.missing')),
+      _ => (
+        colors.onSurfaceVariant,
+        Icons.pending_outlined,
+        context.tr('homework.pending'),
+      ),
     };
 
     return Container(

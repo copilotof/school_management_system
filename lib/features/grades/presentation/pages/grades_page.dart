@@ -9,6 +9,7 @@ import 'package:school_management_system/features/subjects/domain/entities/subje
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_bloc.dart';
 import 'package:school_management_system/features/subjects/presentation/bloc/subjects_event.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../subjects/presentation/bloc/subjects_state.dart';
 
 class GradesPage extends StatelessWidget {
@@ -29,76 +30,15 @@ class GradesView extends StatelessWidget {
   const GradesView({super.key});
 
   void _showAddDialog(BuildContext context, {GradeEntity? grade}) {
-    final gradesBloc = context.read<GradesBloc>();
-
-    final nameController = TextEditingController(text: grade?.name ?? '');
-    final orderController = TextEditingController(
-      text: grade?.orderIndex.toString() ?? '0',
-    );
-
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setState) {
-            return AlertDialog(
-              title: Text(grade == null ? 'إضافة صف' : 'تعديل صف'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم الصف *',
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    TextField(
-                      controller: orderController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'الترتيب'),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('إلغاء'),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (nameController.text.trim().isEmpty) return;
-                    final entity = GradeEntity(
-                      id: grade?.id,
-                      levelId: null,
-                      name: nameController.text.trim(),
-                      orderIndex: int.tryParse(orderController.text) ?? 0,
-                      isActive: grade?.isActive ?? true,
-                    );
-                    Navigator.of(dialogContext).pop();
-                    if (grade == null) {
-                      gradesBloc.add(CreateGradeEvent(entity));
-                    } else {
-                      gradesBloc.add(UpdateGradeEvent(entity));
-                    }
-                  },
-                  child: Text(grade == null ? 'إضافة' : 'حفظ'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (_) =>
+          _AddGradeDialog(grade: grade, gradesBloc: context.read<GradesBloc>()),
     );
   }
 
-  /// ✅ دالة إدارة المواد المرتبطة بالصف - مع BlocBuilder
   void _showManageSubjectsDialog(BuildContext context, GradeEntity grade) {
     final gradesBloc = context.read<GradesBloc>();
-
-    // ✅ جلب المواد المرتبطة أولاً
     gradesBloc.add(FetchGradeSubjects(grade.id!));
 
     showDialog(
@@ -110,25 +50,24 @@ class GradesView extends StatelessWidget {
 
             if (allSubjects.isEmpty) {
               return AlertDialog(
-                title: Text('مواد الصف: ${grade.name}'),
-                content: const Text('لا توجد مواد. يرجى إضافة المواد أولاً.'),
+                title: Text(context.tr('grades.manageSubjects')),
+                content: Text(context.tr('grades.no_subjects')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('إغلاق'),
+                    child: Text(context.tr('common.close')),
                   ),
                 ],
               );
             }
 
-            // ✅ استخدام BlocBuilder لمراقبة تغيرات gradeSubjectsState
             return BlocBuilder<GradesBloc, GradesState>(
               builder: (dialogContext, gradesState) {
                 final linkedSubjects =
                     gradesState.gradeSubjectsState.data ?? [];
                 final linkedIds = linkedSubjects.map((s) => s.id!).toSet();
 
-                return _ManageSubjectsDialogContent(
+                return _ManageSubjectsDialog(
                   grade: grade,
                   gradesBloc: gradesBloc,
                   subjects: allSubjects,
@@ -145,8 +84,10 @@ class GradesView extends StatelessWidget {
   Future<void> _deleteGrade(BuildContext context, GradeEntity grade) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف الصف "${grade.name}"؟',
+      title: context.tr('common.confirm'),
+      message: context.tr(
+        '${context.tr('dialogs.confirmDelete')} ${grade.name}"؟',
+      ),
     );
     if (confirmed && context.mounted) {
       context.read<GradesBloc>().add(DeleteGradeEvent(grade.id!));
@@ -155,16 +96,14 @@ class GradesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Scaffold(
-      appBar: AppBar(title: const Text('الصفوف الدراسية')),
+      appBar: AppBar(title: Text(context.tr('grades.title'))),
       body: BlocBuilder<GradesBloc, GradesState>(
         builder: (context, state) {
           return switch (state.gradesState) {
             Initial() => const SizedBox.shrink(),
             Loading() => const Center(child: CircularProgressIndicator()),
-            Empty() => const Center(child: Text('لا توجد صفوف')),
+            Empty() => Center(child: Text(context.tr('grades.no_grades'))),
             Error(message: final msg) => Center(child: Text(msg)),
             Success(data: final grades) => ListView.builder(
               padding: const EdgeInsets.all(12),
@@ -188,6 +127,138 @@ class GradesView extends StatelessWidget {
         onPressed: () => _showAddDialog(context),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+/// 📁 حوار إضافة أو تعديل الصف الدراسي
+class _AddGradeDialog extends StatefulWidget {
+  final GradeEntity? grade;
+  final GradesBloc gradesBloc;
+
+  const _AddGradeDialog({this.grade, required this.gradesBloc});
+
+  @override
+  State<_AddGradeDialog> createState() => _AddGradeDialogState();
+}
+
+class _AddGradeDialogState extends State<_AddGradeDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _orderController;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.grade?.name ?? '');
+    _orderController = TextEditingController(
+      text: widget.grade?.orderIndex.toString() ?? '0',
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _orderController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    setState(() => _errorMessage = null);
+
+    if (_nameController.text.trim().isEmpty) {
+      setState(
+        () => _errorMessage =
+            '${context.tr('grades.name')}: ${context.tr('validators.required')}',
+      );
+      return;
+    }
+
+    final entity = GradeEntity(
+      id: widget.grade?.id,
+      levelId: null,
+      name: _nameController.text.trim(),
+      orderIndex: int.tryParse(_orderController.text) ?? 0,
+      isActive: widget.grade?.isActive ?? true,
+    );
+
+    if (widget.grade == null) {
+      widget.gradesBloc.add(CreateGradeEvent(entity));
+    } else {
+      widget.gradesBloc.add(UpdateGradeEvent(entity));
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      title: Text(
+        widget.grade == null
+            ? context.tr('grades.add')
+            : context.tr('grades.edit'),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: '${context.tr('grades.name')} *',
+              ),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _orderController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: context.tr('grades.orderIndex'),
+              ),
+            ),
+            if (_errorMessage != null) ...[
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: colors.errorContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: colors.error.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, size: 18.sp, color: colors.error),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(fontSize: 12.sp, color: colors.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(context.tr('common.cancel')),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(
+            widget.grade == null
+                ? context.tr('grades.add')
+                : context.tr('common.save'),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -217,10 +288,8 @@ class _GradeCard extends StatelessWidget {
         padding: EdgeInsets.all(12.w),
         child: Column(
           children: [
-            // ====== رأس البطاقة ======
             Row(
               children: [
-                // أيقونة الصف
                 Container(
                   width: 44.w,
                   height: 44.h,
@@ -235,7 +304,6 @@ class _GradeCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 10.w),
-                // معلومات الصف
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,7 +317,7 @@ class _GradeCard extends StatelessWidget {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        'الترتيب: ${grade.orderIndex}',
+                        '${context.tr('grades.orderIndex')}: ${grade.orderIndex}',
                         style: TextStyle(
                           fontSize: 11.sp,
                           color: colors.onSurfaceVariant,
@@ -261,20 +329,17 @@ class _GradeCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 10.h),
-
-            // ====== شريط الأزرار =====
             Row(
               children: [
-                // ✅ زر رئيسي: إدارة المواد
                 Expanded(
                   flex: 2,
                   child: ElevatedButton.icon(
                     onPressed: onManageSubjects,
                     icon: const Icon(Icons.book_outlined, size: 16),
-                    label: const Text(
-                      'ربط المواد',
+                    label: Text(
+                      context.tr('grades.manageSubjects'),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -289,19 +354,17 @@ class _GradeCard extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 6.w),
-                // زر تعديل
                 _IconActionButton(
                   icon: Icons.edit_outlined,
                   color: colors.primary,
-                  tooltip: 'تعديل',
+                  tooltip: context.tr('grades.edit'),
                   onTap: onEdit,
                 ),
                 SizedBox(width: 6.w),
-                // زر حذف
                 _IconActionButton(
                   icon: Icons.delete_outline,
                   color: colors.error,
-                  tooltip: 'حذف',
+                  tooltip: context.tr('grades.delete_grade'),
                   onTap: onDelete,
                 ),
               ],
@@ -349,16 +412,18 @@ class _IconActionButton extends StatelessWidget {
   }
 }
 
-/// 📁 حوار إدارة المواد المرتبطة بالصف
+/// 📁 محتوى حوار إدارة المواد (مع دعم التحديث التلقائي)
 class _ManageSubjectsDialog extends StatefulWidget {
   final GradeEntity grade;
   final GradesBloc gradesBloc;
   final List<SubjectEntity> subjects;
+  final Set<int> initialSelectedIds;
 
   const _ManageSubjectsDialog({
     required this.grade,
     required this.gradesBloc,
     required this.subjects,
+    required this.initialSelectedIds,
   });
 
   @override
@@ -371,91 +436,12 @@ class _ManageSubjectsDialogState extends State<_ManageSubjectsDialog> {
   @override
   void initState() {
     super.initState();
-    final linkedSubjects =
-        widget.gradesBloc.state.gradeSubjectsState.data ?? [];
-    _selectedIds = linkedSubjects.map((s) => s.id!).toSet();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('مواد الصف: ${widget.grade.name}'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: widget.subjects.map((subject) {
-            return CheckboxListTile(
-              title: Text(subject.name),
-              value: _selectedIds.contains(subject.id),
-              onChanged: (value) {
-                setState(() {
-                  if (value == true) {
-                    _selectedIds.add(subject.id!);
-                  } else {
-                    _selectedIds.remove(subject.id);
-                  }
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            widget.gradesBloc.add(
-              SaveGradeSubjects(
-                gradeId: widget.grade.id!,
-                subjectIds: _selectedIds.toList(),
-              ),
-            );
-            Navigator.of(context).pop();
-          },
-          child: const Text('حفظ'),
-        ),
-      ],
-    );
-  }
-}
-
-/// 📁 محتوى حوار إدارة المواد
-class _ManageSubjectsDialogContent extends StatefulWidget {
-  final GradeEntity grade;
-  final GradesBloc gradesBloc;
-  final List<SubjectEntity> subjects;
-  final Set<int> initialSelectedIds;
-
-  const _ManageSubjectsDialogContent({
-    required this.grade,
-    required this.gradesBloc,
-    required this.subjects,
-    required this.initialSelectedIds,
-  });
-
-  @override
-  State<_ManageSubjectsDialogContent> createState() =>
-      _ManageSubjectsDialogContentState();
-}
-
-class _ManageSubjectsDialogContentState
-    extends State<_ManageSubjectsDialogContent> {
-  late Set<int> _selectedIds;
-
-  @override
-  void initState() {
-    super.initState();
-    // ✅ نسخ القيم الأولية
     _selectedIds = Set<int>.from(widget.initialSelectedIds);
   }
 
   @override
-  void didUpdateWidget(covariant _ManageSubjectsDialogContent oldWidget) {
+  void didUpdateWidget(covariant _ManageSubjectsDialog oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // ✅ تحديث القيم إذا تغيرت من الـ Bloc
     if (oldWidget.initialSelectedIds != widget.initialSelectedIds) {
       _selectedIds = Set<int>.from(widget.initialSelectedIds);
     }
@@ -464,7 +450,12 @@ class _ManageSubjectsDialogContentState
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('مواد الصف: ${widget.grade.name}'),
+      title: Text(
+        context.tr(
+          'grades.manageSubjects',
+          params: {'grade_name': widget.grade.name},
+        ),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -488,7 +479,7 @@ class _ManageSubjectsDialogContentState
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: Text(context.tr('grades.cancel')),
         ),
         ElevatedButton(
           onPressed: () {
@@ -500,7 +491,7 @@ class _ManageSubjectsDialogContentState
             );
             Navigator.of(context).pop();
           },
-          child: const Text('حفظ'),
+          child: Text(context.tr('grades.save')),
         ),
       ],
     );

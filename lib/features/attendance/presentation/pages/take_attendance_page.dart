@@ -12,6 +12,7 @@ import 'package:school_management_system/features/groups/presentation/bloc/group
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../groups/presentation/bloc/groups_event.dart';
 import '../../../homework/domain/entities/homework_entity.dart';
 import '../../../homework/presentation/bloc/homework_bloc.dart';
@@ -293,51 +294,55 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(group?.name ?? 'تسجيل الحضور'),
+        title: Text(group?.name ?? context.tr('attendance.takeAttendance')),
         actions: [
           // ✅ زر مسح QR
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
-            tooltip: 'مسح QR',
+            tooltip: context.tr('attendance.scanQr'),
             onPressed: () => _openQrScanner(context),
           ),
           // زر إضافة واجب
           IconButton(
             icon: const Icon(Icons.assignment_add),
-            tooltip: 'إضافة واجب',
+            tooltip: context.tr('homework.add'),
             onPressed: () => _showAddHomeworkDialog(context),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: _setAllStatus,
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'present',
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 18),
-                    SizedBox(width: 8),
-                    Text('تعيين الجميع حاضر'),
+                    const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(context.tr('attendance.setAllPresent')),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'absent',
                 child: Row(
                   children: [
-                    Icon(Icons.cancel, color: Colors.red, size: 18),
-                    SizedBox(width: 8),
-                    Text('تعيين الجميع غائب'),
+                    const Icon(Icons.cancel, color: Colors.red, size: 18),
+                    const SizedBox(width: 8),
+                    Text(context.tr('attendance.setAllAbsent')),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'late',
                 child: Row(
                   children: [
-                    Icon(Icons.timelapse, color: Colors.orange, size: 18),
-                    SizedBox(width: 8),
-                    Text('تعيين الجميع متأخر'),
+                    const Icon(Icons.timelapse, color: Colors.orange, size: 18),
+                    const SizedBox(width: 8),
+                    Text(context.tr('attendance.setAllLate')),
                   ],
                 ),
               ),
@@ -879,13 +884,25 @@ class _AttendanceSummary extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         _SummaryItem(
-          label: 'الكل',
+          label: context.tr('common.all'),
           value: '$total',
           color: Theme.of(context).colorScheme.onSurface,
         ),
-        _SummaryItem(label: 'حاضر', value: '$present', color: Colors.green),
-        _SummaryItem(label: 'غائب', value: '$absent', color: Colors.red),
-        _SummaryItem(label: 'متأخر', value: '$late', color: Colors.orange),
+        _SummaryItem(
+          label: context.tr('attendance.present'),
+          value: '$present',
+          color: Colors.green,
+        ),
+        _SummaryItem(
+          label: context.tr('attendance.absent'),
+          value: '$absent',
+          color: Colors.red,
+        ),
+        _SummaryItem(
+          label: context.tr('attendance.late'),
+          value: '$late',
+          color: Colors.orange,
+        ),
       ],
     );
   }
@@ -1049,7 +1066,7 @@ class _StudentAttendanceCard extends StatelessWidget {
                     ),
                     SizedBox(width: 6.w),
                     Text(
-                      '${price!.toStringAsFixed(0)} دج',
+                      '${price!.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       style: TextStyle(
                         fontSize: 11.sp,
                         fontWeight: FontWeight.bold,
@@ -1059,7 +1076,12 @@ class _StudentAttendanceCard extends StatelessWidget {
                     if (remainingAmount != null && remainingAmount! > 0) ...[
                       const Spacer(),
                       Text(
-                        'متبقي: ${remainingAmount!.toStringAsFixed(0)} دج',
+                        context.tr(
+                          'finance.remainingAmount',
+                          params: {
+                            'amount': remainingAmount!.toStringAsFixed(0),
+                          },
+                        ),
                         style: TextStyle(
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,

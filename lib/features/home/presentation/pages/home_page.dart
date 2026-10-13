@@ -8,6 +8,7 @@ import 'package:school_management_system/features/groups/presentation/pages/grou
 import 'package:school_management_system/features/settings/presentation/pages/settings_page.dart';
 import 'package:school_management_system/features/students/presentation/pages/students_page.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 
 /// 📁 الصفحة الرئيسية مع نظام الملاحة
@@ -54,31 +55,31 @@ class _HomePageState extends State<HomePage> {
         indicatorColor: colors.primary.withOpacity(0.15),
         height: context.isMobile ? 65.h : 75.h,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'لوحة التحكم',
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
+            label: context.tr('menu.dashboard'), // ✅
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'الطلاب',
+            icon: const Icon(Icons.people_outline),
+            selectedIcon: const Icon(Icons.people),
+            label: context.tr('menu.students'), // ✅
           ),
           NavigationDestination(
-            icon: Icon(Icons.groups_outlined),
-            selectedIcon: Icon(Icons.groups),
-            label: 'الأفواج',
+            icon: const Icon(Icons.groups_outlined),
+            selectedIcon: const Icon(Icons.groups),
+            label: context.tr('menu.groups'), // ✅
           ),
           NavigationDestination(
-            icon: Icon(Icons.payments_outlined),
-            selectedIcon: Icon(Icons.payments),
-            label: 'المالية',
+            icon: const Icon(Icons.payments_outlined),
+            selectedIcon: const Icon(Icons.payments),
+            label: context.tr('menu.finance'), // ✅
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'الإعدادات',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: context.tr('menu.settings'), // ✅
           ),
         ],
       ),

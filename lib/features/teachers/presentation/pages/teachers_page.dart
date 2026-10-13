@@ -30,124 +30,27 @@ class TeachersView extends StatelessWidget {
   const TeachersView({super.key});
 
   void _showAddDialog(BuildContext context, {TeacherEntity? teacher}) {
-    final nameController = TextEditingController(text: teacher?.fullName ?? '');
-    final phoneController = TextEditingController(text: teacher?.phone ?? '');
-    final emailController = TextEditingController(text: teacher?.email ?? '');
-    final specController = TextEditingController(
-      text: teacher?.specialization ?? '',
-    );
-    DateTime? hireDate = teacher?.hireDate;
-
     showDialog(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setState) {
-            return AlertDialog(
-              title: Text(teacher == null ? 'إضافة معلم' : 'تعديل معلم'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'الاسم الكامل *',
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    TextField(
-                      controller: phoneController,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: 'الهاتف'),
-                    ),
-                    SizedBox(height: 12.h),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'البريد الإلكتروني',
-                      ),
-                    ),
-                    SizedBox(height: 12.h),
-                    TextField(
-                      controller: specController,
-                      decoration: const InputDecoration(labelText: 'التخصص'),
-                    ),
-                    SizedBox(height: 12.h),
-                    // تاريخ التوظيف
-                    InkWell(
-                      onTap: () async {
-                        final picked = await CustomDatePicker.showBottomSheet(
-                          context: dialogContext,
-                          initialDate: hireDate ?? DateTime.now(),
-                          minDate: DateTime(2000),
-                          maxDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => hireDate = picked);
-                        }
-                      },
-                      child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'تاريخ التوظيف',
-                          prefixIcon: Icon(Icons.calendar_today),
-                        ),
-                        child: Text(
-                          hireDate != null
-                              ? DateFormat('yyyy/MM/dd').format(hireDate!)
-                              : 'اختر التاريخ',
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('إلغاء'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (nameController.text.trim().isEmpty) return;
-
-                    final entity = TeacherEntity(
-                      id: teacher?.id,
-                      fullName: nameController.text.trim(),
-                      phone: phoneController.text.trim().isEmpty
-                          ? null
-                          : phoneController.text.trim(),
-                      email: emailController.text.trim().isEmpty
-                          ? null
-                          : emailController.text.trim(),
-                      specialization: specController.text.trim().isEmpty
-                          ? null
-                          : specController.text.trim(),
-                      hireDate: hireDate,
-                      isActive: teacher?.isActive ?? true,
-                    );
-
-                    if (teacher == null) {
-                      context.read<TeachersBloc>().add(
-                        CreateTeacherEvent(entity),
-                      );
-                    } else {
-                      context.read<TeachersBloc>().add(
-                        UpdateTeacherEvent(entity),
-                      );
-                    }
-
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text(teacher == null ? 'إضافة' : 'حفظ'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      builder: (_) => _AddTeacherDialog(
+        teacher: teacher,
+        teachersBloc: context.read<TeachersBloc>(),
+      ),
     );
+  }
+
+  Future<void> _deleteTeacher(
+    BuildContext context,
+    TeacherEntity teacher,
+  ) async {
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من حذف المعلم "${teacher.fullName}"؟',
+    );
+    if (confirmed && context.mounted) {
+      context.read<TeachersBloc>().add(DeleteTeacherEvent(teacher.id!));
+    }
   }
 
   @override
@@ -155,10 +58,7 @@ class TeachersView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('المعلمون'),
-        // automaticallyImplyLeading: false,
-      ),
+      appBar: AppBar(title: const Text('المعلمون')),
       body: Column(
         children: [
           Padding(
@@ -187,7 +87,7 @@ class TeachersView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(msg),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: () {
                             context.read<TeachersBloc>().add(
@@ -236,18 +136,15 @@ class TeachersView extends StatelessWidget {
                                   color: colors.primary,
                                 ),
                                 onPressed: () =>
-                                    _deleteTeacher(context, teacher),
+                                    _showAddDialog(context, teacher: teacher),
                               ),
                               IconButton(
                                 icon: Icon(
                                   Icons.delete_outline,
                                   color: colors.error,
                                 ),
-                                onPressed: () {
-                                  context.read<TeachersBloc>().add(
-                                    DeleteTeacherEvent(teacher.id!),
-                                  );
-                                },
+                                onPressed: () =>
+                                    _deleteTeacher(context, teacher),
                               ),
                             ],
                           ),
@@ -268,18 +165,177 @@ class TeachersView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Future<void> _deleteTeacher(
-    BuildContext context,
-    TeacherEntity teacher,
-  ) async {
-    final confirmed = await ConfirmDialog.show(
-      context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف المعلم "${teacher.fullName}"؟',
+class _AddTeacherDialog extends StatefulWidget {
+  final TeacherEntity? teacher;
+  final TeachersBloc teachersBloc;
+
+  const _AddTeacherDialog({this.teacher, required this.teachersBloc});
+
+  @override
+  State<_AddTeacherDialog> createState() => _AddTeacherDialogState();
+}
+
+class _AddTeacherDialogState extends State<_AddTeacherDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _specController;
+  DateTime? _hireDate;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(
+      text: widget.teacher?.fullName ?? '',
     );
-    if (confirmed && context.mounted) {
-      context.read<TeachersBloc>().add(DeleteTeacherEvent(teacher.id!));
+    _phoneController = TextEditingController(text: widget.teacher?.phone ?? '');
+    _emailController = TextEditingController(text: widget.teacher?.email ?? '');
+    _specController = TextEditingController(
+      text: widget.teacher?.specialization ?? '',
+    );
+    _hireDate = widget.teacher?.hireDate;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _specController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    setState(() => _errorMessage = null);
+
+    if (_nameController.text.trim().isEmpty) {
+      setState(() => _errorMessage = 'الاسم الكامل: حقل مطلوب');
+      return;
     }
+
+    final entity = TeacherEntity(
+      id: widget.teacher?.id,
+      fullName: _nameController.text.trim(),
+      phone: _phoneController.text.trim().isEmpty
+          ? null
+          : _phoneController.text.trim(),
+      email: _emailController.text.trim().isEmpty
+          ? null
+          : _emailController.text.trim(),
+      specialization: _specController.text.trim().isEmpty
+          ? null
+          : _specController.text.trim(),
+      hireDate: _hireDate,
+      isActive: widget.teacher?.isActive ?? true,
+    );
+
+    if (widget.teacher == null) {
+      widget.teachersBloc.add(CreateTeacherEvent(entity));
+    } else {
+      widget.teachersBloc.add(UpdateTeacherEvent(entity));
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return AlertDialog(
+      title: Text(widget.teacher == null ? 'إضافة معلم' : 'تعديل معلم'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'الاسم الكامل *'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'الهاتف'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(labelText: 'البريد الإلكتروني'),
+            ),
+            SizedBox(height: 12.h),
+            TextField(
+              controller: _specController,
+              decoration: const InputDecoration(labelText: 'التخصص'),
+            ),
+            SizedBox(height: 12.h),
+            // تاريخ التوظيف
+            InkWell(
+              onTap: () async {
+                final picked = await CustomDatePicker.showBottomSheet(
+                  context: context,
+                  initialDate: _hireDate ?? DateTime.now(),
+                  minDate: DateTime(2000),
+                  maxDate: DateTime.now(),
+                );
+                if (picked != null) {
+                  setState(() => _hireDate = picked);
+                }
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'تاريخ التوظيف',
+                  prefixIcon: Icon(Icons.calendar_today),
+                ),
+                child: Text(
+                  _hireDate != null
+                      ? DateFormat('yyyy/MM/dd').format(_hireDate!)
+                      : 'اختر التاريخ',
+                ),
+              ),
+            ),
+
+            // ✅ رسالة الخطأ
+            if (_errorMessage != null) ...[
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: colors.errorContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: colors.error.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.error_outline, size: 18.sp, color: colors.error),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        _errorMessage!,
+                        style: TextStyle(fontSize: 12.sp, color: colors.error),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(widget.teacher == null ? 'إضافة' : 'حفظ'),
+        ),
+      ],
+    );
   }
 }

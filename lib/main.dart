@@ -164,10 +164,15 @@ import 'features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'features/finance/presentation/bloc/finance_bloc.dart';
 import 'features/homework/presentation/bloc/homework_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:school_management_system/core/services/translation_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('ar', null);
+
+  // ✅ تحميل الترجمة الافتراضية
+  await TranslationService.instance.loadTranslations('ar');
+
+  // await initializeDateFormatting('ar', null);
   /* 
   // ✅ حذف قاعدة البيانات القديمة (مؤقت - للتطوير فقط)
   try {

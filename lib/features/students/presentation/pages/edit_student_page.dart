@@ -10,6 +10,8 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
+
 // ============================================================
 // 🎨 ثوابت التصميم الموحدة
 // ============================================================
@@ -275,7 +277,7 @@ class _EditStudentViewState extends State<EditStudentView> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('تعديل بيانات الطالب')),
+        appBar: AppBar(title: Text(context.tr('students.edit'))),
         body: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -285,19 +287,19 @@ class _EditStudentViewState extends State<EditStudentView> {
               children: [
                 _FormCard(
                   icon: Icons.person_outline,
-                  title: 'المعلومات الأساسية',
+                  title: context.tr('students.basicInfo'),
                   child: Column(
                     children: [
                       TextFormField(
                         controller: _firstNameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'الاسم الأول *',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.firstName'),
                           prefixIcon: Icon(Icons.person, size: 18),
                           isDense: true,
                         ),
                         validator: (v) => v == null || v.trim().isEmpty
-                            ? 'يرجى إدخال الاسم'
+                            ? context.tr('students.firstNameRequired')
                             : null,
                       ),
                       SizedBox(height: _Gap.md),
@@ -310,34 +312,35 @@ class _EditStudentViewState extends State<EditStudentView> {
                           isDense: true,
                         ),
                         validator: (v) => v == null || v.trim().isEmpty
-                            ? 'يرجى إدخال اللقب'
+                            ? context.tr('students.lastNameRequired')
                             : null,
                       ),
                       SizedBox(height: _Gap.md),
                       TextFormField(
                         controller: _studentCodeController,
-                        decoration: const InputDecoration(
-                          labelText: 'رقم الطالب *',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.studentCode'),
                           prefixIcon: Icon(Icons.badge_outlined, size: 18),
                           isDense: true,
                         ),
-                        validator: (v) =>
-                            v == null || v.trim().isEmpty ? 'مطلوب' : null,
+                        validator: (v) => v == null || v.trim().isEmpty
+                            ? context.tr('students.studentCodeRequired')
+                            : null,
                       ),
                       SizedBox(height: _Gap.md),
                       InkWell(
                         onTap: _pickDateOfBirth,
                         borderRadius: BorderRadius.circular(10.r),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'تاريخ الميلاد',
+                          decoration: InputDecoration(
+                            labelText: context.tr('students.dateOfBirth'),
                             prefixIcon: Icon(Icons.calendar_today, size: 18),
                             isDense: true,
                           ),
                           child: Text(
                             _dateOfBirth != null
                                 ? DateFormat('yyyy/MM/dd').format(_dateOfBirth!)
-                                : 'اختر التاريخ',
+                                : context.tr('students.selectDate'),
                             style: TextStyle(fontSize: 13.sp),
                           ),
                         ),
@@ -351,11 +354,14 @@ class _EditStudentViewState extends State<EditStudentView> {
                           prefixIcon: Icon(Icons.wc, size: 18),
                           isDense: true,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'male', child: Text('ذكر')),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'male',
+                            child: Text(context.tr('students.male')),
+                          ),
                           DropdownMenuItem(
                             value: 'female',
-                            child: Text('أنثى'),
+                            child: Text(context.tr('students.female')),
                           ),
                         ],
                         onChanged: (value) => setState(() => _gender = value),
@@ -366,14 +372,14 @@ class _EditStudentViewState extends State<EditStudentView> {
                 SizedBox(height: _Gap.md),
                 _FormCard(
                   icon: Icons.phone_outlined,
-                  title: 'معلومات الاتصال',
+                  title: context.tr('students.contactInfo'),
                   child: Column(
                     children: [
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                          labelText: 'رقم الهاتف',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.phone'),
                           prefixIcon: Icon(Icons.phone, size: 18),
                           isDense: true,
                         ),
@@ -382,8 +388,8 @@ class _EditStudentViewState extends State<EditStudentView> {
                       TextFormField(
                         controller: _addressController,
                         maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'العنوان',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.address'),
                           prefixIcon: Icon(
                             Icons.location_on_outlined,
                             size: 18,
@@ -397,26 +403,29 @@ class _EditStudentViewState extends State<EditStudentView> {
                 SizedBox(height: _Gap.md),
                 _FormCard(
                   icon: Icons.info_outline,
-                  title: 'معلومات إضافية',
+                  title: context.tr('students.additionalInfo'),
                   child: Column(
                     children: [
                       DropdownButtonFormField<String>(
                         initialValue: _status,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'الحالة',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.status'),
                           prefixIcon: Icon(Icons.info, size: 18),
                           isDense: true,
                         ),
-                        items: const [
-                          DropdownMenuItem(value: 'active', child: Text('نشط')),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'active',
+                            child: Text(context.tr('students.active')),
+                          ),
                           DropdownMenuItem(
                             value: 'inactive',
-                            child: Text('غير نشط'),
+                            child: Text(context.tr('students.inactive')),
                           ),
                           DropdownMenuItem(
                             value: 'withdrawn',
-                            child: Text('منسحب'),
+                            child: Text(context.tr('students.withdrawn')),
                           ),
                         ],
                         onChanged: (value) => setState(() => _status = value),
@@ -425,8 +434,8 @@ class _EditStudentViewState extends State<EditStudentView> {
                       TextFormField(
                         controller: _notesController,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'ملاحظات',
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.notes'),
                           prefixIcon: Icon(Icons.notes, size: 18),
                           isDense: true,
                         ),

@@ -11,6 +11,7 @@ import 'package:school_management_system/features/students/presentation/pages/ed
 import 'package:school_management_system/features/students/presentation/pages/student_details_page.dart';
 import 'package:school_management_system/injection_container.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import 'students_qr_print_page.dart';
 
 // ============================================================
@@ -47,11 +48,11 @@ class StudentsView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إدارة الطلاب'),
+        title: Text(context.tr('students.title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_2),
-            tooltip: 'طباعة رموز QR',
+            tooltip: context.tr('students.printQrCodes'),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StudentsQrPrintPage()),
@@ -76,7 +77,7 @@ class StudentsView extends StatelessWidget {
                 context.read<StudentsBloc>().add(SearchStudentsEvent(query));
               },
               decoration: InputDecoration(
-                hintText: 'ابحث عن طالب بالاسم أو الرقم...',
+                hintText: context.tr('students.searchHint'),
                 prefixIcon: const Icon(Icons.search, size: 18),
                 isDense: true,
                 suffixIcon: IconButton(
@@ -194,6 +195,7 @@ class _StudentCard extends StatelessWidget {
                 size: 18.sp,
                 color: colors.primary,
               ),
+              tooltip: context.tr('common.edit'),
               onPressed: () async {
                 final result = await Navigator.of(context).push<bool>(
                   MaterialPageRoute(
@@ -211,6 +213,7 @@ class _StudentCard extends StatelessWidget {
                 size: 18.sp,
                 color: colors.error,
               ),
+              tooltip: context.tr('common.delete'),
               onPressed: () {
                 _showDeleteDialog(context, student);
               },
@@ -237,19 +240,21 @@ class _StudentCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('تأكيد الحذف'),
-          content: Text('هل أنت متأكد من حذف الطالب ${student.fullName}؟'),
+          title: Text(context.tr('dialogs.confirmDelete')),
+          content: Text(
+            '${context.tr('students.deleteConfirm')} ${student.fullName}؟',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('إلغاء'),
+              child: Text(context.tr('common.cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              child: const Text('حذف'),
+              child: Text(context.tr('common.delete')),
             ),
           ],
         );
@@ -287,7 +292,7 @@ class _EmptyStudents extends StatelessWidget {
           ),
           SizedBox(height: _Gap.md),
           Text(
-            'لا يوجد طلاب مسجلون',
+            context.tr('students.empty'),
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w600,
@@ -296,7 +301,7 @@ class _EmptyStudents extends StatelessWidget {
           ),
           SizedBox(height: _Gap.xs),
           Text(
-            'اضغط على + لإضافة طالب جديد',
+            context.tr('students.emptyHint'),
             style: TextStyle(fontSize: 12.sp, color: colors.onSurfaceVariant),
           ),
         ],
@@ -345,7 +350,7 @@ class _ErrorStudents extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('إعادة المحاولة'),
+            label: Text(context.tr('common.retry')),
             style: ElevatedButton.styleFrom(minimumSize: Size(150.w, 40.h)),
           ),
         ],

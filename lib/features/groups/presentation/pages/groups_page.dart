@@ -21,6 +21,8 @@ import '../../../enrollment/presentation/pages/enrollment_page.dart';
 import '../../../subjects/presentation/bloc/subjects_state.dart';
 import '../../../teachers/presentation/bloc/teachers_state.dart';
 
+import 'package:school_management_system/core/utils/translation_extension.dart';
+
 // ============================================================
 // 🎨 ثوابت التصميم
 // ============================================================
@@ -106,8 +108,8 @@ class GroupsView extends StatelessWidget {
   Future<void> _deleteGroup(BuildContext context, GroupEntity group) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف الفوج "${group.name}"؟',
+      title: context.tr('groups.deleteTitle'),
+      message: 'groups.deleteMessage "${group.name}"؟',
     );
     if (confirmed && context.mounted) {
       context.read<GroupsBloc>().add(DeleteGroupEvent(group.id!));
@@ -119,7 +121,7 @@ class GroupsView extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الأفواج')),
+      appBar: AppBar(title: Text(context.tr('groups.title'))),
       body: Column(
         children: [
           // ====== بطاقة البحث ======
@@ -136,7 +138,7 @@ class GroupsView extends StatelessWidget {
                 context.read<GroupsBloc>().add(SearchGroupsEvent(query));
               },
               decoration: InputDecoration(
-                hintText: 'ابحث عن فوج...',
+                hintText: context.tr('groups.searchHint'),
                 prefixIcon: const Icon(Icons.search, size: 18),
                 isDense: true,
               ),
@@ -152,7 +154,7 @@ class GroupsView extends StatelessWidget {
                 return switch (state.groupsState) {
                   Initial() => const SizedBox.shrink(),
                   Loading() => const Center(child: CircularProgressIndicator()),
-                  Empty() => const Center(child: Text('لا توجد أفواج')),
+                  Empty() => Center(child: Text(context.tr('groups.empty'))),
                   Error(message: final msg) => Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -163,7 +165,7 @@ class GroupsView extends StatelessWidget {
                           onPressed: () => context.read<GroupsBloc>().add(
                             const FetchGroups(),
                           ),
-                          child: const Text('إعادة المحاولة'),
+                          child: Text(context.tr('groups.retry')),
                         ),
                       ],
                     ),
@@ -276,7 +278,7 @@ class _GroupCard extends StatelessWidget {
                           ),
                           SizedBox(height: 2.h),
                           Text(
-                            'الرسوم: ${group.monthlyFee.toStringAsFixed(0)} دج',
+                            '${context.tr('groups.monthlyFee')}: ${group.monthlyFee.toStringAsFixed(0)} ${context.tr('common.currency')}',
                             style: TextStyle(
                               fontSize: 11.sp,
                               color: colors.onSurfaceVariant,
@@ -305,8 +307,8 @@ class _GroupCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onDetails,
                     icon: const Icon(Icons.visibility_outlined, size: 14),
-                    label: const Text(
-                      'التفاصيل',
+                    label: Text(
+                      context.tr('groups.details'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -329,8 +331,8 @@ class _GroupCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onManageStudents,
                     icon: const Icon(Icons.person_add_outlined, size: 14),
-                    label: const Text(
-                      'الطلبة',
+                    label: Text(
+                      context.tr('groups.manageStudents'),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -353,7 +355,7 @@ class _GroupCard extends StatelessWidget {
                 _IconActionButton(
                   icon: Icons.edit_outlined,
                   color: colors.primary,
-                  tooltip: 'تعديل',
+                  tooltip: context.tr('common.edit'),
                   onTap: onEdit,
                 ),
                 SizedBox(width: 6.w),
@@ -362,7 +364,7 @@ class _GroupCard extends StatelessWidget {
                 _IconActionButton(
                   icon: Icons.delete_outline,
                   color: colors.error,
-                  tooltip: 'حذف',
+                  tooltip: context.tr('common.delete'),
                   onTap: onDelete,
                 ),
               ],
@@ -441,6 +443,8 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
   int? _selectedSubjectId;
   int? _selectedTeacherId;
 
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
@@ -476,10 +480,33 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
   }
 
   void _submit() {
-    if (_nameController.text.trim().isEmpty) return;
-    if (_selectedGradeId == null) return;
-    if (_selectedSubjectId == null) return;
-    if (_feeController.text.trim().isEmpty) return;
+    setState(() => _errorMessage = null);
+
+    if (_nameController.text.trim().isEmpty) {
+      setState(() => _errorMessage = context.tr('validators.required'));
+      return;
+    }
+    if (_selectedGradeId == null) {
+      setState(
+        () => _errorMessage =
+            '${context.tr('groups.grade')}: ${context.tr('validators.required')}',
+      );
+      return;
+    }
+    if (_selectedSubjectId == null) {
+      setState(
+        () => _errorMessage =
+            '${context.tr('groups.subject')}: ${context.tr('validators.required')}',
+      );
+      return;
+    }
+    if (_feeController.text.trim().isEmpty) {
+      setState(
+        () => _errorMessage =
+            '${context.tr('groups.monthlyFee')}: ${context.tr('validators.required')}',
+      );
+      return;
+    }
 
     final entity = GroupEntity(
       id: widget.group?.id,
@@ -528,7 +555,9 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                   ),
                   SizedBox(width: 10.w),
                   Text(
-                    widget.group == null ? 'إضافة فوج' : 'تعديل فوج',
+                    widget.group == null
+                        ? context.tr('groups.add')
+                        : context.tr('groups.edit'),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
@@ -541,8 +570,8 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               // اسم الفوج
               TextField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم الفوج *',
+                decoration: InputDecoration(
+                  labelText: '${context.tr('groups.name')} *',
                   prefixIcon: Icon(Icons.groups_outlined, size: 18),
                   isDense: true,
                 ),
@@ -553,8 +582,8 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               DropdownButtonFormField<int>(
                 initialValue: _selectedGradeId,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'الصف *',
+                decoration: InputDecoration(
+                  labelText: '${context.tr('groups.grade')} *',
                   prefixIcon: Icon(Icons.class_outlined, size: 18),
                   isDense: true,
                 ),
@@ -579,7 +608,7 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               // المادة (فقط مواد الصف)
               if (_selectedGradeId == null)
                 Text(
-                  'اختر الصف أولاً لعرض المواد',
+                  context.tr('groups.selectGradeFirst'),
                   style: TextStyle(
                     fontSize: 11.sp,
                     color: colors.onSurfaceVariant,
@@ -591,15 +620,15 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                     final filtered = _filteredSubjects;
                     if (filtered.isEmpty) {
                       return Text(
-                        'لا توجد مواد مرتبطة بهذا الصف',
+                        context.tr('groups.noSubjectsAvailable'),
                         style: TextStyle(fontSize: 11.sp, color: colors.error),
                       );
                     }
                     return DropdownButtonFormField<int>(
                       initialValue: _selectedSubjectId,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'المادة *',
+                      decoration: InputDecoration(
+                        labelText: '${context.tr('groups.subject')} *',
                         prefixIcon: Icon(Icons.book_outlined, size: 18),
                         isDense: true,
                       ),
@@ -623,8 +652,9 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               TextField(
                 controller: _feeController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'الرسوم الشهرية (دج) *',
+                decoration: InputDecoration(
+                  labelText:
+                      '${context.tr('groups.monthlyFee')} (${context.tr('common.currency')}) *',
                   prefixIcon: Icon(Icons.payments_outlined, size: 18),
                   isDense: true,
                 ),
@@ -635,13 +665,17 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               DropdownButtonFormField<int>(
                 initialValue: _selectedTeacherId,
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'المعلم (اختياري)',
+                decoration: InputDecoration(
+                  labelText:
+                      '${context.tr('groups.teacher')} (${context.tr('common.optional')})',
                   prefixIcon: Icon(Icons.person_outline, size: 18),
                   isDense: true,
                 ),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('بدون معلم')),
+                  DropdownMenuItem(
+                    value: null,
+                    child: Text(context.tr('groups.noTeacher')),
+                  ),
                   ...widget.teachers.map((teacher) {
                     return DropdownMenuItem(
                       value: teacher.id,
@@ -661,13 +695,51 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               TextField(
                 controller: _maxStudentsController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'الطاقة الاستيعابية (اختياري)',
+                decoration: InputDecoration(
+                  labelText:
+                      '${context.tr('groups.maxStudents')} (${context.tr('common.optional')})',
                   prefixIcon: Icon(Icons.people_outline, size: 18),
                   isDense: true,
                 ),
               ),
               SizedBox(height: _Gap.lg),
+
+              if (_errorMessage != null) ...[
+                SizedBox(height: _Gap.md),
+                Container(
+                  padding: EdgeInsets.all(10.w),
+                  decoration: BoxDecoration(
+                    color: colors.errorContainer.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: colors.error.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 18.sp,
+                        color: colors.error,
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: colors.error,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, size: 16.sp),
+                        onPressed: () => setState(() => _errorMessage = null),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               // أزرار
               Row(
@@ -675,14 +747,18 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('إلغاء'),
+                      child: Text(context.tr('groups.cancel')),
                     ),
                   ),
                   SizedBox(width: 10.w),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _submit,
-                      child: Text(widget.group == null ? 'إضافة' : 'حفظ'),
+                      child: Text(
+                        widget.group == null
+                            ? context.tr('groups.add')
+                            : context.tr('groups.save'),
+                      ),
                     ),
                   ),
                 ],

@@ -12,6 +12,7 @@ import 'package:school_management_system/features/students/domain/entities/stude
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_event.dart';
 
+import '../../../../core/utils/translation_extension.dart';
 import '../../../../core/widgets/custom_date_picker.dart';
 import '../../../groups/presentation/bloc/groups_state.dart';
 import '../../../students/presentation/bloc/students_state.dart';
@@ -80,7 +81,7 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الطلاب في الأفواج')),
+      appBar: AppBar(title: Text(context.tr('enrollment.title'))),
       body: Column(
         children: [
           // ====== اختيار الفوج ======
@@ -107,7 +108,7 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                   isExpanded: true,
                   initialValue: _selectedGroupId,
                   decoration: InputDecoration(
-                    labelText: 'اختر الفوج *',
+                    labelText: context.tr('enrollment.selectGroup'),
                     prefixIcon: const Icon(Icons.groups_outlined),
                   ),
                   items: groups.map((group) {
@@ -138,7 +139,7 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                   setState(() => _searchQuery = value);
                 },
                 decoration: InputDecoration(
-                  hintText: 'ابحث عن طالب بالاسم أو الرقم...',
+                  hintText: context.tr('enrollment.searchStudent'),
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -202,11 +203,7 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
             }
 
             if (filteredAllStudents.isEmpty) {
-              return Center(
-                child: Text(
-                  _searchQuery.isEmpty ? 'لا يوجد طلاب' : 'لا توجد نتائج للبحث',
-                ),
-              );
+              return Center(child: Text(context.tr('enrollment.noResults')));
             }
 
             return ListView(
@@ -215,7 +212,8 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                 // ====== قسم المسجلين ======
                 if (enrolledStudents.isNotEmpty) ...[
                   _SectionHeader(
-                    title: 'الطلاب المسجلون (${enrolledStudents.length})',
+                    title:
+                        '${context.tr('enrollment.enrolledStudents')} (${enrolledStudents.length})',
                     icon: Icons.check_circle,
                     color: colors.secondary,
                   ),
@@ -234,7 +232,8 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
                 // ====== قسم المتاحين ======
                 if (availableStudents.isNotEmpty) ...[
                   _SectionHeader(
-                    title: 'الطلاب المتاحون (${availableStudents.length})',
+                    title:
+                        '${context.tr('enrollment.availableStudents')} (${availableStudents.length})',
                     icon: Icons.person_add,
                     color: colors.primary,
                   ),
@@ -270,7 +269,9 @@ class _EnrollmentPageState extends State<EnrollmentPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم إلغاء تسجيل ${student.fullName}'),
+        content: Text(
+          '${context.tr('enrollment.unenrolledSuccess')}: ${student.fullName}',
+        ),
         backgroundColor: Theme.of(context).colorScheme.error,
       ),
     );
@@ -311,7 +312,9 @@ class _EnrollmentDateDialogState extends State<_EnrollmentDateDialog> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم تسجيل ${widget.student.fullName} بنجاح'),
+        content: Text(
+          '${context.tr('enrollment.enrolledSuccess')}: ${widget.student.fullName}',
+        ),
         backgroundColor: Theme.of(context).colorScheme.secondary,
       ),
     );
@@ -320,12 +323,14 @@ class _EnrollmentDateDialogState extends State<_EnrollmentDateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('تسجيل: ${widget.student.fullName}'),
+      title: Text(
+        '${context.tr('enrollment.enroll')}: ${widget.student.fullName}',
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('تاريخ التسجيل في الفوج:'),
+          Text(context.tr('enrollment.enrollDate')),
           SizedBox(height: 12.h),
           InkWell(
             onTap: () async {
@@ -355,9 +360,12 @@ class _EnrollmentDateDialogState extends State<_EnrollmentDateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: Text(context.tr('common.cancel')),
         ),
-        ElevatedButton(onPressed: _submit, child: const Text('تسجيل')),
+        ElevatedButton(
+          onPressed: _submit,
+          child: Text(context.tr('enrollment.enroll')),
+        ),
       ],
     );
   }
@@ -401,11 +409,13 @@ class _StudentCard extends StatelessWidget {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('الرقم: ${student.studentCode}'),
+            Text(
+              '${context.tr('students.studentCode')}: ${student.studentCode}',
+            ),
             // ✅ عرض تاريخ التسجيل للمسجلين
             if (isEnrolled && enrollmentDate != null)
               Text(
-                'سجل في: ${DateFormat('yyyy/MM/dd').format(enrollmentDate!)}',
+                '${context.tr('groups.enrollmentDate')}: ${DateFormat('yyyy/MM/dd').format(enrollmentDate!)}',
                 style: TextStyle(fontSize: 11.sp, color: colors.secondary),
               ),
           ],
@@ -425,7 +435,9 @@ class _StudentCard extends StatelessWidget {
               size: 20.sp,
             ),
           ),
-          tooltip: isEnrolled ? 'إلغاء التسجيل' : 'تسجيل في الفوج',
+          tooltip: isEnrolled
+              ? context.tr('enrollment.unenroll')
+              : context.tr('enrollment.enroll'),
           onPressed: onToggle,
         ),
       ),
