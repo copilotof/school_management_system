@@ -23,18 +23,20 @@ class ScheduleTemplateEntity extends Equatable {
     this.createdAt,
   });
 
-  /// اسم اليوم بالعربية
-  String get dayLabel {
-    const days = [
-      'الأحد',
-      'الإثنين',
-      'الثلاثاء',
-      'الأربعاء',
-      'الخميس',
-      'الجمعة',
-      'السبت',
+  /// ✅ مفتاح اليوم — يُترجَم في الواجهة عبر `context.tr(...)`
+  ///
+  /// الترتيب مطابق لـ`dayOfWeek`: 0=الأحد … 6=السبت
+  String get dayKey {
+    const keys = [
+      'days.sunday',
+      'days.monday',
+      'days.tuesday',
+      'days.wednesday',
+      'days.thursday',
+      'days.friday',
+      'days.saturday',
     ];
-    return days[dayOfWeek % 7];
+    return keys[dayOfWeek % 7];
   }
 
   ScheduleTemplateEntity copyWith({

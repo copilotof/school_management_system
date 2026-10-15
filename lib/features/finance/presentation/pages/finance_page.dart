@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+// ⚠️ `intl` تُصدّر `TextDirection` خاصة بها (LTR/RTL) تتعارض مع `dart:ui`
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
@@ -15,6 +16,7 @@ import 'package:school_management_system/features/students/presentation/bloc/stu
 import 'package:school_management_system/features/students/presentation/bloc/students_state.dart';
 
 import '../../../../core/states/ui_state.dart';
+import '../../../../core/utils/translation_extension.dart';
 import '../../../../injection_container.dart';
 import '../../../attendance/domain/entities/session_entity.dart';
 import '../../../enrollment/domain/entities/enrollment_entity.dart';
@@ -57,11 +59,11 @@ class FinancePage extends StatelessWidget {
         length: 2,
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('الإدارة المالية'),
+            title: Text(context.tr('finance.title')),
             actions: [
               IconButton(
                 icon: const Icon(Icons.notifications_active_outlined),
-                tooltip: 'فحص المتأخرات وإنشاء إشعارات',
+                tooltip: context.tr('finance.checkOverdue'),
                 onPressed: () async {
                   final service = getIt<AutoNotificationService>();
                   final count = await service.checkPaymentOverdue();
@@ -70,8 +72,11 @@ class FinancePage extends StatelessWidget {
                       SnackBar(
                         content: Text(
                           count > 0
-                              ? 'تم إنشاء $count إشعار دفع'
-                              : 'لا توجد متأخرات جديدة',
+                              ? context.tr(
+                                  'finance.paymentNotificationsCreated',
+                                  params: {'count': '$count'},
+                                )
+                              : context.tr('finance.noNewOutstanding'),
                         ),
                       ),
                     );
@@ -80,7 +85,7 @@ class FinancePage extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.assessment),
-                tooltip: 'التقارير المالية',
+                tooltip: context.tr('reports.financialReports'),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -91,21 +96,21 @@ class FinancePage extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'تحديث',
+                tooltip: context.tr('common.refresh'),
                 onPressed: () {
                   context.read<FinanceBloc>().add(FetchAllFinanceData());
                   context.read<EnrollmentBloc>().add(FetchEnrollments());
                 },
               ),
             ],
-            bottom: const TabBar(
+            bottom: TabBar(
               tabs: [
                 Tab(
-                  text: 'الطلبة والتسجيل',
+                  text: context.tr('finance.studentsAndEnrollment'),
                   icon: Icon(Icons.people_outline, size: 18),
                 ),
                 Tab(
-                  text: 'المعلومات المالية',
+                  text: context.tr('finance.financialInfo'),
                   icon: Icon(Icons.bar_chart, size: 18),
                 ),
               ],
@@ -239,7 +244,7 @@ class _StudentsByGroupTabState extends State<StudentsByGroupTab> {
 
                   if (groups.isEmpty) {
                     return Text(
-                      'لا توجد أفواج',
+                      context.tr('groups.empty'),
                       style: TextStyle(color: colors.error),
                     );
                   }
@@ -254,7 +259,7 @@ class _StudentsByGroupTabState extends State<StudentsByGroupTab> {
                     isExpanded: true,
                     initialValue: _selectedGroupId,
                     decoration: InputDecoration(
-                      labelText: 'اختر الفوج',
+                      labelText: context.tr('enrollment.selectGroup'),
                       prefixIcon: const Icon(Icons.groups_outlined, size: 18),
                       isDense: true,
                     ),
@@ -277,7 +282,7 @@ class _StudentsByGroupTabState extends State<StudentsByGroupTab> {
                 controller: _searchController,
                 onChanged: (value) => setState(() => _searchQuery = value),
                 decoration: InputDecoration(
-                  hintText: 'ابحث عن طالب...',
+                  hintText: context.tr('students.searchHint'),
                   prefixIcon: const Icon(Icons.search, size: 18),
                   isDense: true,
                   suffixIcon: _searchQuery.isNotEmpty
@@ -296,7 +301,7 @@ class _StudentsByGroupTabState extends State<StudentsByGroupTab> {
         ),
         Expanded(
           child: _selectedGroupId == null
-              ? const Center(child: Text('اختر فوجاً'))
+              ? Center(child: Text(context.tr('enrollment.selectGroup')))
               : _buildStudentList(context),
         ),
       ],
@@ -342,8 +347,8 @@ class _StudentsByGroupTabState extends State<StudentsByGroupTab> {
               return Center(
                 child: Text(
                   _searchQuery.isEmpty
-                      ? 'لا يوجد طلاب في هذا الفوج'
-                      : 'لا توجد نتائج',
+                      ? context.tr('enrollment.noStudents')
+                      : context.tr('common.noResults'),
                   style: TextStyle(color: colors.onSurfaceVariant),
                 ),
               );
@@ -439,7 +444,7 @@ class _StudentFinanceCard extends StatelessWidget {
                   ),
                   SizedBox(height: 2.h),
                   Text(
-                    'الرقم: ${student.studentCode}',
+                    '${context.tr('reports.codeLabel')}: ${student.studentCode}',
                     style: TextStyle(
                       fontSize: 11.sp,
                       color: colors.onSurfaceVariant,
@@ -456,7 +461,10 @@ class _StudentFinanceCard extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: onAddPayment,
                   icon: const Icon(Icons.add, size: 14),
-                  label: const Text('دفعة', style: TextStyle(fontSize: 11)),
+                  label: Text(
+                    context.tr('finance.paymentShort'),
+                    style: TextStyle(fontSize: 11),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colors.secondary,
                     foregroundColor: Colors.white,
@@ -472,7 +480,10 @@ class _StudentFinanceCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onViewDetails,
                   icon: const Icon(Icons.visibility_outlined, size: 14),
-                  label: const Text('الحالة', style: TextStyle(fontSize: 11)),
+                  label: Text(
+                    context.tr('common.status'),
+                    style: TextStyle(fontSize: 11),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colors.primary,
                     minimumSize: Size(70.w, 30.h),
@@ -510,9 +521,9 @@ class FinanceSummaryTab extends StatelessWidget {
               child: Column(
                 children: [
                   _LargeStatCard(
-                    title: 'إجمالي الإيرادات',
+                    title: context.tr('finance.totalRevenue'),
                     value: state.totalRevenue.toStringAsFixed(0),
-                    unit: 'دج',
+                    unit: context.tr('common.currency'),
                     icon: Icons.trending_up,
                     color: colors.secondary,
                   ),
@@ -521,9 +532,9 @@ class FinanceSummaryTab extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _LargeStatCard(
-                          title: 'المتأخرات',
+                          title: context.tr('finance.totalOutstanding'),
                           value: state.totalOutstanding.toStringAsFixed(0),
-                          unit: 'دج',
+                          unit: context.tr('common.currency'),
                           icon: Icons.warning_amber,
                           color: colors.error,
                           isCompact: true,
@@ -532,9 +543,9 @@ class FinanceSummaryTab extends StatelessWidget {
                       SizedBox(width: 8.w),
                       Expanded(
                         child: _LargeStatCard(
-                          title: 'الإعفاءات',
+                          title: context.tr('finance.totalExemptions'),
                           value: _calculateTotalExemptions(state),
-                          unit: 'دج',
+                          unit: context.tr('common.currency'),
                           icon: Icons.card_giftcard,
                           color: colors.tertiary,
                           isCompact: true,
@@ -554,9 +565,9 @@ class FinanceSummaryTab extends StatelessWidget {
                       labelColor: colors.primary,
                       unselectedLabelColor: colors.onSurfaceVariant,
                       indicatorColor: colors.primary,
-                      tabs: const [
-                        Tab(text: 'المدينون'),
-                        Tab(text: 'إعفاءات/تخفيضات'),
+                      tabs: [
+                        Tab(text: context.tr('finance.debtors')),
+                        Tab(text: context.tr('finance.exemptionsTab')),
                       ],
                     ),
                     const Expanded(
@@ -700,7 +711,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                       isExpanded: true,
                       initialValue: _selectedGroupId,
                       decoration: InputDecoration(
-                        labelText: 'الفوج',
+                        labelText: context.tr('finance.studentsFilter'),
                         isDense: true,
                         prefixIcon: const Icon(Icons.filter_list, size: 16),
                       ),
@@ -726,7 +737,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                 child: TextField(
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
-                    hintText: 'بحث...',
+                    hintText: context.tr('common.search'),
                     isDense: true,
                     prefixIcon: const Icon(Icons.search, size: 16),
                   ),
@@ -821,7 +832,9 @@ class _DebtorsListState extends State<_DebtorsList> {
                   }
 
                   if (debtors.isEmpty) {
-                    return const Center(child: Text('لا يوجد مدينون'));
+                    return Center(
+                      child: Text(context.tr('finance.noDebtors')),
+                    );
                   }
 
                   return ListView.builder(
@@ -864,11 +877,11 @@ class _DebtorsListState extends State<_DebtorsList> {
                             style: const TextStyle(fontSize: 13),
                           ),
                           subtitle: Text(
-                            '$totalCount أشهر/دفعات متأخرة${group != null ? ' | ${group.name}' : ''}',
+                            '${context.tr('finance.overdueCount', params: {'count': '$totalCount'})}${group != null ? ' | ${group.name}' : ''}',
                             style: const TextStyle(fontSize: 11),
                           ),
                           trailing: Text(
-                            '${totalDebt.toStringAsFixed(0)} دج',
+                            '${totalDebt.toStringAsFixed(0)} ${context.tr('common.currency')}',
                             style: TextStyle(
                               fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
@@ -1016,14 +1029,14 @@ class _DebtorsListState extends State<_DebtorsList> {
                             ),
                             if (group != null)
                               Text(
-                                'الفوج: ${group.name}',
+                                '${context.tr('finance.studentsFilter')}: ${group.name}',
                                 style: TextStyle(
                                   fontSize: 11.sp,
                                   color: colors.onSurfaceVariant,
                                 ),
                               ),
                             Text(
-                              'إجمالي المتأخرات: ${totalDebt.toStringAsFixed(0)} دج',
+                              '${context.tr('reports.totalDebt')}: ${totalDebt.toStringAsFixed(0)} ${context.tr('common.currency')}',
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: colors.error,
@@ -1040,7 +1053,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                   // ✅ الأشهر غير المدفوعة
                   if (unpaidMonths.isNotEmpty) ...[
                     Text(
-                      'أشهر غير مدفوعة:',
+                      '${context.tr('finance.unpaidMonths')}:',
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
@@ -1095,7 +1108,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                                 ),
                               ),
                               Text(
-                                '$monthlyFee دج',
+                                '$monthlyFee ${context.tr('common.currency')}',
                                 style: TextStyle(
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.bold,
@@ -1119,7 +1132,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                   // ✅ الدفعات الجزئية
                   if (partialPayments.isNotEmpty) ...[
                     Text(
-                      'دفعات جزئية:',
+                      '${context.tr('finance.partialPayments')}:',
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
@@ -1167,7 +1180,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                                   children: [
                                     Text(
                                       isExtra
-                                          ? 'حصة إضافية'
+                                          ? context.tr('finance.extra')
                                           : '${payment.monthYear ?? ''}',
                                       style: TextStyle(
                                         fontSize: 12.sp,
@@ -1175,7 +1188,7 @@ class _DebtorsListState extends State<_DebtorsList> {
                                       ),
                                     ),
                                     Text(
-                                      'دفع: ${payment.amount.toStringAsFixed(0)} دج',
+                                      '${context.tr('notifications.typePayment')}: ${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                                       style: TextStyle(
                                         fontSize: 10.sp,
                                         color: colors.onSurfaceVariant,
@@ -1185,7 +1198,13 @@ class _DebtorsListState extends State<_DebtorsList> {
                                 ),
                               ),
                               Text(
-                                'متبقي: ${payment.remainingAmount.toStringAsFixed(0)} دج',
+                                context.tr(
+                                  'finance.remainingAmount',
+                                  params: {
+                                    'amount': payment.remainingAmount
+                                        .toStringAsFixed(0),
+                                  },
+                                ),
                                 style: TextStyle(
                                   fontSize: 11.sp,
                                   fontWeight: FontWeight.bold,
@@ -1210,12 +1229,12 @@ class _DebtorsListState extends State<_DebtorsList> {
                       );
                     },
                     icon: const Icon(Icons.visibility_outlined, size: 16),
-                    label: const Text('الحالة المالية'),
+                    label: Text(context.tr('finance.studentFinance')),
                   ),
                   SizedBox(height: 6.h),
                   OutlinedButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('إغلاق'),
+                    child: Text(context.tr('common.close')),
                   ),
                 ],
               ),
@@ -1238,12 +1257,12 @@ Future<void> _confirmExtraPayment(
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('تسديد حصة إضافية'),
+      title: Text(context.tr('finance.confirmExtraPayment')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('الطالب: ${student.fullName}'),
+          Text('${context.tr('reports.studentLabel')}: ${student.fullName}'),
           SizedBox(height: 8.h),
           Container(
             padding: EdgeInsets.all(10.w),
@@ -1255,15 +1274,15 @@ Future<void> _confirmExtraPayment(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'التاريخ: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
+                  '${context.tr('common.date')}: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
                   style: TextStyle(fontSize: 12.sp),
                 ),
                 Text(
-                  'المبلغ: ${extraSession.originalAmount.toStringAsFixed(0)} دج',
+                  '${context.tr('reports.amountLabel')}: ${extraSession.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   style: TextStyle(fontSize: 12.sp),
                 ),
                 Text(
-                  'المتبقي: ${extraSession.remainingAmount.toStringAsFixed(0)} دج',
+                  '${context.tr('finance.remaining')}: ${extraSession.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.bold,
@@ -1278,12 +1297,12 @@ Future<void> _confirmExtraPayment(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('إلغاء'),
+          child: Text(context.tr('common.cancel')),
         ),
         ElevatedButton.icon(
           onPressed: () => Navigator.of(dialogContext).pop(true),
           icon: const Icon(Icons.payment, size: 16),
-          label: const Text('تسديد الآن'),
+          label: Text(context.tr('finance.payNow')),
         ),
       ],
     ),
@@ -1318,19 +1337,23 @@ void _showPartialDetails(
           children: [
             Icon(Icons.timelapse, color: colors.error),
             SizedBox(width: 8.w),
-            const Text('دفعة جزئية'),
+            Text(context.tr('finance.partialPayment')),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('الشهر: ${payment.monthYear ?? '-'}'),
-            SizedBox(height: 4.h),
-            Text('المدفوع: ${payment.amount.toStringAsFixed(0)} دج'),
+            Text(
+              '${context.tr('common.month')}: ${payment.monthYear ?? '-'}',
+            ),
             SizedBox(height: 4.h),
             Text(
-              'المتبقي: ${payment.remainingAmount.toStringAsFixed(0)} دج',
+              '${context.tr('finance.paid')}: ${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              '${context.tr('finance.remaining')}: ${payment.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
               style: TextStyle(
                 color: colors.error,
                 fontWeight: FontWeight.bold,
@@ -1341,7 +1364,7 @@ void _showPartialDetails(
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('إلغاء الأمر'),
+            child: Text(context.tr('finance.cancelOrder')),
           ),
           ElevatedButton.icon(
             onPressed: () {
@@ -1350,7 +1373,7 @@ void _showPartialDetails(
               _settlePartial(context, payment);
             },
             icon: const Icon(Icons.check_circle, size: 16),
-            label: const Text('تم تسديد الباقي'),
+            label: Text(context.tr('finance.settleRemaining')),
             style: ElevatedButton.styleFrom(backgroundColor: colors.secondary),
           ),
         ],
@@ -1376,14 +1399,14 @@ void _settlePartial(BuildContext context, PaymentEntity payment) {
     paymentDate: now,
     method: payment.method,
     receiptNumber: payment.receiptNumber,
-    notes: 'تم تسديد الباقي بتاريخ: $dateStr',
+    notes: context.tr('finance.remainingSettled', params: {'date': dateStr}),
     recordedBy: payment.recordedBy,
   );
 
   context.read<FinanceBloc>().add(UpdatePaymentEvent(updatedPayment));
-  ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(const SnackBar(content: Text('تم تسديد الباقي بنجاح')));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text(context.tr('finance.remainingSettledSuccess'))),
+  );
 }
 
 // ============================================================
@@ -1425,7 +1448,7 @@ class _GiftedListState extends State<_GiftedList> {
                       isExpanded: true,
                       initialValue: _selectedGroupId,
                       decoration: InputDecoration(
-                        labelText: 'الفوج',
+                        labelText: context.tr('finance.studentsFilter'),
                         isDense: true,
                         prefixIcon: const Icon(Icons.filter_list, size: 16),
                       ),
@@ -1451,7 +1474,7 @@ class _GiftedListState extends State<_GiftedList> {
                 child: TextField(
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: InputDecoration(
-                    hintText: 'بحث...',
+                    hintText: context.tr('common.search'),
                     isDense: true,
                     prefixIcon: const Icon(Icons.search, size: 16),
                   ),
@@ -1498,7 +1521,9 @@ class _GiftedListState extends State<_GiftedList> {
               }
 
               if (giftedStudents.isEmpty) {
-                return const Center(child: Text('لا توجد إعفاءات أو تخفيضات'));
+                return Center(
+                  child: Text(context.tr('finance.noExemptions')),
+                );
               }
 
               return ListView.builder(
@@ -1535,11 +1560,11 @@ class _GiftedListState extends State<_GiftedList> {
                         style: const TextStyle(fontSize: 13),
                       ),
                       subtitle: Text(
-                        '${studentExemptions.length} إعفاء/تخفيض',
+                        '${studentExemptions.length} ${context.tr('finance.exemptionHistory')}',
                         style: const TextStyle(fontSize: 11),
                       ),
                       trailing: Text(
-                        '${totalExempted.toStringAsFixed(0)} دج',
+                        '${totalExempted.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         style: TextStyle(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
@@ -1620,7 +1645,7 @@ void _showExemptionDetails(
                           ),
                         ),
                         Text(
-                          'إجمالي الإعفاءات: ${totalExempted.toStringAsFixed(0)} دج',
+                          '${context.tr('reports.totalExempted')}: ${totalExempted.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: colors.tertiary,
@@ -1663,7 +1688,7 @@ void _showExemptionDetails(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${payment.monthYear ?? ''} - ${isExemption ? 'إعفاء كامل' : 'تخفيض'}',
+                              '${payment.monthYear ?? ''} - ${isExemption ? context.tr('finance.fullExemption') : context.tr('finance.reduction')}',
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w600,
@@ -1671,7 +1696,14 @@ void _showExemptionDetails(
                             ),
                             if (!isExemption)
                               Text(
-                                'دفع: ${payment.amount.toStringAsFixed(0)} دج من أصل ${payment.originalAmount.toStringAsFixed(0)} دج',
+                                context.tr(
+                                  'finance.paidOfOriginal',
+                                  params: {
+                                    'paid': payment.amount.toStringAsFixed(0),
+                                    'total': payment.originalAmount
+                                        .toStringAsFixed(0),
+                                  },
+                                ),
                                 style: TextStyle(
                                   fontSize: 10.sp,
                                   color: colors.onSurfaceVariant,
@@ -1681,7 +1713,7 @@ void _showExemptionDetails(
                         ),
                       ),
                       Text(
-                        '${exemptedAmount.toStringAsFixed(0)} دج',
+                        '${exemptedAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         style: TextStyle(
                           fontSize: 11.sp,
                           fontWeight: FontWeight.bold,
@@ -1695,7 +1727,7 @@ void _showExemptionDetails(
               SizedBox(height: 12.h),
               OutlinedButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('إغلاق'),
+                child: Text(context.tr('common.close')),
               ),
             ],
           ),

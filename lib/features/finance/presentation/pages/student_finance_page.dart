@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+// ⚠️ `intl` تُصدّر `TextDirection` خاصة بها (LTR/RTL) تتعارض مع `dart:ui`
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/confirm_dialog.dart';
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
@@ -50,15 +52,15 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
   Future<void> _deletePayment(PaymentEntity payment) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'تأكيد الحذف',
-      message: 'هل أنت متأكد من حذف هذه العملية؟',
+      title: context.tr('dialogs.confirmDelete'),
+      message: context.tr('finance.confirmDelete'),
     );
     if (confirmed && mounted) {
       context.read<FinanceBloc>().add(DeletePaymentEvent(payment.id!));
       setState(() {});
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('تم حذف العملية')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('finance.paymentDeleted'))),
+      );
     }
   }
 
@@ -89,7 +91,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                     ),
                     SizedBox(width: 8.w),
                     Text(
-                      'تفاصيل العملية',
+                      context.tr('reports.paymentDetails'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
@@ -99,47 +101,58 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                 ),
                 SizedBox(height: 16.h),
 
-                _DetailRow(label: 'النوع', value: payment.typeLabel),
-                _DetailRow(label: 'الشهر', value: payment.monthYear ?? '-'),
+                _DetailRow(
+                  label: context.tr('reports.typeLabel'),
+                  value: context.tr(payment.typeKey),
+                ),
+                _DetailRow(
+                  label: context.tr('reports.monthLabel'),
+                  value: payment.monthYear ?? '-',
+                ),
                 // ✅ تاريخ تسجيل الدفعة
                 _DetailRow(
-                  label: 'تاريخ التسجيل',
+                  label: context.tr('finance.operationDate'),
                   value: DateFormat('yyyy/MM/dd').format(payment.paymentDate),
                 ),
 
                 // ✅ عرض المبلغ حسب النوع
                 if (payment.type == 'reduction') ...[
                   _DetailRow(
-                    label: 'المبلغ المدفوع',
-                    value: '${payment.amount.toStringAsFixed(0)} دج',
-                  ),
-                  _DetailRow(
-                    label: 'المبلغ الأصلي',
-                    value: '${payment.originalAmount.toStringAsFixed(0)} دج',
-                  ),
-                  _DetailRow(
-                    label: 'مساعدة من المدرسة',
+                    label: context.tr('finance.amountPaid'),
                     value:
-                        '${(payment.originalAmount - payment.amount).toStringAsFixed(0)} دج',
+                        '${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
+                  ),
+                  _DetailRow(
+                    label: context.tr('finance.originalAmount'),
+                    value:
+                        '${payment.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
+                  ),
+                  _DetailRow(
+                    label: context.tr('finance.helpFromSchool'),
+                    value:
+                        '${(payment.originalAmount - payment.amount).toStringAsFixed(0)} ${context.tr('common.currency')}',
                     color: colors.tertiary,
                   ),
                 ] else ...[
                   _DetailRow(
-                    label: 'المبلغ المدفوع',
-                    value: '${payment.amount.toStringAsFixed(0)} دج',
+                    label: context.tr('finance.amountPaid'),
+                    value:
+                        '${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   ),
                   if (payment.originalAmount > 0)
                     _DetailRow(
-                      label: 'المبلغ الإجمالي',
-                      value: '${payment.originalAmount.toStringAsFixed(0)} دج',
+                      label: context.tr('reports.totalAmount'),
+                      value:
+                          '${payment.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     ),
                 ],
 
                 if (isPartial) ...[
                   Divider(color: colors.outlineVariant),
                   _DetailRow(
-                    label: 'المتبقي',
-                    value: '${payment.remainingAmount.toStringAsFixed(0)} دج',
+                    label: context.tr('finance.remaining'),
+                    value:
+                        '${payment.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     color: colors.error,
                   ),
                 ],
@@ -170,7 +183,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                       );
                     },
                     icon: const Icon(Icons.receipt_long, size: 16),
-                    label: const Text('عرض الإيصال'),
+                    label: Text(context.tr('finance.viewReceipt')),
                   ),
                 ],
 
@@ -183,7 +196,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                       _settleRemaining(payment);
                     },
                     icon: const Icon(Icons.check_circle, size: 16),
-                    label: const Text('تم تسديد الباقي'),
+                    label: Text(context.tr('finance.settleRemaining')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colors.secondary,
                     ),
@@ -193,7 +206,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
 
                 OutlinedButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('إلغاء الأمر'),
+                  child: Text(context.tr('finance.cancelOrder')),
                 ),
               ],
             ),
@@ -221,14 +234,17 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
       method: payment.method,
       receiptNumber: payment.receiptNumber,
       // ✅ تغيير الملاحظة
-      notes: 'تم تسديد الباقي بتاريخ: $dateStr',
+      notes: context.tr(
+        'finance.remainingSettled',
+        params: {'date': dateStr},
+      ),
       recordedBy: payment.recordedBy,
     );
 
     context.read<FinanceBloc>().add(UpdatePaymentEvent(updatedPayment));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('تم تسديد الباقي بنجاح')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('finance.remainingSettledSuccess'))),
+    );
   }
 
   @override
@@ -275,13 +291,16 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                     SizedBox(height: _Gap.lg),
 
                     if (studentGroups.isEmpty)
-                      _buildEmptyCard(colors, 'الطالب غير مسجل في أي فوج')
+                      _buildEmptyCard(
+                        colors,
+                        context.tr('finance.studentNotEnrolled'),
+                      )
                     else ...[
                       DropdownButtonFormField<int>(
                         isExpanded: true,
                         value: _selectedGroupId,
-                        decoration: const InputDecoration(
-                          labelText: 'اختر الفوج',
+                        decoration: InputDecoration(
+                          labelText: context.tr('enrollment.selectGroup'),
                           prefixIcon: Icon(Icons.groups_outlined, size: 18),
                           isDense: true,
                         ),
@@ -323,7 +342,9 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                               );
                             },
                             icon: const Icon(Icons.receipt_long, size: 16),
-                            label: const Text('عرض كشف الحساب'),
+                            label: Text(
+                              context.tr('finance.viewAccountStatement'),
+                            ),
                             style: OutlinedButton.styleFrom(
                               minimumSize: Size(double.infinity, 40.h),
                             ),
@@ -479,9 +500,9 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                                 children: [
                                   Expanded(
                                     child: _SummaryChip(
-                                      label: 'المدفوع',
+                                      label: context.tr('finance.paid'),
                                       value:
-                                          '${totalPaid.toStringAsFixed(0)} دج',
+                                          '${totalPaid.toStringAsFixed(0)} ${context.tr('common.currency')}',
                                       icon: Icons.check_circle,
                                       color: colors.secondary,
                                     ),
@@ -489,9 +510,9 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                                   SizedBox(width: 8.w),
                                   Expanded(
                                     child: _SummaryChip(
-                                      label: 'المتبقي',
+                                      label: context.tr('finance.remaining'),
                                       value:
-                                          '${totalRemaining.toStringAsFixed(0)} دج',
+                                          '${totalRemaining.toStringAsFixed(0)} ${context.tr('common.currency')}',
                                       icon: Icons.warning_amber,
                                       color: totalRemaining > 0
                                           ? colors.error
@@ -502,9 +523,9 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                               ),
                               SizedBox(height: _Gap.lg),
 
-                              const _SectionHeader(
+                              _SectionHeader(
                                 icon: Icons.history,
-                                title: 'السجل المالي للفوج',
+                                title: context.tr('finance.financialRecord'),
                               ),
                               SizedBox(height: _Gap.sm),
 
@@ -512,7 +533,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                               if (allPayments.isEmpty)
                                 _buildEmptyCard(
                                   colors,
-                                  'لا توجد عمليات مالية لهذا الفوج',
+                                  context.tr('finance.noGroupPayments'),
                                 )
                               else ...[
                                 // ====== 1. الدفعات العادية ======
@@ -586,12 +607,12 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تسديد حصة إضافية'),
+        title: Text(context.tr('finance.confirmExtraPayment')),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('هل تريد الانتقال لصفحة الدفع لتسديد هذه الحصة الإضافية؟'),
+            Text(context.tr('finance.extraPaymentConfirm')),
             SizedBox(height: 12.h),
             Container(
               padding: EdgeInsets.all(10.w),
@@ -603,15 +624,15 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'التاريخ: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
+                    '${context.tr('common.date')}: ${DateFormat('yyyy/MM/dd').format(extraSession.paymentDate)}',
                     style: TextStyle(fontSize: 12.sp),
                   ),
                   Text(
-                    'المبلغ: ${extraSession.originalAmount.toStringAsFixed(0)} دج',
+                    '${context.tr('reports.amountLabel')}: ${extraSession.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     style: TextStyle(fontSize: 12.sp),
                   ),
                   Text(
-                    'المتبقي: ${extraSession.remainingAmount.toStringAsFixed(0)} دج',
+                    '${context.tr('finance.remaining')}: ${extraSession.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.bold,
@@ -626,12 +647,12 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(context.tr('common.cancel')),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             icon: const Icon(Icons.payment, size: 16),
-            label: const Text('تسديد الآن'),
+            label: Text(context.tr('finance.payNow')),
           ),
         ],
       ),
@@ -691,7 +712,7 @@ class _StudentFinancePageState extends State<StudentFinancePage> {
                   ),
                 ),
                 Text(
-                  'الرقم: ${widget.student.studentCode}',
+                  '${context.tr('reports.codeLabel')}: ${widget.student.studentCode}',
                   style: TextStyle(
                     fontSize: 11.sp,
                     color: Colors.white.withOpacity(0.8),
@@ -822,15 +843,43 @@ class _PaymentHistoryCard extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     final (statusColor, statusIcon, statusLabel) = switch (payment.type) {
-      'exemption' => (colors.tertiary, Icons.card_giftcard, 'إعفاء'),
-      'reduction' => (colors.primary, Icons.percent, 'تخفيض'),
-      'advance' => (colors.outline, Icons.fast_forward, 'دفع مسبق'),
-      'registration' => (colors.outline, Icons.how_to_reg, 'تسجيل'),
-      'extra' => (colors.outline, Icons.add_card, 'إضافية'),
+      'exemption' => (
+        colors.tertiary,
+        Icons.card_giftcard,
+        context.tr('finance.exemption'),
+      ),
+      'reduction' => (
+        colors.primary,
+        Icons.percent,
+        context.tr('finance.reduction'),
+      ),
+      'advance' => (
+        colors.outline,
+        Icons.fast_forward,
+        context.tr('finance.advance'),
+      ),
+      'registration' => (
+        colors.outline,
+        Icons.how_to_reg,
+        context.tr('finance.registration'),
+      ),
+      'extra' => (
+        colors.outline,
+        Icons.add_card,
+        context.tr('attendance.extra'),
+      ),
       _ =>
         payment.remainingAmount > 0
-            ? (colors.primary, Icons.timelapse, 'جزئي')
-            : (colors.secondary, Icons.check_circle, 'مدفوع'),
+            ? (
+                colors.primary,
+                Icons.timelapse,
+                context.tr('finance.partialPaid'),
+              )
+            : (
+                colors.secondary,
+                Icons.check_circle,
+                context.tr('finance.paid'),
+              ),
     };
 
     // ✅ عرض المبلغ حسب النوع - التخفيض يعرض المبلغ المدفوع
@@ -859,7 +908,7 @@ class _PaymentHistoryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${displayAmount.toStringAsFixed(0)} دج',
+                      '${displayAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
@@ -886,7 +935,12 @@ class _PaymentHistoryCard extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(right: 4.w),
                   child: Text(
-                    'متبقي: ${payment.remainingAmount.toStringAsFixed(0)} دج',
+                    context.tr(
+                      'finance.remainingAmount',
+                      params: {
+                        'amount': payment.remainingAmount.toStringAsFixed(0),
+                      },
+                    ),
                     style: TextStyle(fontSize: 10.sp, color: colors.error),
                   ),
                 ),
@@ -896,7 +950,7 @@ class _PaymentHistoryCard extends StatelessWidget {
                   size: 16.sp,
                   color: colors.error,
                 ),
-                tooltip: 'حذف',
+                tooltip: context.tr('common.delete'),
                 onPressed: onDelete,
               ),
             ],
@@ -964,8 +1018,13 @@ class _ExtraSessionCard extends StatelessWidget {
     final statusColor = isPaid ? colors.secondary : colors.error;
     final statusIcon = isPaid ? Icons.check_circle : Icons.timelapse;
     final statusLabel = isPaid
-        ? 'مدفوع'
-        : 'متبقي ${originalExtra.remainingAmount.toStringAsFixed(0)} دج';
+        ? context.tr('finance.paid')
+        : context.tr(
+            'finance.remainingAmount',
+            params: {
+              'amount': originalExtra.remainingAmount.toStringAsFixed(0),
+            },
+          );
 
     return Card(
       elevation: 0,
@@ -998,7 +1057,7 @@ class _ExtraSessionCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'حصة إضافية',
+                          context.tr('finance.extraSession'),
                           style: TextStyle(
                             fontSize: 13.sp,
                             fontWeight: FontWeight.bold,
@@ -1050,7 +1109,7 @@ class _ExtraSessionCard extends StatelessWidget {
                       size: 16.sp,
                       color: colors.error,
                     ),
-                    tooltip: 'حذف',
+                    tooltip: context.tr('common.delete'),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: onDelete,
@@ -1063,18 +1122,19 @@ class _ExtraSessionCard extends StatelessWidget {
               Row(
                 children: [
                   _MiniInfo(
-                    label: 'الأصلي',
+                    label: context.tr('finance.originalAmount'),
                     value:
-                        '${originalExtra.originalAmount.toStringAsFixed(0)} دج',
+                        '${originalExtra.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   ),
                   _MiniInfo(
-                    label: 'المدفوع',
-                    value: '${originalExtra.amount.toStringAsFixed(0)} دج',
+                    label: context.tr('finance.paid'),
+                    value:
+                        '${originalExtra.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   ),
                   _MiniInfo(
-                    label: 'المتبقي',
+                    label: context.tr('finance.remaining'),
                     value:
-                        '${originalExtra.remainingAmount.toStringAsFixed(0)} دج',
+                        '${originalExtra.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     color: originalExtra.remainingAmount > 0
                         ? colors.error
                         : null,
@@ -1099,7 +1159,7 @@ class _ExtraSessionCard extends StatelessWidget {
                         ),
                         SizedBox(width: 6.w),
                         Text(
-                          '${p.amount.toStringAsFixed(0)} دج',
+                          '${p.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           style: TextStyle(
                             fontSize: 11.sp,
                             fontWeight: FontWeight.w600,
@@ -1134,8 +1194,8 @@ class _ExtraSessionCard extends StatelessWidget {
                     );
                   },
                   icon: const Icon(Icons.receipt_long, size: 14),
-                  label: const Text(
-                    'عرض الإيصال',
+                  label: Text(
+                    context.tr('finance.viewReceipt'),
                     style: TextStyle(fontSize: 11),
                   ),
                   style: OutlinedButton.styleFrom(

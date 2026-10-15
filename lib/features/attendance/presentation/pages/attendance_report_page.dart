@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/attendance/domain/entities/attendance_entity.dart';
 import 'package:school_management_system/features/attendance/presentation/bloc/attendance_bloc.dart';
@@ -17,6 +17,7 @@ import 'package:school_management_system/features/groups/domain/entities/group_e
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/features/students/presentation/bloc/students_bloc.dart';
 
+import '../../../../core/states/ui_state.dart';
 import '../../../students/presentation/bloc/students_state.dart';
 
 // ثوابت
@@ -142,7 +143,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'تقرير الحضور',
+                        context.tr('reports.attendanceReport'),
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
@@ -150,7 +151,9 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                         ),
                       ),
                       pw.Text(
-                        widget.student != null ? 'تقرير الطالب' : 'تقرير الفوج',
+                        widget.student != null
+                            ? context.tr('reports.studentReport')
+                            : context.tr('reports.groupReport'),
                         style: const pw.TextStyle(
                           fontSize: 10,
                           color: PdfColors.white,
@@ -162,14 +165,14 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'من: ${DateFormat('yyyy/MM/dd').format(_fromDate)}',
+                        '${context.tr('reports.fromDate')}: ${context.formatDate(_fromDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'إلى: ${DateFormat('yyyy/MM/dd').format(_toDate)}',
+                        '${context.tr('reports.toDate')}: ${context.formatDate(_toDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
@@ -194,12 +197,21 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   if (widget.student != null)
-                    _pdfInfoRow('الطالب', widget.student!.fullName),
+                    _pdfInfoRow(
+                      context.tr('reports.studentLabel'),
+                      widget.student!.fullName,
+                    ),
                   if (widget.student != null)
-                    _pdfInfoRow('الرقم', widget.student!.studentCode),
-                  _pdfInfoRow('الفوج', widget.group.name),
+                    _pdfInfoRow(
+                      context.tr('reports.codeLabel'),
+                      widget.student!.studentCode,
+                    ),
                   _pdfInfoRow(
-                    'الفترة',
+                    context.tr('reports.groupLabel'),
+                    widget.group.name,
+                  ),
+                  _pdfInfoRow(
+                    context.tr('reports.dateRange'),
                     '${DateFormat('yyyy/MM/dd').format(_fromDate)} - ${DateFormat('yyyy/MM/dd').format(_toDate)}',
                   ),
                 ],
@@ -210,7 +222,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
 
             // ====== الملخص ======
             pw.Text(
-              'الملخص',
+              context.tr('reports.summary'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -226,16 +238,32 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
               ),
               child: pw.Column(
                 children: [
-                  _pdfSummaryRow('إجمالي الحصص', '$total', PdfColors.blue800),
+                  _pdfSummaryRow(
+                    context.tr('reports.totalSessions'),
+                    '$total',
+                    PdfColors.blue800,
+                  ),
                   pw.SizedBox(height: 4),
-                  _pdfSummaryRow('حاضر', '$present', PdfColors.green800),
+                  _pdfSummaryRow(
+                    context.tr('reports.presentCount'),
+                    '$present',
+                    PdfColors.green800,
+                  ),
                   pw.SizedBox(height: 4),
-                  _pdfSummaryRow('غائب', '$absent', PdfColors.red800),
+                  _pdfSummaryRow(
+                    context.tr('reports.absentCount'),
+                    '$absent',
+                    PdfColors.red800,
+                  ),
                   pw.SizedBox(height: 4),
-                  _pdfSummaryRow('متأخر', '$late', PdfColors.orange800),
+                  _pdfSummaryRow(
+                    context.tr('reports.lateCount'),
+                    '$late',
+                    PdfColors.orange800,
+                  ),
                   pw.Divider(color: PdfColors.blue800),
                   _pdfSummaryRow(
-                    'نسبة الحضور',
+                    context.tr('reports.attendanceRate'),
                     '${attendanceRate.toStringAsFixed(1)}%',
                     attendanceRate >= 75
                         ? PdfColors.green800
@@ -250,7 +278,9 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
 
             // ====== التفاصيل (حسب نوع التقرير) ======
             pw.Text(
-              widget.student != null ? 'سجل الحضور' : 'إحصائيات الطلاب',
+              widget.student != null
+                  ? context.tr('reports.attendanceLog')
+                  : context.tr('reports.homeworkStats'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -264,7 +294,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                 padding: const pw.EdgeInsets.all(20),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  'لا توجد بيانات حضور في هذه الفترة',
+                  context.tr('reports.noDataPeriod'),
                   style: const pw.TextStyle(color: PdfColors.grey600),
                 ),
               )
@@ -278,7 +308,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
             pw.SizedBox(height: 24),
             pw.Center(
               child: pw.Text(
-                'تاريخ الطباعة: ${DateFormat('yyyy/MM/dd HH:mm').format(now)}',
+                '${context.tr('reports.printDate')}: ${context.formatDateTime(now)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.grey600,
@@ -307,8 +337,8 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
           decoration: const pw.BoxDecoration(color: PdfColors.blue50),
           children: [
             _pdfTableHeader('#'),
-            _pdfTableHeader('التاريخ'),
-            _pdfTableHeader('الحالة'),
+            _pdfTableHeader(context.tr('common.date')),
+            _pdfTableHeader(context.tr('reports.statusLabel')),
           ],
         ),
         ...attendance.asMap().entries.map((entry) {
@@ -323,7 +353,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                 ).format(a.checkInTime ?? a.createdAt ?? DateTime.now()),
               ),
               _pdfTableCell(
-                a.statusLabel,
+                context.tr(a.statusKey),
                 color: a.status == 'present'
                     ? PdfColors.green800
                     : a.status == 'absent'
@@ -363,12 +393,12 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
         decoration: const pw.BoxDecoration(color: PdfColors.blue50),
         children: [
           _pdfTableHeader('#'),
-          _pdfTableHeader('الطالب'),
-          _pdfTableHeader('الرقم'),
-          _pdfTableHeader('حاضر'),
-          _pdfTableHeader('غائب'),
-          _pdfTableHeader('متأخر'),
-          _pdfTableHeader('النسبة'),
+          _pdfTableHeader(context.tr('reports.studentLabel')),
+          _pdfTableHeader(context.tr('reports.codeLabel')),
+          _pdfTableHeader(context.tr('reports.presentCount')),
+          _pdfTableHeader(context.tr('reports.absentCount')),
+          _pdfTableHeader(context.tr('reports.lateCount')),
+          _pdfTableHeader(context.tr('reports.rateLabel')),
         ],
       ),
     ];
@@ -505,8 +535,8 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
       appBar: AppBar(
         title: Text(
           widget.student != null
-              ? 'تقرير حضور: ${widget.student!.fullName}'
-              : 'تقرير حضور: ${widget.group.name}',
+              ? '${context.tr('reports.attendanceReport')}: ${widget.student!.fullName}'
+              : '${context.tr('reports.attendanceReport')}: ${widget.group.name}',
         ),
       ),
       body: BlocBuilder<AttendanceBloc, AttendanceState>(
@@ -532,9 +562,12 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                       child: InkWell(
                         onTap: () => _pickDate(true),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'من',
-                            prefixIcon: Icon(Icons.calendar_today, size: 16),
+                          decoration: InputDecoration(
+                            labelText: context.tr('reports.fromDate'),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                            ),
                             isDense: true,
                           ),
                           child: Text(
@@ -549,9 +582,12 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                       child: InkWell(
                         onTap: () => _pickDate(false),
                         child: InputDecorator(
-                          decoration: const InputDecoration(
-                            labelText: 'إلى',
-                            prefixIcon: Icon(Icons.calendar_today, size: 16),
+                          decoration: InputDecoration(
+                            labelText: context.tr('reports.toDate'),
+                            prefixIcon: const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                            ),
                             isDense: true,
                           ),
                           child: Text(
@@ -581,7 +617,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                         ),
                         SizedBox(height: 12.h),
                         Text(
-                          'لا توجد بيانات في هذه الفترة',
+                          context.tr('reports.noDataPeriod'),
                           style: TextStyle(color: colors.onSurfaceVariant),
                         ),
                       ],
@@ -627,7 +663,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                               );
                             },
                             icon: const Icon(Icons.print, size: 18),
-                            label: const Text('طباعة'),
+                            label: Text(context.tr('reports.print')),
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(_kRadius),
@@ -653,8 +689,8 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                               );
                             },
                             icon: const Icon(Icons.share, size: 16),
-                            label: const Text(
-                              'مشاركة',
+                            label: Text(
+                              context.tr('reports.share'),
                               style: TextStyle(fontSize: 12),
                             ),
                             style: OutlinedButton.styleFrom(
@@ -697,7 +733,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
             children: [
               Expanded(
                 child: _StatBox(
-                  label: 'الكل',
+                  label: context.tr('common.all'),
                   value: '$total',
                   color: colors.primary,
                 ),
@@ -705,7 +741,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
               SizedBox(width: 6.w),
               Expanded(
                 child: _StatBox(
-                  label: 'حاضر',
+                  label: context.tr('reports.presentCount'),
                   value: '$present',
                   color: colors.secondary,
                 ),
@@ -713,7 +749,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
               SizedBox(width: 6.w),
               Expanded(
                 child: _StatBox(
-                  label: 'غائب',
+                  label: context.tr('reports.absentCount'),
                   value: '$absent',
                   color: colors.error,
                 ),
@@ -721,7 +757,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
               SizedBox(width: 6.w),
               Expanded(
                 child: _StatBox(
-                  label: 'متأخر',
+                  label: context.tr('reports.lateCount'),
                   value: '$late',
                   color: colors.primary,
                 ),
@@ -752,7 +788,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                 ),
                 SizedBox(width: 8.w),
                 Text(
-                  'نسبة الحضور:',
+                  '${context.tr('reports.attendanceRate')}:',
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
@@ -817,7 +853,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      'إحصائيات الطلاب',
+                      context.tr('reports.homeworkStats'),
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
@@ -864,7 +900,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                             ),
                             Expanded(
                               child: Text(
-                                'ح: $sPresent',
+                                '${context.tr('reports.presentShort')}: $sPresent',
                                 style: TextStyle(
                                   fontSize: 10.sp,
                                   color: colors.secondary,
@@ -873,7 +909,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                             ),
                             Expanded(
                               child: Text(
-                                'غ: $sAbsent',
+                                '${context.tr('reports.absentShort')}: $sAbsent',
                                 style: TextStyle(
                                   fontSize: 10.sp,
                                   color: colors.error,
@@ -882,7 +918,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
                             ),
                             Expanded(
                               child: Text(
-                                'م: $sLate',
+                                '${context.tr('reports.lateShort')}: $sLate',
                                 style: TextStyle(
                                   fontSize: 10.sp,
                                   color: colors.primary,
@@ -925,7 +961,7 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'سجل الحضور',
+              context.tr('reports.attendanceLog'),
               style: TextStyle(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.bold,
@@ -935,9 +971,21 @@ class _AttendanceReportPageState extends State<AttendanceReportPage> {
             SizedBox(height: 8.h),
             ...attendance.map((a) {
               final (color, icon, label) = switch (a.status) {
-                'present' => (colors.secondary, Icons.check_circle, 'حاضر'),
-                'absent' => (colors.error, Icons.cancel, 'غائب'),
-                'late' => (colors.primary, Icons.timelapse, 'متأخر'),
+                'present' => (
+                  colors.secondary,
+                  Icons.check_circle,
+                  context.tr('reports.presentCount'),
+                ),
+                'absent' => (
+                  colors.error,
+                  Icons.cancel,
+                  context.tr('reports.absentCount'),
+                ),
+                'late' => (
+                  colors.primary,
+                  Icons.timelapse,
+                  context.tr('reports.lateCount'),
+                ),
                 _ => (colors.onSurfaceVariant, Icons.help, a.status),
               };
 

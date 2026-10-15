@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/attendance/domain/entities/session_entity.dart';
@@ -463,7 +463,7 @@ class _SessionCard extends StatelessWidget {
                       ),
                       SizedBox(width: 4.w),
                       Text(
-                        session.typeLabel,
+                        context.tr(session.typeKey),
                         style: TextStyle(
                           fontSize: 11.sp,
                           color: colors.onSurfaceVariant,
@@ -1023,7 +1023,9 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
     if (_selectedGroupId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الفوج')));
+      ).showSnackBar(
+        SnackBar(content: Text(context.tr('prompts.selectGroupFirst'))),
+      );
       return;
     }
     /* 
@@ -1031,7 +1033,7 @@ class _CreateSessionDialogState extends State<_CreateSessionDialog> {
       final price = double.tryParse(_priceController.text) ?? 0;
       if (price <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى إدخال سعر الحصة الإضافية')),
+          SnackBar(content: Text(context.tr('prompts.enterExtraPrice'))),
         );
         return;
       }

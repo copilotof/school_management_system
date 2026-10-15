@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/confirm_dialog.dart';
 import 'package:school_management_system/features/notifications/domain/entities/notification_entity.dart';
 import 'package:school_management_system/features/notifications/presentation/bloc/notification_bloc.dart';
@@ -61,11 +62,11 @@ class NotificationsView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإشعارات'),
+        title: Text(context.tr('notifications.title')),
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all_rounded),
-            tooltip: 'تعليم الكل كمقروء',
+            tooltip: context.tr('notifications.markAllRead'),
             onPressed: () {
               context.read<NotificationBloc>().add(MarkAllAsReadEvent());
               ScaffoldMessenger.of(context).showSnackBar(
@@ -74,14 +75,16 @@ class NotificationsView extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.r),
                   ),
-                  content: const Text('تم تعليم الكل كمقروء'),
+                  content: Text(
+                    context.tr('notifications.markAllReadSuccess'),
+                  ),
                 ),
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: 'حذف الكل',
+            tooltip: context.tr('notifications.deleteAll'),
             onPressed: () => _confirmDeleteAll(context),
           ),
           SizedBox(width: 4.w),
@@ -106,8 +109,8 @@ class NotificationsView extends StatelessWidget {
   Future<void> _confirmDeleteAll(BuildContext context) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: 'حذف كل الإشعارات',
-      message: 'هل أنت متأكد من حذف جميع الإشعارات؟',
+      title: context.tr('notifications.deleteAll'),
+      message: context.tr('notifications.deleteAllConfirm'),
     );
     if (confirmed && context.mounted) {
       context.read<NotificationBloc>().add(DeleteAllNotificationsEvent());
@@ -146,7 +149,10 @@ class _NotificationsList extends StatelessWidget {
                       borderRadius: BorderRadius.circular(_Rad.chip),
                     ),
                     child: Text(
-                      '$unreadCount غير مقروء',
+                      context.tr(
+                        'notifications.unreadCount',
+                        params: {'count': '$unreadCount'},
+                      ),
                       style: TextStyle(
                         fontSize: 11.sp,
                         fontWeight: FontWeight.w700,
@@ -198,8 +204,8 @@ class _NotificationCard extends StatelessWidget {
       confirmDismiss: (_) async {
         return await ConfirmDialog.show(
           context: context,
-          title: 'حذف الإشعار',
-          message: 'هل تريد حذف هذا الإشعار؟',
+          title: context.tr('dialogs.confirmDelete'),
+          message: context.tr('dialogs.deleteMessage'),
         );
       },
       onDismissed: (_) {
@@ -328,7 +334,7 @@ class _NotificationCard extends StatelessWidget {
                                     ),
                                     SizedBox(width: 4.w),
                                     Text(
-                                      _formatDate(notification.createdAt),
+                                      _formatDate(context, notification.createdAt),
                                       style: TextStyle(
                                         fontSize: 10.sp,
                                         color: colors.onSurfaceVariant,
@@ -351,7 +357,9 @@ class _NotificationCard extends StatelessWidget {
                                             ),
                                             SizedBox(width: 4.w),
                                             Text(
-                                              'اضغط مطولاً لإرسال رسالة قصيرة',
+                                              context.tr(
+                                                'notifications.longPressHint',
+                                              ),
                                               style: TextStyle(
                                                 fontSize: 9.sp,
                                                 color: colors.onSurfaceVariant
@@ -375,7 +383,7 @@ class _NotificationCard extends StatelessWidget {
                                         ),
                                       ),
                                       child: Text(
-                                        notification.typeLabel,
+                                        context.tr(notification.typeKey),
                                         style: TextStyle(
                                           fontSize: 9.sp,
                                           fontWeight: FontWeight.w600,
@@ -425,8 +433,10 @@ class _NotificationCard extends StatelessWidget {
     }
 
     if (phone == null || phone.isEmpty) {
+      // ✅ فحص mounted بعد await (قبل استخدام context) — يمنع انهيار الشاشة
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يوجد رقم هاتف لهذا الطالب')),
+        SnackBar(content: Text(context.tr('notifications.noPhoneNumber'))),
       );
       return;
     }
@@ -450,15 +460,30 @@ class _NotificationCard extends StatelessWidget {
   }
 
   /// ✅ تنسيق التاريخ (منذ ...)
-  String _formatDate(DateTime? date) {
+  String _formatDate(BuildContext context, DateTime? date) {
     if (date == null) return '';
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inMinutes < 1) return 'الآن';
-    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} دقيقة';
-    if (diff.inHours < 24) return 'منذ ${diff.inHours} ساعة';
-    if (diff.inDays < 7) return 'منذ ${diff.inDays} يوم';
+    if (diff.inMinutes < 1) return context.tr('notifications.timeNow');
+    if (diff.inMinutes < 60) {
+      return context.tr(
+        'notifications.timeMinutesAgo',
+        params: {'count': '${diff.inMinutes}'},
+      );
+    }
+    if (diff.inHours < 24) {
+      return context.tr(
+        'notifications.timeHoursAgo',
+        params: {'count': '${diff.inHours}'},
+      );
+    }
+    if (diff.inDays < 7) {
+      return context.tr(
+        'notifications.timeDaysAgo',
+        params: {'count': '${diff.inDays}'},
+      );
+    }
     return DateFormat('yyyy/MM/dd').format(date);
   }
 
@@ -525,7 +550,7 @@ class _NotificationCard extends StatelessWidget {
                   ),
                   SizedBox(width: 4.w),
                   Text(
-                    _formatDate(notification.createdAt),
+                    _formatDate(context, notification.createdAt),
                     style: TextStyle(
                       fontSize: 11.sp,
                       color: colors.onSurfaceVariant,
@@ -548,7 +573,7 @@ class _NotificationCard extends StatelessWidget {
                         foregroundColor: colors.error,
                         padding: EdgeInsets.symmetric(vertical: 12.h),
                       ),
-                      child: const Text('حذف'),
+                      child: Text(context.tr('common.delete')),
                     ),
                   ),
                   SizedBox(width: 8.w),
@@ -562,7 +587,7 @@ class _NotificationCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                       ),
-                      child: const Text('إغلاق'),
+                      child: Text(context.tr('common.close')),
                     ),
                   ),
                 ],
@@ -600,7 +625,7 @@ class _EmptyState extends StatelessWidget {
           ),
           SizedBox(height: _Sp.md),
           Text(
-            'لا توجد إشعارات',
+            context.tr('notifications.empty'),
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
@@ -609,7 +634,7 @@ class _EmptyState extends StatelessWidget {
           ),
           SizedBox(height: 4.h),
           Text(
-            'ستظهر هنا كل التنبيهات الجديدة أوّلاً بأول',
+            context.tr('notifications.emptyHint'),
             style: TextStyle(fontSize: 11.5.sp, color: colors.onSurfaceVariant),
           ),
         ],
@@ -659,7 +684,7 @@ class _ErrorState extends StatelessWidget {
                 context.read<NotificationBloc>().add(FetchNotifications());
               },
               icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('إعادة المحاولة'),
+              label: Text(context.tr('common.retry')),
               style: FilledButton.styleFrom(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),

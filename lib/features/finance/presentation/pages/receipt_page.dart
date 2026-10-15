@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/groups/presentation/bloc/groups_bloc.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
@@ -55,16 +56,16 @@ class _ReceiptPageState extends State<ReceiptPage> {
   String _formatReceiptNumber() => payment.receiptNumber;
 
   /// ✅ تسمية طريقة الدفع
-  static String _methodLabel(String method) {
+  String _methodLabel(String method) {
     switch (method) {
       case 'cash':
-        return 'نقداً';
+        return context.tr('paymentMethods.cash');
       case 'bank_transfer':
-        return 'تحويل بنكي';
+        return context.tr('paymentMethods.bankTransfer');
       case 'check':
-        return 'شيك';
+        return context.tr('paymentMethods.check');
       default:
-        return 'أخرى';
+        return context.tr('paymentMethods.other');
     }
   }
 
@@ -99,7 +100,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          'إيصال دفع',
+                          context.tr('reports.receipt'),
                           style: pw.TextStyle(
                             fontSize: 22,
                             fontWeight: pw.FontWeight.bold,
@@ -129,7 +130,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
                           pw.Text(
-                            'رقم الإيصال',
+                            context.tr('reports.receiptNumber'),
                             style: const pw.TextStyle(
                               fontSize: 9,
                               color: PdfColors.grey700,
@@ -158,11 +159,11 @@ class _ReceiptPageState extends State<ReceiptPage> {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'التاريخ: ${DateFormat('yyyy/MM/dd').format(payment.paymentDate)}',
+                      '${context.tr('common.date')}: ${context.formatDate(payment.paymentDate)}',
                       style: const pw.TextStyle(fontSize: 11),
                     ),
                     pw.Text(
-                      'الوقت: ${DateFormat('HH:mm').format(payment.paymentDate)}',
+                      '${context.tr('reports.printTime')}: ${context.formatTime(payment.paymentDate)}',
                       style: const pw.TextStyle(fontSize: 11),
                     ),
                   ],
@@ -180,7 +181,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'معلومات الطالب',
+                        context.tr('reports.studentInfo'),
                         style: pw.TextStyle(
                           fontSize: 12,
                           fontWeight: pw.FontWeight.bold,
@@ -188,9 +189,19 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         ),
                       ),
                       pw.SizedBox(height: 6),
-                      _pdfInfoRow('الاسم', student.fullName),
-                      _pdfInfoRow('الرقم', student.studentCode),
-                      if (group != null) _pdfInfoRow('الفوج', group.name),
+                      _pdfInfoRow(
+                        context.tr('reports.nameLabel'),
+                        student.fullName,
+                      ),
+                      _pdfInfoRow(
+                        context.tr('reports.codeLabel'),
+                        student.studentCode,
+                      ),
+                      if (group != null)
+                        _pdfInfoRow(
+                          context.tr('reports.groupLabel'),
+                          group.name,
+                        ),
                     ],
                   ),
                 ),
@@ -208,7 +219,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'تفاصيل الدفعة',
+                        context.tr('reports.paymentDetails'),
                         style: pw.TextStyle(
                           fontSize: 12,
                           fontWeight: pw.FontWeight.bold,
@@ -216,12 +227,21 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         ),
                       ),
                       pw.SizedBox(height: 6),
-                      _pdfInfoRow('نوع الدفعة', payment.typeLabel),
+                      _pdfInfoRow(
+                        context.tr('reports.paymentType'),
+                        context.tr(payment.typeKey),
+                      ),
                       if (payment.monthYear != null)
-                        _pdfInfoRow('الشهر', payment.monthYear!),
-                      _pdfInfoRow('طريقة الدفع', _methodLabel(payment.method)),
+                        _pdfInfoRow(
+                          context.tr('reports.monthLabel'),
+                          payment.monthYear!,
+                        ),
+                      _pdfInfoRow(
+                        context.tr('reports.paymentMethod'),
+                        _methodLabel(payment.method),
+                      ),
                       if (payment.notes != null)
-                        _pdfInfoRow('ملاحظات', payment.notes!),
+                        _pdfInfoRow(context.tr('common.notes'), payment.notes!),
                     ],
                   ),
                 ),
@@ -241,11 +261,11 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(
-                            'المبلغ الإجمالي',
+                            context.tr('reports.totalAmount'),
                             style: const pw.TextStyle(fontSize: 12),
                           ),
                           pw.Text(
-                            '${payment.originalAmount.toStringAsFixed(0)} دج',
+                            '${payment.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                             style: const pw.TextStyle(fontSize: 12),
                           ),
                         ],
@@ -255,7 +275,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                         children: [
                           pw.Text(
-                            'المبلغ المدفوع',
+                            context.tr('reports.paidAmountLabel'),
                             style: pw.TextStyle(
                               fontSize: 14,
                               fontWeight: pw.FontWeight.bold,
@@ -263,7 +283,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                             ),
                           ),
                           pw.Text(
-                            '${payment.amount.toStringAsFixed(0)} دج',
+                            '${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                             style: pw.TextStyle(
                               fontSize: 16,
                               fontWeight: pw.FontWeight.bold,
@@ -278,14 +298,14 @@ class _ReceiptPageState extends State<ReceiptPage> {
                           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                           children: [
                             pw.Text(
-                              'المتبقي',
+                              context.tr('reports.remainingLabel'),
                               style: pw.TextStyle(
                                 fontSize: 12,
                                 color: PdfColors.red800,
                               ),
                             ),
                             pw.Text(
-                              '${payment.remainingAmount.toStringAsFixed(0)} دج',
+                              '${payment.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                               style: pw.TextStyle(
                                 fontSize: 12,
                                 fontWeight: pw.FontWeight.bold,
@@ -318,7 +338,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                           padding: const pw.EdgeInsets.only(top: 4),
                           child: pw.Center(
                             child: pw.Text(
-                              'توقيع المستلم',
+                              context.tr('reports.receiverSignature'),
                               style: const pw.TextStyle(
                                 fontSize: 10,
                                 color: PdfColors.grey700,
@@ -341,7 +361,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                           padding: const pw.EdgeInsets.only(top: 4),
                           child: pw.Center(
                             child: pw.Text(
-                              'ختم المؤسسة',
+                              context.tr('reports.schoolStamp'),
                               style: const pw.TextStyle(
                                 fontSize: 10,
                                 color: PdfColors.grey700,
@@ -357,7 +377,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                 pw.SizedBox(height: 8),
                 pw.Center(
                   child: pw.Text(
-                    'شكراً لتعاملكم معنا',
+                    context.tr('reports.thanks'),
                     style: const pw.TextStyle(
                       fontSize: 10,
                       color: PdfColors.grey600,
@@ -428,16 +448,16 @@ class _ReceiptPageState extends State<ReceiptPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإيصال'),
+        title: Text(context.tr('reports.receiptTitle')),
         actions: [
           IconButton(
             icon: const Icon(Icons.print_outlined),
-            tooltip: 'طباعة',
+            tooltip: context.tr('reports.print'),
             onPressed: _isGenerating ? null : () => _handlePrint(context),
           ),
           IconButton(
             icon: const Icon(Icons.ios_share_outlined),
-            tooltip: 'مشاركة',
+            tooltip: context.tr('reports.share'),
             onPressed: _isGenerating ? null : () => _handleShare(context),
           ),
           SizedBox(width: 4.w),
@@ -516,7 +536,7 @@ class _ReceiptPreview extends StatelessWidget {
                       ),
                       SizedBox(width: 6.w),
                       Text(
-                        'إيصال دفع',
+                        context.tr('reports.receipt'),
                         style: TextStyle(
                           fontSize: 17.sp,
                           fontWeight: FontWeight.bold,
@@ -545,7 +565,7 @@ class _ReceiptPreview extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'رقم الإيصال',
+                      context.tr('reports.receiptNumber'),
                       style: TextStyle(
                         fontSize: 8.5.sp,
                         color: colors.onSecondaryContainer,
@@ -585,12 +605,21 @@ class _ReceiptPreview extends StatelessWidget {
           // ====== معلومات الطالب ======
           _InfoSection(
             icon: Icons.person_outline,
-            title: 'معلومات الطالب',
+            title: context.tr('reports.studentInfo'),
             children: [
-              _ReceiptRow(label: 'الاسم', value: student.fullName),
-              _ReceiptRow(label: 'الرقم', value: student.studentCode),
+              _ReceiptRow(
+                label: context.tr('reports.nameLabel'),
+                value: student.fullName,
+              ),
+              _ReceiptRow(
+                label: context.tr('reports.codeLabel'),
+                value: student.studentCode,
+              ),
               if (groupName != null)
-                _ReceiptRow(label: 'الفوج', value: groupName!),
+                _ReceiptRow(
+                  label: context.tr('reports.groupLabel'),
+                  value: groupName!,
+                ),
             ],
           ),
           SizedBox(height: _Sp.sm),
@@ -598,14 +627,26 @@ class _ReceiptPreview extends StatelessWidget {
           // ====== تفاصيل الدفعة ======
           _InfoSection(
             icon: Icons.receipt_outlined,
-            title: 'تفاصيل الدفعة',
+            title: context.tr('reports.paymentDetails'),
             children: [
-              _ReceiptRow(label: 'نوع الدفعة', value: payment.typeLabel),
+              _ReceiptRow(
+                label: context.tr('reports.paymentType'),
+                value: context.tr(payment.typeKey),
+              ),
               if (payment.monthYear != null)
-                _ReceiptRow(label: 'الشهر', value: payment.monthYear!),
-              _ReceiptRow(label: 'طريقة الدفع', value: methodLabel),
+                _ReceiptRow(
+                  label: context.tr('reports.monthLabel'),
+                  value: payment.monthYear!,
+                ),
+              _ReceiptRow(
+                label: context.tr('reports.paymentMethod'),
+                value: methodLabel,
+              ),
               if (payment.notes != null)
-                _ReceiptRow(label: 'ملاحظات', value: payment.notes!),
+                _ReceiptRow(
+                  label: context.tr('common.notes'),
+                  value: payment.notes!,
+                ),
             ],
           ),
           SizedBox(height: _Sp.sm),
@@ -621,8 +662,9 @@ class _ReceiptPreview extends StatelessWidget {
             child: Column(
               children: [
                 _AmountRow(
-                  label: 'المبلغ الإجمالي',
-                  value: '${payment.originalAmount.toStringAsFixed(0)} دج',
+                  label: context.tr('reports.totalAmount'),
+                  value:
+                      '${payment.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   color: colors.onSurfaceVariant,
                 ),
                 SizedBox(height: 8.h),
@@ -632,8 +674,9 @@ class _ReceiptPreview extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 _AmountRow(
-                  label: 'المبلغ المدفوع',
-                  value: '${payment.amount.toStringAsFixed(0)} دج',
+                  label: context.tr('reports.paidAmountLabel'),
+                  value:
+                      '${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   color: colors.primary,
                   isBold: true,
                   fontSize: 17,
@@ -641,8 +684,9 @@ class _ReceiptPreview extends StatelessWidget {
                 if (payment.remainingAmount > 0) ...[
                   SizedBox(height: 8.h),
                   _AmountRow(
-                    label: 'المتبقي',
-                    value: '${payment.remainingAmount.toStringAsFixed(0)} دج',
+                    label: context.tr('reports.remainingLabel'),
+                    value:
+                        '${payment.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     color: colors.error,
                     isBold: true,
                   ),
@@ -656,18 +700,24 @@ class _ReceiptPreview extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: _SignatureLine(label: 'توقيع المستلم', colors: colors),
+                child: _SignatureLine(
+                  label: context.tr('reports.receiverSignature'),
+                  colors: colors,
+                ),
               ),
               SizedBox(width: 20.w),
               Expanded(
-                child: _SignatureLine(label: 'ختم المؤسسة', colors: colors),
+                child: _SignatureLine(
+                  label: context.tr('reports.schoolStamp'),
+                  colors: colors,
+                ),
               ),
             ],
           ),
           SizedBox(height: _Sp.sm),
           Center(
             child: Text(
-              'شكراً لتعاملكم معنا',
+              context.tr('reports.thanks'),
               style: TextStyle(
                 fontSize: 10.5.sp,
                 color: colors.onSurfaceVariant,
@@ -863,7 +913,7 @@ class _ReceiptActionBar extends StatelessWidget {
                     onPressed: isLoading ? null : onShare,
                     icon: const Icon(Icons.ios_share_outlined, size: 18),
                     label: Text(
-                      'مشاركة',
+                      context.tr('reports.share'),
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w600,
@@ -896,7 +946,7 @@ class _ReceiptActionBar extends StatelessWidget {
                           )
                         : const Icon(Icons.print_outlined, size: 18),
                     label: Text(
-                      'طباعة الإيصال',
+                      context.tr('reports.printReceipt'),
                       style: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w700,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
 import 'package:school_management_system/features/finance/presentation/pages/reports/revenue_report_page.dart';
 import 'package:school_management_system/features/finance/presentation/pages/reports/outstanding_report_page.dart'
@@ -37,12 +38,21 @@ class FinancialReportsPage extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('التقارير المالية'),
-          bottom: const TabBar(
+          title: Text(context.tr('reports.financialReports')),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'الإيرادات', icon: Icon(Icons.trending_up, size: 18)),
-              Tab(text: 'المتأخرات', icon: Icon(Icons.warning_amber, size: 18)),
-              Tab(text: 'الإعفاءات', icon: Icon(Icons.card_giftcard, size: 18)),
+              Tab(
+                text: context.tr('finance.revenue'),
+                icon: const Icon(Icons.trending_up, size: 18),
+              ),
+              Tab(
+                text: context.tr('finance.totalOutstanding'),
+                icon: const Icon(Icons.warning_amber, size: 18),
+              ),
+              Tab(
+                text: context.tr('finance.totalExemptions'),
+                icon: const Icon(Icons.card_giftcard, size: 18),
+              ),
             ],
           ),
         ),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'dart:io';
 
 import 'package:school_management_system/core/services/backup_service.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/confirm_dialog.dart';
 import 'package:school_management_system/injection_container.dart';
 
@@ -291,9 +292,9 @@ class _BackupPageState extends State<BackupPage> {
               const Text('تمت الاستعادة'),
             ],
           ),
-          content: const Text(
-            'تمت استعادة النسخة بنجاح.\n\n'
-            'يجب إعادة تشغيل التطبيق لتطبيق التغييرات.',
+          content: Text(
+            // 'تمت استعادة النسخة بنجاح.\n\n'
+            context.tr('prompts.restartToApply'),
           ),
           actions: [
             ElevatedButton(

@@ -61,6 +61,10 @@ import 'features/homework/data/sources/homework_local_source.dart';
 import 'features/homework/domain/repositories/homework_repository.dart';
 import 'features/homework/domain/usecases/homework_usecases.dart';
 import 'features/homework/presentation/bloc/homework_bloc.dart';
+import 'features/levels/data/repositories/level_repository_impl.dart';
+import 'features/levels/data/sources/level_local_source.dart';
+import 'features/levels/domain/repositories/level_repository.dart';
+import 'features/levels/presentation/bloc/levels_bloc.dart';
 import 'features/notifications/data/repositories/notification_repository_impl.dart';
 import 'features/notifications/data/sources/notification_local_source.dart';
 import 'features/notifications/domain/repositories/notification_repository.dart';
@@ -291,13 +295,7 @@ Future<void> configureDependencies() async {
     );
   }
 
-  if (!getIt.isRegistered<FinanceLocalDataSource>()) {
-    getIt.registerSingleton<FinanceLocalDataSource>(
-      FinanceLocalDataSource(db: getIt<AppDatabase>()),
-    );
-  }
-
-  // في configureDependencies:
+  // ====== الحضور ======
   if (!getIt.isRegistered<AttendanceLocalDataSource>()) {
     getIt.registerSingleton<AttendanceLocalDataSource>(
       AttendanceLocalDataSource(db: getIt<AppDatabase>()),
@@ -354,10 +352,6 @@ Future<void> configureDependencies() async {
     getIt.registerLazySingleton<SmsService>(() => SmsService());
   }
 
-  /*   if (!getIt.isRegistered<SmsService>()) {
-    getIt.registerLazySingleton<SmsService>(() => SmsService());
-  }
-*/
   if (!getIt.isRegistered<TemplateService>()) {
     getIt.registerLazySingleton<TemplateService>(() => TemplateService());
   }
@@ -432,5 +426,22 @@ Future<void> configureDependencies() async {
         updateSubmission: getIt(),
       ),
     );
+  }
+
+  // ====== المستويات ======
+  // ⚠️ كانت غير مُسجَّلة إطلاقًا، مع أن `levels_page` يطلبها عبر `getIt`
+  // وهذا كان يُسبّب انهيارًا عند فتح شاشة المستويات.
+  if (!getIt.isRegistered<LevelLocalDataSource>()) {
+    getIt.registerSingleton<LevelLocalDataSource>(
+      LevelLocalDataSource(db: getIt<AppDatabase>()),
+    );
+  }
+  if (!getIt.isRegistered<LevelRepository>()) {
+    getIt.registerSingleton<LevelRepository>(
+      LevelRepositoryImpl(localDataSource: getIt<LevelLocalDataSource>()),
+    );
+  }
+  if (!getIt.isRegistered<LevelsBloc>()) {
+    getIt.registerFactory(() => LevelsBloc(repository: getIt()));
   }
 }

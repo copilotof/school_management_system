@@ -25,14 +25,15 @@ class AttendanceEntity extends Equatable {
     this.createdAt,
   });
 
-  String get statusLabel {
+  /// ✅ مفتاح الحالة — يُترجَم في الواجهة عبر `context.tr(...)`
+  String get statusKey {
     switch (status) {
       case 'present':
-        return 'حاضر';
+        return 'attendance.present';
       case 'absent':
-        return 'غائب';
+        return 'attendance.absent';
       case 'late':
-        return 'متأخر';
+        return 'attendance.late';
       default:
         return status;
     }

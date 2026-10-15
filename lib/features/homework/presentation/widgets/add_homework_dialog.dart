@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:drift/drift.dart' as drift;
 import 'package:school_management_system/core/database/app_database.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
@@ -218,18 +218,18 @@ class _AddHomeworkDialogState extends State<AddHomeworkDialog> {
     setState(() => _errorMessage = null);
 
     if (_titleController.text.trim().isEmpty) {
-      setState(() => _errorMessage = 'يرجى إدخال عنوان الواجب');
+      setState(() => _errorMessage = context.tr('prompts.enterHomeworkTitle'));
       return;
     }
 
     if (_descriptionController.text.trim().isEmpty) {
-      setState(() => _errorMessage = 'يرجى إدخال محتوى الواجب');
+      setState(() => _errorMessage = context.tr('prompts.enterHomeworkContent'));
       return;
     }
 
     if (_targetSession == null) {
       setState(
-        () => _errorMessage = 'يرجى اختيار تاريخ تسليم صحيح (يوجد فيه حصة)',
+        () => _errorMessage = context.tr('prompts.selectValidDueDate'),
       );
       return;
     }

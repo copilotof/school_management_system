@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+// نخفي TextDirection الخاصة بـ intl لتفادي تعارضها مع TextDirection من Flutter
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/attendance/domain/entities/schedule_template_entity.dart';
 import 'package:school_management_system/features/attendance/presentation/bloc/attendance_bloc.dart';
@@ -78,19 +79,19 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
   }
 
   String _getGradeName(GradesState state) {
-    if (widget.group.gradeId == null) return 'غير محدد';
+    if (widget.group.gradeId == null) return context.tr('common.notSpecified');
     final grades = state.gradesState.data ?? [];
     final grade = grades.where((g) => g.id == widget.group.gradeId).firstOrNull;
-    return grade?.name ?? 'غير محدد';
+    return grade?.name ?? context.tr('common.notSpecified');
   }
 
   String _getSubjectName(SubjectsState state) {
-    if (widget.group.subjectId == null) return 'غير محدد';
+    if (widget.group.subjectId == null) return context.tr('common.notSpecified');
     final subjects = state.subjectsState.data ?? [];
     final subject = subjects
         .where((s) => s.id == widget.group.subjectId)
         .firstOrNull;
-    return subject?.name ?? 'غير محدد';
+    return subject?.name ?? context.tr('common.notSpecified');
   }
 
   /// ✅ نافذة إضافة/تعديل موعد أسبوعي
@@ -126,19 +127,24 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد من حذف موعد ${template.dayLabel}؟'),
+        title: Text(context.tr('dialogs.confirmDelete')),
+        content: Text(
+          context.tr(
+            'groups.deleteTimeSlotConfirm',
+            params: <String, String>{'day': context.tr(template.dayKey)},
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(context.tr('common.cancel')),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('حذف'),
+            child: Text(context.tr('common.delete')),
           ),
         ],
       ),
@@ -237,7 +243,10 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                             _InfoRow(
                               icon: Icons.people_outline,
                               label: context.tr('groups.studentsCount'),
-                              value: '$studentsCount طالب',
+                              value: context.tr(
+                                'groups.studentsCountValue',
+                                params: <String, String>{'count': '$studentsCount'},
+                              ),
                             ),
                             Divider(height: 1, color: colors.surfaceVariant),
                             _InfoRow(
@@ -308,7 +317,7 @@ class _GroupDetailsPageState extends State<GroupDetailsPage> {
                           OutlinedButton.icon(
                             onPressed: () => _showAddTemplateDialog(context),
                             icon: const Icon(Icons.add, size: 16),
-                            label: const Text('إضافة موعد'),
+                            label: Text(context.tr('groups.addTimeSlot')),
                           ),
                         ],
                       ),
@@ -692,7 +701,7 @@ class _TemplateRow extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.edit_outlined, size: 16.sp, color: colors.primary),
             onPressed: onEdit,
-            tooltip: 'تعديل',
+            tooltip: context.tr('common.edit'),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -700,7 +709,7 @@ class _TemplateRow extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.delete_outline, size: 16.sp, color: colors.error),
             onPressed: onDelete,
-            tooltip: 'حذف',
+            tooltip: context.tr('common.delete'),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),

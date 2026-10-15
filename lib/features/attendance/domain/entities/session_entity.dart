@@ -50,31 +50,33 @@ class SessionEntity extends Equatable {
     this.createdAt,
   });
 
-  String get typeLabel {
+  /// ✅ مفتاح النوع — يُترجَم في الواجهة عبر `context.tr(...)`
+  String get typeKey {
     switch (type) {
       case 'regular':
-        return 'عادية';
+        return 'attendance.regular';
       case 'makeup':
-        return 'تعويضية';
+        return 'attendance.makeup';
       case 'extra':
-        return 'إضافية';
+        return 'attendance.extra';
       default:
         return type;
     }
   }
 
-  String get statusLabel {
+  /// ✅ مفتاح الحالة — يُترجَم في الواجهة عبر `context.tr(...)`
+  String get statusKey {
     switch (status) {
       case 'scheduled':
-        return 'مجدولة';
+        return 'attendance.scheduled';
       case 'in_progress':
-        return 'قيد التنفيذ';
+        return 'attendance.inProgress';
       case 'completed':
-        return 'مكتملة';
+        return 'attendance.completed';
       case 'cancelled':
-        return 'ملغاة';
+        return 'attendance.cancelled';
       case 'postponed':
-        return 'مؤجلة';
+        return 'attendance.postponed';
       default:
         return status;
     }

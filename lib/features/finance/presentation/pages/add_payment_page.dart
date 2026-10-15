@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/enrollment/presentation/bloc/enrollment_bloc.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
@@ -392,8 +393,8 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       } else {
         // الحصة غير موجودة أو مدفوعة
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('هذه الحصة الإضافية مدفوعة بالكامل أو غير موجودة'),
+          SnackBar(
+            content: Text(context.tr('finance.extraAlreadyPaid')),
           ),
         );
       }
@@ -542,7 +543,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
     if (_selectedMonth.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الشهر أولاً')));
+      ).showSnackBar(
+        SnackBar(content: Text(context.tr('prompts.selectMonthFirst'))),
+      );
       return;
     }
     final monthlyFee = _getGroupMonthlyFee();
@@ -578,7 +581,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         _selectedMonth.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الشهر')));
+      ).showSnackBar(
+          SnackBar(content: Text(context.tr('prompts.selectMonth'))),
+        );
       return;
     }
     final monthlyFee = _getGroupMonthlyFee();
@@ -600,22 +605,36 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
           startMonthDate.month + _advanceMonths - 1,
           1,
         );
-        notes =
-            'دفع مسبق $_advanceMonths أشهر (خصم $_advanceDiscount%) - من $_selectedMonth إلى ${endMonthDate.year}-${endMonthDate.month.toString().padLeft(2, '0')}';
+        // ✅ ملاحظة محفوظة في قاعدة البيانات — من مفتاح نائم
+        notes = context.tr(
+          'finance.advanceNotes',
+          params: {
+            'months': '$_advanceMonths',
+            'discount': '$_advanceDiscount',
+            'start': _selectedMonth,
+            'end':
+                '${endMonthDate.year}-${endMonthDate.month.toString().padLeft(2, '0')}',
+          },
+        );
         originalAmount = monthlyFee * _advanceMonths;
         remainingAmount = 0;
       } else {
         originalAmount = monthlyFee;
         if (amount < monthlyFee) {
           remainingAmount = monthlyFee - amount;
-          notes = 'دفع جزئي - متبقي ${remainingAmount.toStringAsFixed(0)} دج';
+          notes = context.tr(
+            'finance.partialNotes',
+            params: {'amount': remainingAmount.toStringAsFixed(0)},
+          );
         }
       }
     } else if (_paymentType == 'exemption') {
       if (_selectedMonth.isEmpty) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الشهر')));
+        ).showSnackBar(
+          SnackBar(content: Text(context.tr('prompts.selectMonth'))),
+        );
         return;
       }
 
@@ -636,15 +655,21 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         paymentDate: _paymentDate,
         method: 'cash',
         receiptNumber: _generateReceiptNumber(),
-        notes:
-            'إعفاء - ${_notesController.text.isNotEmpty ? _notesController.text : 'بدون سبب'}',
+        notes: context.tr(
+          'finance.exemptionNotes',
+          params: {
+            'reason': _notesController.text.isNotEmpty
+                ? _notesController.text
+                : context.tr('common.notSpecified'),
+          },
+        ),
       );
 
       context.read<FinanceBloc>().add(CreatePaymentEvent(payment));
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم تسجيل الإعفاء بنجاح'),
+        SnackBar(
+          content: Text(context.tr('messages.operationSuccess')),
           backgroundColor: Colors.orange,
         ),
       );
@@ -659,16 +684,26 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       final reducedAmount = double.tryParse(_reductionController.text) ?? 0;
       amount = reducedAmount;
       remainingAmount = 0;
-      notes =
-          'تخفيض - المطلوب ${originalAmount.toStringAsFixed(0)} دج، دفع ${reducedAmount.toStringAsFixed(0)} دج (مساعدة ${(originalAmount - reducedAmount).toStringAsFixed(0)} دج)${_notesController.text.isNotEmpty ? ' - ${_notesController.text}' : ''}';
+      // ✅ ملاحظة محفوظة في قاعدة البيانات — مفتاحان نائمان (مع سبب / بدون سبب)
+      final reductionParams = <String, String>{
+        'original': originalAmount.toStringAsFixed(0),
+        'paid': reducedAmount.toStringAsFixed(0),
+        'help': (originalAmount - reducedAmount).toStringAsFixed(0),
+      };
+      notes = _notesController.text.isNotEmpty
+          ? context.tr(
+              'finance.manualReduction',
+              params: {...reductionParams, 'notes': _notesController.text},
+            )
+          : context.tr('finance.reductionReason', params: reductionParams);
     } else if (_paymentType == 'registration') {
       type = 'registration';
-      notes = 'رسوم تسجيل سنوية';
+      notes = context.tr('finance.registrationNotes');
     } else if (_paymentType == 'extra') {
       // ✅ تسديد حصة إضافية
       if (_selectedExtraId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى اختيار الحصة الإضافية')),
+          SnackBar(content: Text(context.tr('prompts.selectExtraSession'))),
         );
         return;
       }
@@ -681,7 +716,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       if (payAmount <= 0) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('يرجى إدخال مبلغ صحيح')));
+        ).showSnackBar(
+          SnackBar(content: Text(context.tr('prompts.enterValidAmount'))),
+        );
         return;
       }
 
@@ -689,7 +726,12 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'المبلغ أكبر من المتبقي (${selectedExtra.remainingAmount.toStringAsFixed(0)} دج)',
+              context.tr(
+                'finance.amountExceedsRemaining',
+                params: {
+                  'amount': selectedExtra.remainingAmount.toStringAsFixed(0),
+                },
+              ),
             ),
           ),
         );
@@ -703,7 +745,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         amount: selectedExtra.amount + payAmount,
         remainingAmount: newRemaining,
         paymentDate: DateTime.now(),
-        notes: newRemaining <= 0 ? 'مدفوع بالكامل' : selectedExtra.notes,
+        notes: newRemaining <= 0
+            ? context.tr('finance.fullyPaid')
+            : selectedExtra.notes,
       );
 
       // 2. إنشاء دفعة منفصلة للسجل
@@ -719,7 +763,7 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         paymentDate: _paymentDate,
         method: 'cash',
         receiptNumber: _generateReceiptNumber(),
-        notes: 'تسديد حصة إضافية',
+        notes: context.tr('finance.extraPaymentNotes'),
       );
 
       // إرسال الحدثين
@@ -730,8 +774,14 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
         SnackBar(
           content: Text(
             newRemaining <= 0
-                ? 'تم تسديد الحصة الإضافية بالكامل'
-                : 'تم تسديد $payAmount دج. المتبقي: $newRemaining دج',
+                ? context.tr('finance.extraFullySettled')
+                : context.tr(
+                    'finance.extraPartiallySettled',
+                    params: {
+                      'paid': '$payAmount',
+                      'remaining': '$newRemaining',
+                    },
+                  ),
           ),
           backgroundColor: Theme.of(context).colorScheme.secondary,
         ),
@@ -756,9 +806,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
     );
 
     context.read<FinanceBloc>().add(CreatePaymentEvent(payment));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('تم تسجيل العملية بنجاح')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('messages.operationSuccess'))),
+    );
     Navigator.of(context).pop();
   }
 
@@ -810,7 +860,12 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('عملية: ${widget.student.fullName}'),
+        title: Text(
+          context.tr(
+            'finance.operationTitle',
+            params: {'name': widget.student.fullName},
+          ),
+        ),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
@@ -821,42 +876,42 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             // ====== نوع العملية ======
             _FormCard(
               icon: Icons.category_outlined,
-              title: 'نوع العملية',
+              title: context.tr('finance.paymentType'),
               child: Wrap(
                 spacing: 8.w,
                 runSpacing: 8.h,
                 children: [
                   _TypeChip(
                     icon: _typeIcons['monthly']!,
-                    label: 'شهرية',
+                    label: context.tr('finance.monthly'),
                     value: 'monthly',
                     selected: _paymentType,
                     onTap: _changeType,
                   ),
                   _TypeChip(
                     icon: _typeIcons['exemption']!,
-                    label: 'إعفاء',
+                    label: context.tr('finance.exemption'),
                     value: 'exemption',
                     selected: _paymentType,
                     onTap: _changeType,
                   ),
                   _TypeChip(
                     icon: _typeIcons['reduction']!,
-                    label: 'تخفيض',
+                    label: context.tr('finance.reduction'),
                     value: 'reduction',
                     selected: _paymentType,
                     onTap: _changeType,
                   ),
                   _TypeChip(
                     icon: _typeIcons['registration']!,
-                    label: 'تسجيل',
+                    label: context.tr('finance.registration'),
                     value: 'registration',
                     selected: _paymentType,
                     onTap: _changeType,
                   ),
                   _TypeChip(
                     icon: _typeIcons['extra']!,
-                    label: 'إضافية',
+                    label: context.tr('attendance.extra'),
                     value: 'extra',
                     selected: _paymentType,
                     onTap: _changeType,
@@ -872,7 +927,7 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                 _paymentType == 'reduction') ...[
               _FormCard(
                 icon: Icons.calendar_month,
-                title: 'الشهر',
+                title: context.tr('common.month'),
                 child: widget.initialMonth != null
                     ? Container(
                         // ✅ شهر محدد - غير قابل للتغيير
@@ -907,8 +962,8 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                         ),
                         hint: Text(
                           unpaidMonths.isEmpty
-                              ? 'لا توجد أشهر غير مدفوعة'
-                              : 'اختر الشهر',
+                              ? context.tr('finance.noUnpaidMonths')
+                              : context.tr('finance.selectMonth'),
                           style: const TextStyle(fontSize: 12),
                         ),
                         items: unpaidMonths.map((monthYear) {
@@ -931,9 +986,9 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             if (_paymentType == 'monthly') ...[
               _FormCard(
                 icon: Icons.fast_forward,
-                title: 'دفع مسبق',
+                title: context.tr('finance.advance'),
                 headerTrailing: _isAdvance
-                    ? const _StatusBadge(label: 'مفعّل')
+                    ? _StatusBadge(label: context.tr('finance.advanceEnabled'))
                     : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -945,8 +1000,11 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                         icon: const Icon(Icons.fast_forward, size: 16),
                         label: Text(
                           _isAdvance
-                              ? 'تعديل الدفع المسبق ($_advanceMonths أشهر)'
-                              : 'تحويل لدفع مسبق',
+                              ? context.tr(
+                                  'finance.editAdvanceMonths',
+                                  params: {'months': '$_advanceMonths'},
+                                )
+                              : context.tr('finance.convertToAdvance'),
                           style: const TextStyle(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w600,
@@ -965,7 +1023,10 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                       Padding(
                         padding: EdgeInsets.only(top: AppSpacing.sm),
                         child: Text(
-                          'المبلغ محسوب تلقائياً بخصم $_advanceDiscount%',
+                          context.tr(
+                            'finance.amountAutoDiscount',
+                            params: {'discount': '$_advanceDiscount'},
+                          ),
                           style: TextStyle(
                             fontSize: 11.sp,
                             color: colors.primary,
@@ -984,8 +1045,8 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
               _FormCard(
                 icon: Icons.payments_outlined,
                 title: _paymentType == 'reduction'
-                    ? 'المبلغ المطلوب (دج)'
-                    : 'المبلغ (دج)',
+                    ? context.tr('finance.fixedAmount')
+                    : context.tr('finance.amount'),
                 child: TextField(
                   controller: _amountController,
                   keyboardType: TextInputType.number,
@@ -1022,13 +1083,13 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             if (_paymentType == 'reduction') ...[
               _FormCard(
                 icon: Icons.percent,
-                title: 'المبلغ المخفض (دج)',
+                title: context.tr('finance.reducedAmount'),
                 child: TextField(
                   controller: _reductionController,
                   keyboardType: TextInputType.number,
                   decoration: _fieldDecoration(
                     icon: Icons.percent,
-                    suffixText: 'دج',
+                    suffixText: context.tr('common.currency'),
                   ),
                 ),
               ),
@@ -1040,10 +1101,10 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             if (_paymentType == 'extra') ...[
               _FormCard(
                 icon: Icons.event,
-                title: 'الحصة الإضافية',
+                title: context.tr('finance.extraSession'),
                 child: _unpaidExtras.isEmpty
                     ? Text(
-                        'لا توجد حصص إضافية مستحقة لهذا الطالب',
+                        context.tr('finance.noExtraAvailable'),
                         style: TextStyle(
                           fontSize: 12.sp,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -1052,16 +1113,25 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
                     : DropdownButtonFormField<int>(
                         isExpanded: true,
                         initialValue: _selectedExtraId,
-                        decoration: const InputDecoration(
-                          labelText: 'اختر الحصة *',
-                          prefixIcon: Icon(Icons.event, size: 18),
+                        decoration: InputDecoration(
+                          labelText: '${context.tr('finance.selectExtra')} *',
+                          prefixIcon: const Icon(Icons.event, size: 18),
                           isDense: true,
                         ),
                         items: _unpaidExtras.map((extra) {
                           return DropdownMenuItem(
                             value: extra.id,
                             child: Text(
-                              'حصة ${DateFormat('yyyy/MM/dd').format(extra.paymentDate)} - متبقي ${extra.remainingAmount.toStringAsFixed(0)} دج',
+                              context.tr(
+                                'finance.extraSessionItem',
+                                params: {
+                                  'date': DateFormat(
+                                    'yyyy/MM/dd',
+                                  ).format(extra.paymentDate),
+                                  'amount': extra.remainingAmount
+                                      .toStringAsFixed(0),
+                                },
+                              ),
                               style: const TextStyle(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1085,7 +1155,7 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             // ====== التاريخ ======
             _FormCard(
               icon: Icons.calendar_today,
-              title: 'تاريخ العملية',
+              title: context.tr('finance.paymentDate'),
               child: InkWell(
                 borderRadius: BorderRadius.circular(AppRadius.field),
                 onTap: () async {
@@ -1109,11 +1179,13 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
             // ====== ملاحظات ======
             _FormCard(
               icon: Icons.notes,
-              title: 'ملاحظات / سبب',
+              title: context.tr('finance.notesOrReason'),
               child: TextField(
                 controller: _notesController,
                 maxLines: 2,
-                decoration: _fieldDecoration(hint: 'اختياري'),
+                decoration: _fieldDecoration(
+                  hint: context.tr('common.optional'),
+                ),
               ),
             ),
           ],
@@ -1121,7 +1193,7 @@ class _AddPaymentPageState extends State<AddPaymentPage> {
       ),
       // شريط إجراء ثابت أسفل الشاشة — لا يتحرك مع التمرير، ومنفصل بصريًا بظل خفيف
       bottomNavigationBar: _StickyActionBar(
-        primaryLabel: 'تسجيل العملية',
+        primaryLabel: context.tr('finance.addPayment'),
         primaryIcon: Icons.check_circle_outline,
         onPrimaryPressed: _submit,
       ),
@@ -1193,7 +1265,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
                   ),
                   SizedBox(width: 10.w),
                   Text(
-                    'الدفع المسبق',
+                    context.tr('finance.advancePayment'),
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
@@ -1205,7 +1277,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
 
               // عدد الأشهر
               Text(
-                'عدد الأشهر',
+                context.tr('finance.advanceMonths'),
                 style: TextStyle(
                   fontSize: 12.5.sp,
                   fontWeight: FontWeight.w600,
@@ -1259,19 +1331,19 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
               Row(
                 children: [
                   _QuickPreset(
-                    label: '3 أشهر\nخصم 5%',
+                    label: context.tr('finance.quickPreset3'),
                     selected: _months == 3,
                     onTap: () => _setPreset(3, 5),
                   ),
                   SizedBox(width: 8.w),
                   _QuickPreset(
-                    label: '6 أشهر\nخصم 10%',
+                    label: context.tr('finance.quickPreset6'),
                     selected: _months == 6,
                     onTap: () => _setPreset(6, 10),
                   ),
                   SizedBox(width: 8.w),
                   _QuickPreset(
-                    label: '12 شهر\nخصم 15%',
+                    label: context.tr('finance.quickPreset12'),
                     selected: _months == 12,
                     onTap: () => _setPreset(12, 15),
                   ),
@@ -1282,7 +1354,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
               // نسبة الخصم
               // استبدل قسم نسبة الخصم بالكامل:
               Text(
-                'نسبة التخفيض %',
+                context.tr('finance.discountPercentage'),
                 style: TextStyle(
                   fontSize: 12.5.sp,
                   fontWeight: FontWeight.w600,
@@ -1310,7 +1382,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'النسبة: ',
+                    '${context.tr('reports.rateLabel')}: ',
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: colors.onSurfaceVariant,
@@ -1358,27 +1430,31 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
                 child: Column(
                   children: [
                     _SummaryRow(
-                      label: 'الرسوم الشهرية',
-                      value: '${widget.monthlyFee.toStringAsFixed(0)} دج',
+                      label: context.tr('groups.monthlyFee'),
+                      value:
+                          '${widget.monthlyFee.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     ),
                     SizedBox(height: 6.h),
                     _SummaryRow(
-                      label: 'المبلغ قبل الخصم',
-                      value: '${_totalBefore.toStringAsFixed(0)} دج',
+                      label: context.tr('finance.amountBeforeDiscount'),
+                      value:
+                          '${_totalBefore.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     ),
                     SizedBox(height: 6.h),
                     _SummaryRow(
                       label:
-                          'قيمة الخصم (${_discount.toStringAsFixed(0)}%)', // ✅ تقريب النسبة
-                      value: '- ${_discountAmount.toStringAsFixed(0)} دج',
+                          '${context.tr('finance.discountValue')} (${_discount.toStringAsFixed(0)}%)', // ✅ تقريب النسبة
+                      value:
+                          '- ${_discountAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
 
                       /*                       label: 'قيمة الخصم ($_discount%)',
                       value: '- ${_discountAmount.toStringAsFixed(0)} دج', */
                     ),
                     Divider(height: 18, color: colors.outlineVariant),
                     _SummaryRow(
-                      label: 'المبلغ النهائي',
-                      value: '${_totalAfter.toStringAsFixed(0)} دج',
+                      label: context.tr('finance.totalAfterDiscount'),
+                      value:
+                          '${_totalAfter.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       isTotal: true,
                       color: colors.primary,
                     ),
@@ -1399,7 +1475,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
                           borderRadius: BorderRadius.circular(AppRadius.field),
                         ),
                       ),
-                      child: const Text('إلغاء'),
+                      child: Text(context.tr('common.cancel')),
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -1417,7 +1493,7 @@ class _AdvancePaymentDialogState extends State<_AdvancePaymentDialog> {
                           borderRadius: BorderRadius.circular(AppRadius.field),
                         ),
                       ),
-                      child: const Text('تأكيد'),
+                      child: Text(context.tr('common.confirm')),
                     ),
                   ),
                 ],

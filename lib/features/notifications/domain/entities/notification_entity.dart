@@ -27,17 +27,20 @@ class NotificationEntity extends Equatable {
     this.createdAt,
   });
 
-  /// تسمية النوع
-  String get typeLabel {
+  /// ✅ مفتاح النوع — يُترجَم في الواجهة عبر `context.tr(...)`
+  ///
+  /// الكيان لا يملك `BuildContext`، فلا يكتب نصًا عربيًا مباشرًا؛
+  /// والمفاتيح `notifications.type*` جاهزة في اللغات الثلاث.
+  String get typeKey {
     switch (type) {
       case 'attendance':
-        return 'غياب';
+        return 'notifications.typeAttendance';
       case 'payment':
-        return 'دفع';
+        return 'notifications.typePayment';
       case 'session':
-        return 'حصة';
+        return 'notifications.typeSession';
       case 'general':
-        return 'عام';
+        return 'notifications.typeGeneral';
       default:
         return type;
     }

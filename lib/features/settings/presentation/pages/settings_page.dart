@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_management_system/core/services/language_cubit.dart';
 import 'package:school_management_system/core/theme/theme_cubit.dart';
 import 'package:school_management_system/core/utils/responsive.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 
 import '../../../../core/database/settings_local_source.dart';
 import '../../../../injection_container.dart';
@@ -421,7 +422,7 @@ class _AbsenceLimitDialogState extends State<_AbsenceLimitDialog> {
               Navigator.of(context).pop(value);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('يرجى إدخال رقم صحيح')),
+                SnackBar(content: Text(context.tr('validators.invalidNumber'))),
               );
             }
           },

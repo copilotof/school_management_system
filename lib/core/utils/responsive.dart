@@ -2,48 +2,102 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 📁 أدوات التصميم المتجاوب (Responsive Design)
-/// تستخدم flutter_screenutil للتحجيم + LayoutBuilder لتغيير التخطيط
+///
+/// تجمع بين `flutter_screenutil` للتحجيم و`MediaQuery` الذكي لتغيير التخطيط.
+///
+/// **نقطة أداء مهمة:** نستخدم `MediaQuery.sizeOf/paddingOf/viewInsetsOf/
+/// orientationOf` بدل `MediaQuery.of(context).xxx` — لأن `MediaQuery.of`
+/// يجعل الودجة تُعاد بناؤها عند **أي** تغيير في MediaQuery (ومنها فتح
+/// لوحة المفاتيح!)، بينما الدوال المخصّصة تُعيد البناء عند تغيّر ذلك
+/// الجانب وحده.
+///
+/// **أمثلة:**
+/// ```dart
+/// if (context.isMobile) { ... }
+/// Padding(padding: context.smartPadding(mobile: 16, tablet: 24), child: ...)
+/// ResponsiveLayout(mobile: MobileView(), desktop: DesktopView())
+/// GridView.count(crossAxisCount: context.gridColumns)
+/// ```
 
 // ================================================
-// أنواع الأجهزة
+// 📁 أنواع الأجهزة
 // ================================================
 
-/// 📁 نوع الجهاز الحالي
+/// نوع الجهاز الحالي
 enum DeviceType {
-  mobile, // هاتف صغير (< 600)
-  tablet, // تابلت (600 - 1024)
-  desktop, // ديسكتوب (> 1024)
+  /// هاتف (< 600 بكسل)
+  mobile,
+
+  /// تابلت (600 - 1024 بكسل)
+  tablet,
+
+  /// ديسكتوب (> 1024 بكسل)
+  desktop,
 }
 
-/// 📁 نقاط التوقف (Breakpoints)
+// ================================================
+// 📁 نقاط التوقف (Breakpoints)
+// ================================================
+
+/// نقاط التوقف (Breakpoints) للتصميم المتجاوب
 class Breakpoints {
   Breakpoints._();
 
+  /// نهاية فئة الهاتف / بداية التابلت
   static const double mobile = 600;
+
+  /// نهاية فئة التابلت / بداية الديسكتوب
   static const double tablet = 1024;
+
+  /// عرض شاشة مرجعي للديسكتوب الكبير
   static const double desktop = 1440;
 
-  // نقاط توقف إضافية للهواتف
+  // --- تصنيف أدق للهواتف ---
+
+  /// هاتف صغير جدًا
   static const double mobileSmall = 360;
+
+  /// هاتف متوسط
   static const double mobileMedium = 400;
+
+  /// هاتف كبير
   static const double mobileLarge = 480;
+
+  // --- فئات Material Design 3 ---
+
+  /// نهاية `compact` / بداية `medium`
+  static const double compactEnd = 600;
+
+  /// نهاية `medium` / بداية `expanded`
+  static const double mediumEnd = 840;
 }
 
-/// 📁 Extension على BuildContext
+// ================================================
+// 📁 Extension على BuildContext
+// ================================================
+
 extension ResponsiveContext on BuildContext {
-  /// الحصول على حجم الشاشة
-  Size get screenSize => MediaQuery.of(this).size;
+  // --- حجم الشاشة ---
+
+  /// حجم الشاشة
+  Size get screenSize => MediaQuery.sizeOf(this);
 
   /// عرض الشاشة
-  double get screenWidth => screenSize.width;
+  double get screenWidth => MediaQuery.sizeOf(this).width;
 
   /// ارتفاع الشاشة
-  double get screenHeight => screenSize.height;
+  double get screenHeight => MediaQuery.sizeOf(this).height;
 
-  /// نوع الجهاز
+  /// نسبة العرض إلى الارتفاع
+  double get aspectRatio => MediaQuery.sizeOf(this).aspectRatio;
+
+  // --- نوع الجهاز ---
+
+  /// نوع الجهاز الحالي
   DeviceType get deviceType {
-    if (screenWidth < Breakpoints.mobile) return DeviceType.mobile;
-    if (screenWidth < Breakpoints.tablet) return DeviceType.tablet;
+    final double width = screenWidth;
+    if (width < Breakpoints.mobile) return DeviceType.mobile;
+    if (width < Breakpoints.tablet) return DeviceType.tablet;
     return DeviceType.desktop;
   }
 
@@ -56,83 +110,124 @@ extension ResponsiveContext on BuildContext {
   /// هل هو ديسكتوب؟
   bool get isDesktop => deviceType == DeviceType.desktop;
 
-  /// هل الشاشة صغيرة جداً؟
+  /// هل الشاشة صغيرة جدًا؟
   bool get isSmallMobile => screenWidth < Breakpoints.mobileSmall;
 
-  /// هل الشاشة كبيرة؟
+  /// هل الشاشة كبيرة (داخل فئة الهاتف)؟
   bool get isLargeMobile =>
       screenWidth >= Breakpoints.mobileLarge &&
       screenWidth < Breakpoints.mobile;
 
-  /// الاتجاه (عمودي/أفقي)
-  Orientation get orientation => MediaQuery.of(this).orientation;
+  // --- الاتجاه ---
+
+  /// الاتجاه الحالي (عمودي/أفقي)
+  Orientation get orientation => MediaQuery.orientationOf(this);
+
+  /// هل الشاشة عمودية؟
   bool get isPortrait => orientation == Orientation.portrait;
+
+  /// هل الشاشة أفقية؟
   bool get isLandscape => orientation == Orientation.landscape;
 
-  /// المساحة الآمنة
-  EdgeInsets get safeAreaPadding => MediaQuery.of(this).padding;
+  /// هل هو هاتف أفقي؟ (يحتاج معالجة خاصة للارتفاع)
+  bool get isLandscapeMobile => isMobile && isLandscape;
+
+  // --- المساحة والحدود ---
+
+  /// المساحة الآمنة (للأجهزة ذات الشق/الحواف)
+  EdgeInsets get safeAreaPadding => MediaQuery.paddingOf(this);
+
+  /// ارتفاع لوحة المفاتيح
+  double get keyboardHeight => MediaQuery.viewInsetsOf(this).bottom;
 
   /// هل لوحة المفاتيح مفتوحة؟
-  bool get isKeyboardOpen => MediaQuery.of(this).viewInsets.bottom > 0;
+  bool get isKeyboardOpen => keyboardHeight > 0;
+
+  /// الارتفاع المتاح فعلًا بعد خصم المساحة الآمنة ولوحة المفاتيح
+  double get availableHeight =>
+      screenHeight -
+      safeAreaPadding.top -
+      safeAreaPadding.bottom -
+      keyboardHeight;
+
+  // --- عدد أعمدة الشبكة ---
+
+  /// عدد الأعمدة المقترح لـ `GridView` حسب نوع الجهاز
+  int get gridColumns {
+    return switch (deviceType) {
+      DeviceType.mobile => 2,
+      DeviceType.tablet => 3,
+      DeviceType.desktop => 4,
+    };
+  }
+
+  /// عدد الأعمدة حسب أقل عرض مقبول للعنصر
+  int gridColumnsForItem(double minItemWidth, {double horizontalPadding = 32}) {
+    final double available = screenWidth - horizontalPadding;
+    final int columns = (available / minItemWidth).floor();
+    return columns.clamp(1, 6);
+  }
+
+  // --- نسب سريعة ---
+
+  /// نسبة من عرض الشاشة
+  double widthPercent(double percent) => screenWidth * percent;
+
+  /// نسبة من ارتفاع الشاشة
+  double heightPercent(double percent) => screenHeight * percent;
 }
 
-/// 📁 Extension على BuildContext للحصول على أحجام ذكية
+// ================================================
+// 📁 Extension للتحجيم الذكي
+// ================================================
+
 extension SmartSizing on BuildContext {
-  /// عرض ذكي: يتكيف مع نوع الجهاز
+  /// عرض ذكي حسب نوع الجهاز
   double smartWidth(
     double mobileValue, {
     double? tabletValue,
     double? desktopValue,
   }) {
-    switch (deviceType) {
-      case DeviceType.mobile:
-        return mobileValue.w;
-      case DeviceType.tablet:
-        return (tabletValue ?? mobileValue * 1.5).w;
-      case DeviceType.desktop:
-        return (desktopValue ?? mobileValue * 2).w;
-    }
+    return switch (deviceType) {
+      DeviceType.mobile => mobileValue.w,
+      DeviceType.tablet => (tabletValue ?? mobileValue * 1.5).w,
+      DeviceType.desktop => (desktopValue ?? mobileValue * 2).w,
+    };
   }
 
-  /// ارتفاع ذكي
+  /// ارتفاع ذكي حسب نوع الجهاز
   double smartHeight(
     double mobileValue, {
     double? tabletValue,
     double? desktopValue,
   }) {
-    switch (deviceType) {
-      case DeviceType.mobile:
-        return mobileValue.h;
-      case DeviceType.tablet:
-        return (tabletValue ?? mobileValue * 1.5).h;
-      case DeviceType.desktop:
-        return (desktopValue ?? mobileValue * 2).h;
-    }
+    return switch (deviceType) {
+      DeviceType.mobile => mobileValue.h,
+      DeviceType.tablet => (tabletValue ?? mobileValue * 1.5).h,
+      DeviceType.desktop => (desktopValue ?? mobileValue * 2).h,
+    };
   }
 
-  /// حجم خط ذكي
+  /// حجم خط ذكي حسب نوع الجهاز
   double smartFontSize(
     double mobileValue, {
     double? tabletValue,
     double? desktopValue,
   }) {
-    switch (deviceType) {
-      case DeviceType.mobile:
-        return mobileValue.sp;
-      case DeviceType.tablet:
-        return (tabletValue ?? mobileValue * 1.3).sp;
-      case DeviceType.desktop:
-        return (desktopValue ?? mobileValue * 1.6).sp;
-    }
+    return switch (deviceType) {
+      DeviceType.mobile => mobileValue.sp,
+      DeviceType.tablet => (tabletValue ?? mobileValue * 1.3).sp,
+      DeviceType.desktop => (desktopValue ?? mobileValue * 1.6).sp,
+    };
   }
 
-  /// Padding ذكي
+  /// Padding ذكي (كل الاتجاهات)
   EdgeInsets smartPadding({
     double mobile = 16,
     double? tablet,
     double? desktop,
   }) {
-    final value = switch (deviceType) {
+    final double value = switch (deviceType) {
       DeviceType.mobile => mobile,
       DeviceType.tablet => tablet ?? mobile * 1.5,
       DeviceType.desktop => desktop ?? mobile * 2,
@@ -146,7 +241,7 @@ extension SmartSizing on BuildContext {
     double? tablet,
     double? desktop,
   }) {
-    final value = switch (deviceType) {
+    final double value = switch (deviceType) {
       DeviceType.mobile => mobile,
       DeviceType.tablet => tablet ?? mobile * 1.5,
       DeviceType.desktop => desktop ?? mobile * 2,
@@ -160,27 +255,48 @@ extension SmartSizing on BuildContext {
     double? tablet,
     double? desktop,
   }) {
-    final value = switch (deviceType) {
+    final double value = switch (deviceType) {
       DeviceType.mobile => mobile,
       DeviceType.tablet => tablet ?? mobile * 1.5,
       DeviceType.desktop => desktop ?? mobile * 2,
     };
     return EdgeInsets.symmetric(vertical: value.h);
   }
+
+  /// مسافة بين العناصر (ذكية)
+  double smartGap({
+    double mobile = 8,
+    double? tablet,
+    double? desktop,
+  }) {
+    return switch (deviceType) {
+      DeviceType.mobile => mobile.w,
+      DeviceType.tablet => (tablet ?? mobile * 1.5).w,
+      DeviceType.desktop => (desktop ?? mobile * 2).w,
+    };
+  }
 }
 
-/// 📁 Widget مساعد لتغيير التخطيط حسب نوع الجهاز
-class ResponsiveLayout extends StatelessWidget {
-  final Widget mobile;
-  final Widget? tablet;
-  final Widget? desktop;
+// ================================================
+// 📁 ودجات مساعدة
+// ================================================
 
+/// 📁 يختار التخطيط حسب نوع الجهاز
+///
+/// ملاحظة: الوسائط الثلاثة تُبنى ككائنات قبل الاختيار، لذا استخدمه فقط
+/// عندما تكون التخطيطات خفيفة. للشاشات الثقيلة يُفضّل `switch` مباشر على
+/// `context.deviceType` حتى يُبنى تخطيط واحد فقط.
+class ResponsiveLayout extends StatelessWidget {
   const ResponsiveLayout({
     super.key,
     required this.mobile,
     this.tablet,
     this.desktop,
   });
+
+  final Widget mobile;
+  final Widget? tablet;
+  final Widget? desktop;
 
   @override
   Widget build(BuildContext context) {
@@ -192,16 +308,18 @@ class ResponsiveLayout extends StatelessWidget {
   }
 }
 
-/// 📁 Widget مساعد لعرض محتوى بعرض أقصى محدد (للديسكتوب)
+/// 📁 يقيّد عرض المحتوى (مفيد للديسكتوب والنماذج)
+///
+/// **مثال:** `ConstrainedWidth(maxWidth: 800, child: LoginForm())`
 class ConstrainedWidth extends StatelessWidget {
-  final Widget child;
-  final double maxWidth;
-
   const ConstrainedWidth({
     super.key,
     required this.child,
     this.maxWidth = 1200,
   });
+
+  final Widget child;
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {

@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 
-/// 📁 حوار تأكيد الحذف
-
+/// 📁 حوار تأكيد موحّد (يُستخدم في كل الشاشات)
+///
+/// النصوص الافتراضية تُترجم تلقائيًا إن لم تُمرَّر، فلا توجد نصوص عربية
+/// مكتوبة في الكود.
 class ConfirmDialog {
   static Future<bool> show({
     required BuildContext context,
     required String title,
     required String message,
-    String confirmText = 'حذف',
-    String cancelText = 'إلغاء',
+    String? confirmText,
+    String? cancelText,
   }) async {
-    final result = await showDialog<bool>(
+    final bool? result = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) {
-        final colors = Theme.of(context).colorScheme;
+      builder: (BuildContext dialogContext) {
+        final ColorScheme colors = Theme.of(dialogContext).colorScheme;
+
         return AlertDialog(
           title: Text(title),
           content: Text(message),
-          actions: [
+          actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(cancelText),
+              child: Text(cancelText ?? dialogContext.tr('common.cancel')),
             ),
             ElevatedButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -29,7 +32,7 @@ class ConfirmDialog {
                 backgroundColor: colors.error,
                 foregroundColor: colors.onError,
               ),
-              child: Text(confirmText),
+              child: Text(confirmText ?? dialogContext.tr('common.delete')),
             ),
           ],
         );

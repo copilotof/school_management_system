@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
@@ -121,7 +121,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'تقرير المتأخرات',
+                        context.tr('reports.outstandingReport'),
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
@@ -141,14 +141,14 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'من: ${DateFormat('yyyy/MM/dd').format(_fromDate)}',
+                        '${context.tr('reports.fromDate')}: ${context.formatDate(_fromDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'إلى: ${DateFormat('yyyy/MM/dd').format(_toDate)}',
+                        '${context.tr('reports.toDate')}: ${context.formatDate(_toDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
@@ -171,14 +171,14 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
               child: pw.Column(
                 children: [
                   _pdfSummaryRow(
-                    'عدد الحالات',
+                    context.tr('reports.countCases'),
                     '${payments.length}',
                     PdfColors.blue800,
                   ),
                   pw.SizedBox(height: 4),
                   _pdfSummaryRow(
-                    'إجمالي المتأخرات',
-                    '${total.toStringAsFixed(0)} دج',
+                    context.tr('reports.totalDebt'),
+                    '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     PdfColors.red800,
                   ),
                 ],
@@ -188,7 +188,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
 
             // الجدول
             pw.Text(
-              'تفاصيل المتأخرات',
+              context.tr('reports.details'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -202,7 +202,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                 padding: const pw.EdgeInsets.all(20),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  'لا توجد متأخرات في الفترة',
+                  context.tr('reports.noDataPeriod'),
                   style: const pw.TextStyle(color: PdfColors.grey600),
                 ),
               )
@@ -224,10 +224,10 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                     decoration: const pw.BoxDecoration(color: PdfColors.red50),
                     children: [
                       _pdfTableHeader('#'),
-                      _pdfTableHeader('الطالب'),
-                      _pdfTableHeader('النوع'),
-                      _pdfTableHeader('المطلوب'),
-                      _pdfTableHeader('المتبقي'),
+                      _pdfTableHeader(context.tr('reports.studentLabel')),
+                      _pdfTableHeader(context.tr('reports.typeLabel')),
+                      _pdfTableHeader(context.tr('reports.dueLabel')),
+                      _pdfTableHeader(context.tr('reports.remainingLabel')),
                     ],
                   ),
                   ...payments.asMap().entries.map((entry) {
@@ -243,12 +243,12 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                           student?.fullName ?? '-',
                           align: pw.TextAlign.right,
                         ),
-                        _pdfTableCell(p.typeLabel),
+                        _pdfTableCell(context.tr(p.typeKey)),
                         _pdfTableCell(
-                          '${p.originalAmount.toStringAsFixed(0)} دج',
+                          '${p.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         ),
                         _pdfTableCell(
-                          '${p.remainingAmount.toStringAsFixed(0)} دج',
+                          '${p.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           color: PdfColors.red800,
                         ),
                       ],
@@ -260,7 +260,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
             pw.SizedBox(height: 24),
             pw.Center(
               child: pw.Text(
-                'تاريخ الطباعة: ${DateFormat('yyyy/MM/dd HH:mm').format(now)}',
+                '${context.tr('reports.printDate')}: ${context.formatDateTime(now)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.grey600,
@@ -362,9 +362,9 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
             child: InkWell(
               onTap: () => _pickDate(true),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'من',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.fromDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -379,9 +379,9 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
             child: InkWell(
               onTap: () => _pickDate(false),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'إلى',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.toDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -403,7 +403,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
         children: [
           Expanded(
             child: _StatCard(
-              label: 'عدد الحالات',
+              label: context.tr('reports.countCases'),
               value: '$count',
               color: colors.primary,
               icon: Icons.warning_amber,
@@ -413,8 +413,9 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
           Expanded(
             flex: 2,
             child: _StatCard(
-              label: 'إجمالي المتأخرات',
-              value: '${total.toStringAsFixed(0)} دج',
+              label: context.tr('reports.totalDebt'),
+              value:
+                  '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
               color: colors.error,
               icon: Icons.trending_down,
             ),
@@ -437,7 +438,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
             Icon(Icons.check_circle, size: 64.sp, color: colors.secondary),
             SizedBox(height: 12.h),
             Text(
-              'لا توجد متأخرات في هذه الفترة',
+              context.tr('reports.noDataPeriod'),
               style: TextStyle(color: colors.onSurfaceVariant),
             ),
           ],
@@ -480,7 +481,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                   style: const TextStyle(fontSize: 13),
                 ),
                 subtitle: Text(
-                  '${p.typeLabel} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
+                  '${context.tr(p.typeKey)} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
                   style: const TextStyle(fontSize: 11),
                 ),
                 trailing: Column(
@@ -488,7 +489,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${p.remainingAmount.toStringAsFixed(0)} دج',
+                      '${p.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
@@ -496,7 +497,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                       ),
                     ),
                     Text(
-                      'من ${p.originalAmount.toStringAsFixed(0)} دج',
+                      '${context.tr('reports.fromDate')} ${p.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       style: TextStyle(
                         fontSize: 9.sp,
                         color: colors.onSurfaceVariant,
@@ -542,7 +543,7 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                     );
                   },
                   icon: const Icon(Icons.print, size: 18),
-                  label: const Text('طباعة'),
+                  label: Text(context.tr('reports.print')),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),
@@ -564,7 +565,10 @@ class _OutstandingReportPageState extends State<OutstandingReportPage> {
                     );
                   },
                   icon: const Icon(Icons.share, size: 16),
-                  label: const Text('مشاركة', style: TextStyle(fontSize: 12)),
+                  label: Text(
+                    context.tr('reports.share'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:school_management_system/core/database/app_database.dart';
+import 'package:school_management_system/core/services/translation_service.dart';
 
 /// 📁 خدمة الإشعارات التلقائية
 class AutoNotificationService {
@@ -59,9 +60,19 @@ class AutoNotificationService {
           .into(db.notifications)
           .insert(
             NotificationsCompanion.insert(
-              title: 'تنبيه غياب - $studentName',
-              body:
-                  'تجاوز الطالب $studentName الحد المسموح من الغيابات ($absentCount / $threshold).',
+              // ✅ تُترجَم عند الإنشاء وتُحفظ بلغة الواجهة الحالية
+              title: TranslationService.instance.tr(
+                'notifications.absenceAlertTitle',
+                params: {'name': studentName},
+              ),
+              body: TranslationService.instance.tr(
+                'notifications.absenceBodyDetailed',
+                params: {
+                  'name': studentName,
+                  'absent': '$absentCount',
+                  'threshold': '$threshold',
+                },
+              ),
               type: 'attendance',
               recipientType: 'student',
               recipientId: Value(studentId),
@@ -196,9 +207,18 @@ class AutoNotificationService {
             .into(db.notifications)
             .insert(
               NotificationsCompanion.insert(
-                title: 'تذكير بالدفع - $studentName',
-                body:
-                    'يوجد متأخرات على الطالب $studentName بمبلغ ${totalDebt.toStringAsFixed(0)} دج ($unpaidMonthsCount أشهر + دفعات جزئية).',
+                title: TranslationService.instance.tr(
+                  'notifications.paymentReminderTitle',
+                  params: {'name': studentName},
+                ),
+                body: TranslationService.instance.tr(
+                  'notifications.paymentBodyDetailed',
+                  params: {
+                    'name': studentName,
+                    'amount': totalDebt.toStringAsFixed(0),
+                    'months': '$unpaidMonthsCount',
+                  },
+                ),
                 type: 'payment',
                 recipientType: 'guardian',
                 recipientId: Value(enrollment.studentId),
@@ -248,9 +268,14 @@ class AutoNotificationService {
             .into(db.notifications)
             .insert(
               NotificationsCompanion.insert(
-                title: 'إلغاء حصة - ${group.name}',
-                body:
-                    'تم إلغاء الحصة الخاصة بفوج ${group.name}. السبب: $reason',
+                title: TranslationService.instance.tr(
+                  'notifications.sessionCancelledTitle',
+                  params: {'group': group.name},
+                ),
+                body: TranslationService.instance.tr(
+                  'notifications.sessionCancelledBody',
+                  params: {'group': group.name, 'reason': reason},
+                ),
                 type: 'session',
                 recipientType: 'student',
                 recipientId: Value(enrollment.studentId),

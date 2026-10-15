@@ -40,35 +40,38 @@ class InvoiceEntity extends Equatable {
   /// هل مدفوعة بالكامل؟
   bool get isPaid => remaining <= 0;
 
-  /// تسمية نوع المستحق
-  String get typeLabel {
+  /// ✅ مفتاح نوع المستحق — يُترجَم في الواجهة عبر `context.tr(...)`
+  ///
+  /// ملاحظة: مُعاد استخدام مفاتيح `finance.*` القائمة (تسجيل/شهرية/حصة إضافية)
+  /// بدل إنشاء مفاتيح مكرّرة — والفرق الوحيد `finance.customType` (مخصص).
+  String get typeKey {
     switch (type) {
       case 'registration':
-        return 'رسوم تسجيل';
+        return 'finance.registration';
       case 'monthly':
-        return 'رسوم شهرية';
+        return 'finance.monthly';
       case 'extra_session':
-        return 'حصة إضافية';
+        return 'finance.extra';
       case 'custom':
-        return 'مخصص';
+        return 'finance.customType';
       default:
         return type;
     }
   }
 
-  /// تسمية الحالة
-  String get statusLabel {
+  /// ✅ مفتاح الحالة — يُترجَم في الواجهة عبر `context.tr(...)`
+  String get statusKey {
     switch (status) {
       case 'unpaid':
-        return 'غير مدفوعة';
+        return 'finance.notPaid';
       case 'partially_paid':
-        return 'مدفوعة جزئياً';
+        return 'finance.partialPaid';
       case 'paid':
-        return 'مدفوعة';
+        return 'finance.paid';
       case 'exempted':
-        return 'معفاة';
+        return 'finance.exempted';
       case 'cancelled':
-        return 'ملغاة';
+        return 'attendance.cancelled';
       default:
         return status;
     }

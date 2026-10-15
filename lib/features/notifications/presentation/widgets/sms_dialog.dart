@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/features/notifications/services/sms_service.dart';
 
 // ============================================================
@@ -77,15 +78,15 @@ class _SmsDialogState extends State<SmsDialog> {
   Future<void> _sendSms() async {
     if (_selectedRecipientIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار مستلم واحد على الأقل')),
+        SnackBar(content: Text(context.tr('prompts.selectRecipient'))),
       );
       return;
     }
 
     if (_messageController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرسالة فارغة')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('sms.emptyMessage'))),
+      );
       return;
     }
 
@@ -98,16 +99,19 @@ class _SmsDialogState extends State<SmsDialog> {
           borderRadius: BorderRadius.circular(_Rad.sheet),
         ),
         icon: Icon(Icons.send_rounded, color: colors.primary),
-        title: const Text('تأكيد الإرسال'),
+        title: Text(context.tr('common.confirm')),
         content: Text(
-          'هل أنت متأكد من إرسال ${_selectedRecipientIds.length} رسالة قصيرة؟',
+          context.tr(
+            'sms.confirmSend',
+            params: {'count': '${_selectedRecipientIds.length}'},
+          ),
           textAlign: TextAlign.center,
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('إلغاء'),
+            child: Text(context.tr('common.cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -116,7 +120,7 @@ class _SmsDialogState extends State<SmsDialog> {
                 borderRadius: BorderRadius.circular(_Rad.field),
               ),
             ),
-            child: const Text('إرسال'),
+            child: Text(context.tr('sms.send')),
           ),
         ],
       ),
@@ -190,7 +194,7 @@ class _SmsDialogState extends State<SmsDialog> {
                   SizedBox(width: 10.w),
                   Expanded(
                     child: Text(
-                      'إرسال رسائل قصيرة',
+                      context.tr('sms.sendTitle'),
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
@@ -239,7 +243,7 @@ class _SmsDialogState extends State<SmsDialog> {
                                 SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
-                                    'جاري الإرسال... ${_progress!.processed} / ${_progress!.total}',
+                                    '${context.tr('sms.sending')} ${_progress!.processed} / ${_progress!.total}',
                                     style: TextStyle(
                                       fontSize: 13.sp,
                                       fontWeight: FontWeight.bold,
@@ -270,14 +274,14 @@ class _SmsDialogState extends State<SmsDialog> {
                               children: [
                                 _StatBadge(
                                   icon: Icons.check_circle_outline,
-                                  label: 'نجح',
+                                  label: context.tr('sms.sent'),
                                   value: '${_progress!.sent}',
                                   color: colors.primary,
                                 ),
                                 SizedBox(width: 8.w),
                                 _StatBadge(
                                   icon: Icons.error_outline,
-                                  label: 'فشل',
+                                  label: context.tr('sms.failed'),
                                   value: '${_progress!.failed}',
                                   color: colors.error,
                                 ),
@@ -294,7 +298,7 @@ class _SmsDialogState extends State<SmsDialog> {
                       children: [
                         Expanded(
                           child: Text(
-                            'المستلمون (${_selectedRecipientIds.length} / ${widget.recipients.length})',
+                            '${context.tr('sms.recipients')} (${_selectedRecipientIds.length} / ${widget.recipients.length})',
                             style: TextStyle(
                               fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
@@ -309,7 +313,9 @@ class _SmsDialogState extends State<SmsDialog> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: Text(
-                            _allSelected ? 'إلغاء التحديد' : 'تحديد الكل',
+                            _allSelected
+                                ? context.tr('common.deselectAll')
+                                : context.tr('common.selectAll'),
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
@@ -389,7 +395,7 @@ class _SmsDialogState extends State<SmsDialog> {
                       children: [
                         Expanded(
                           child: Text(
-                            'نص الرسالة',
+                            context.tr('sms.message'),
                             style: TextStyle(
                               fontSize: 13.sp,
                               fontWeight: FontWeight.bold,
@@ -397,7 +403,10 @@ class _SmsDialogState extends State<SmsDialog> {
                           ),
                         ),
                         Text(
-                          '$messageLength حرف',
+                          context.tr(
+                            'sms.charCount',
+                            params: {'count': '$messageLength'},
+                          ),
                           style: TextStyle(
                             fontSize: 10.5.sp,
                             color: colors.onSurfaceVariant,
@@ -414,7 +423,7 @@ class _SmsDialogState extends State<SmsDialog> {
                       onChanged: (_) => setState(() {}),
                       style: TextStyle(fontSize: 13.sp),
                       decoration: InputDecoration(
-                        hintText: 'اكتب نص الرسالة...',
+                        hintText: context.tr('sms.messagePlaceholder'),
                         filled: true,
                         fillColor: colors.surfaceContainerLow,
                         border: OutlineInputBorder(
@@ -446,7 +455,7 @@ class _SmsDialogState extends State<SmsDialog> {
                         ),
                         SizedBox(width: 8.w),
                         Text(
-                          'جاري الإرسال...',
+                          context.tr('sms.sending'),
                           style: TextStyle(
                             fontSize: 13.sp,
                             color: colors.onSurfaceVariant,
@@ -469,7 +478,7 @@ class _SmsDialogState extends State<SmsDialog> {
                                   ),
                                 ),
                               ),
-                              child: const Text('إلغاء'),
+                              child: Text(context.tr('common.cancel')),
                             ),
                           ),
                         ),
@@ -482,7 +491,12 @@ class _SmsDialogState extends State<SmsDialog> {
                               onPressed: _sendSms,
                               icon: const Icon(Icons.send_rounded, size: 18),
                               label: Text(
-                                'إرسال (${_selectedRecipientIds.length})',
+                                context.tr(
+                                  'sms.sendCount',
+                                  params: {
+                                    'count': '${_selectedRecipientIds.length}',
+                                  },
+                                ),
                                 style: TextStyle(fontWeight: FontWeight.w700),
                               ),
                               style: FilledButton.styleFrom(

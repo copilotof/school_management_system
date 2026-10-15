@@ -38,23 +38,26 @@ class PaymentEntity extends Equatable {
     this.recordedBy,
   });
 
-  /// تسمية النوع
-  String get typeLabel {
+  /// ✅ مفتاح النوع — يُترجَم في الواجهة عبر `context.tr(...)`
+  ///
+  /// الكيان لا يملك `BuildContext` فلا يكتب نصًا عربيًا مباشرًا
+  /// (المفاتيح `finance.*` جاهزة في اللغات الثلاث).
+  String get typeKey {
     switch (type) {
       case 'monthly':
-        return 'شهرية';
+        return 'finance.monthly';
       case 'advance':
-        return 'دفع مسبق';
+        return 'finance.advance';
       case 'exemption':
-        return 'إعفاء';
+        return 'finance.exemption';
       case 'reduction':
-        return 'تخفيض';
+        return 'finance.reduction';
       case 'registration':
-        return 'تسجيل';
+        return 'finance.registration';
       case 'extra':
-        return 'حصة إضافية';
+        return 'finance.extra';
       case 'extra_payment':
-        return 'تسديد حصة إضافية'; // ✅
+        return 'finance.extraPayment'; // ✅
       default:
         return type;
     }

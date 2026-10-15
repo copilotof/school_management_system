@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/utils/responsive.dart';
 import 'package:school_management_system/features/students/domain/entities/student_entity.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
+
+import '../../../../core/utils/translation_extension.dart';
 
 /// 📁 نموذج الطالب المشترك
 /// يستخدم في صفحتي الإضافة والتعديل
@@ -123,20 +125,20 @@ class _StudentFormState extends State<StudentForm> {
         padding: context.smartPadding(mobile: 16, tablet: 24, desktop: 32),
         children: [
           // ====== المعلومات الأساسية ======
-          _buildSectionTitle(context, 'المعلومات الأساسية'),
+          _buildSectionTitle(context, context.tr('students.personalInfo')),
           SizedBox(height: 12.h),
 
           // الاسم الأول
           TextFormField(
             controller: _firstNameController,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'الاسم الأول *',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: '${context.tr('students.firstName')} *',
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'يرجى إدخال الاسم الأول';
+                return context.tr('students.firstNameRequired');
               }
               return null;
             },
@@ -147,13 +149,13 @@ class _StudentFormState extends State<StudentForm> {
           TextFormField(
             controller: _lastNameController,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'اللقب *',
-              prefixIcon: Icon(Icons.person_outline),
+            decoration: InputDecoration(
+              labelText: '${context.tr('students.lastName')} *',
+              prefixIcon: const Icon(Icons.person_outline),
             ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
-                return 'يرجى إدخال اللقب';
+                return context.tr('students.lastNameRequired');
               }
               return null;
             },
@@ -167,13 +169,13 @@ class _StudentFormState extends State<StudentForm> {
                 child: TextFormField(
                   controller: _studentCodeController,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم الطالب *',
-                    prefixIcon: Icon(Icons.badge_outlined),
+                  decoration: InputDecoration(
+                    labelText: '${context.tr('students.studentCode')} *',
+                    prefixIcon: const Icon(Icons.badge_outlined),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'يرجى إدخال رقم الطالب';
+                      return context.tr('students.studentCodeRequired');
                     }
                     return null;
                   },
@@ -182,7 +184,7 @@ class _StudentFormState extends State<StudentForm> {
               SizedBox(width: 8.w),
               IconButton(
                 icon: const Icon(Icons.refresh),
-                tooltip: 'توليد رقم تلقائي',
+                tooltip: context.tr('students.generateCode'),
                 onPressed: () {
                   setState(() {
                     _studentCodeController.text = _generateStudentCode();
@@ -197,14 +199,14 @@ class _StudentFormState extends State<StudentForm> {
           InkWell(
             onTap: _pickDateOfBirth,
             child: InputDecorator(
-              decoration: const InputDecoration(
-                labelText: 'تاريخ الميلاد',
-                prefixIcon: Icon(Icons.calendar_today),
+              decoration: InputDecoration(
+                labelText: context.tr('students.dateOfBirth'),
+                prefixIcon: const Icon(Icons.calendar_today),
               ),
               child: Text(
                 _dateOfBirth != null
                     ? DateFormat('yyyy/MM/dd').format(_dateOfBirth!)
-                    : 'اختر تاريخ الميلاد',
+                    : context.tr('students.selectBirthDate'),
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: _dateOfBirth != null
@@ -219,20 +221,26 @@ class _StudentFormState extends State<StudentForm> {
           // الجنس
           DropdownButtonFormField<String>(
             value: _gender,
-            decoration: const InputDecoration(
-              labelText: 'الجنس',
-              prefixIcon: Icon(Icons.wc),
+            decoration: InputDecoration(
+              labelText: context.tr('students.gender'),
+              prefixIcon: const Icon(Icons.wc),
             ),
-            items: const [
-              DropdownMenuItem(value: 'male', child: Text('ذكر')),
-              DropdownMenuItem(value: 'female', child: Text('أنثى')),
+            items: [
+              DropdownMenuItem(
+                value: 'male',
+                child: Text(context.tr('students.male')),
+              ),
+              DropdownMenuItem(
+                value: 'female',
+                child: Text(context.tr('students.female')),
+              ),
             ],
             onChanged: (value) => setState(() => _gender = value),
           ),
           SizedBox(height: 20.h),
 
           // ====== معلومات الاتصال ======
-          _buildSectionTitle(context, 'معلومات الاتصال'),
+          _buildSectionTitle(context, context.tr('students.contactInfo')),
           SizedBox(height: 12.h),
 
           // الهاتف
@@ -240,13 +248,13 @@ class _StudentFormState extends State<StudentForm> {
             controller: _phoneController,
             keyboardType: TextInputType.phone,
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'رقم الهاتف',
-              prefixIcon: Icon(Icons.phone_outlined),
+            decoration: InputDecoration(
+              labelText: context.tr('students.phone'),
+              prefixIcon: const Icon(Icons.phone_outlined),
             ),
             validator: (value) {
               if (value != null && value.isNotEmpty && value.length < 8) {
-                return 'رقم الهاتف غير صحيح';
+                return context.tr('students.phoneInvalid');
               }
               return null;
             },
@@ -258,29 +266,38 @@ class _StudentFormState extends State<StudentForm> {
             controller: _addressController,
             textInputAction: TextInputAction.next,
             maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'العنوان',
-              prefixIcon: Icon(Icons.location_on_outlined),
+            decoration: InputDecoration(
+              labelText: context.tr('students.address'),
+              prefixIcon: const Icon(Icons.location_on_outlined),
               alignLabelWithHint: true,
             ),
           ),
           SizedBox(height: 20.h),
 
           // ====== معلومات إضافية ======
-          _buildSectionTitle(context, 'معلومات إضافية'),
+          _buildSectionTitle(context, context.tr('students.additionalInfo')),
           SizedBox(height: 12.h),
 
           // الحالة
           DropdownButtonFormField<String>(
             value: _status,
-            decoration: const InputDecoration(
-              labelText: 'الحالة',
-              prefixIcon: Icon(Icons.info_outline),
+            decoration: InputDecoration(
+              labelText: context.tr('students.status'),
+              prefixIcon: const Icon(Icons.info_outline),
             ),
-            items: const [
-              DropdownMenuItem(value: 'active', child: Text('نشط')),
-              DropdownMenuItem(value: 'inactive', child: Text('غير نشط')),
-              DropdownMenuItem(value: 'withdrawn', child: Text('منسحب')),
+            items: [
+              DropdownMenuItem(
+                value: 'active',
+                child: Text(context.tr('students.active')),
+              ),
+              DropdownMenuItem(
+                value: 'inactive',
+                child: Text(context.tr('students.inactive')),
+              ),
+              DropdownMenuItem(
+                value: 'withdrawn',
+                child: Text(context.tr('students.withdrawn')),
+              ),
             ],
             onChanged: (value) => setState(() => _status = value),
           ),
@@ -290,9 +307,9 @@ class _StudentFormState extends State<StudentForm> {
           TextFormField(
             controller: _notesController,
             maxLines: 3,
-            decoration: const InputDecoration(
-              labelText: 'ملاحظات',
-              prefixIcon: Icon(Icons.notes),
+            decoration: InputDecoration(
+              labelText: context.tr('students.notes'),
+              prefixIcon: const Icon(Icons.notes),
               alignLabelWithHint: true,
             ),
           ),
@@ -315,8 +332,8 @@ class _StudentFormState extends State<StudentForm> {
                         )
                       : Text(
                           widget.initialStudent == null
-                              ? 'إضافة الطالب'
-                              : 'حفظ التعديلات',
+                              ? context.tr('students.add')
+                              : context.tr('students.saveChanges'),
                         ),
                 ),
               ),
@@ -326,7 +343,7 @@ class _StudentFormState extends State<StudentForm> {
                   onPressed: widget.isLoading
                       ? null
                       : () => Navigator.of(context).pop(),
-                  child: const Text('إلغاء'),
+                  child: Text(context.tr('common.cancel')),
                 ),
               ),
             ],

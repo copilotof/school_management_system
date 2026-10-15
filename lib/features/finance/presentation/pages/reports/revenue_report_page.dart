@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
@@ -120,7 +120,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'تقرير الإيرادات',
+                        context.tr('reports.revenueReport'),
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
@@ -140,14 +140,14 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'من: ${DateFormat('yyyy/MM/dd').format(_fromDate)}',
+                        '${context.tr('reports.fromDate')}: ${context.formatDate(_fromDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'إلى: ${DateFormat('yyyy/MM/dd').format(_toDate)}',
+                        '${context.tr('reports.toDate')}: ${context.formatDate(_toDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
@@ -170,14 +170,14 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
               child: pw.Column(
                 children: [
                   _pdfSummaryRow(
-                    'عدد الدفعات',
+                    context.tr('reports.paymentsCount'),
                     '${payments.length}',
                     PdfColors.blue800,
                   ),
                   pw.SizedBox(height: 4),
                   _pdfSummaryRow(
-                    'إجمالي الإيرادات',
-                    '${total.toStringAsFixed(0)} دج',
+                    context.tr('reports.totalRevenueLabel'),
+                    '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     PdfColors.green800,
                   ),
                 ],
@@ -187,7 +187,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
 
             // الجدول
             pw.Text(
-              'تفاصيل الدفعات',
+              context.tr('reports.details'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -201,7 +201,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                 padding: const pw.EdgeInsets.all(20),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  'لا توجد دفعات في الفترة',
+                  context.tr('reports.noDataPeriod'),
                   style: const pw.TextStyle(color: PdfColors.grey600),
                 ),
               )
@@ -225,10 +225,10 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                     ),
                     children: [
                       _pdfTableHeader('#'),
-                      _pdfTableHeader('التاريخ'),
-                      _pdfTableHeader('الطالب'),
-                      _pdfTableHeader('النوع'),
-                      _pdfTableHeader('المبلغ'),
+                      _pdfTableHeader(context.tr('common.date')),
+                      _pdfTableHeader(context.tr('reports.studentLabel')),
+                      _pdfTableHeader(context.tr('reports.typeLabel')),
+                      _pdfTableHeader(context.tr('reports.amountLabel')),
                     ],
                   ),
                   ...payments.asMap().entries.map((entry) {
@@ -247,9 +247,9 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                           student?.fullName ?? '-',
                           align: pw.TextAlign.right,
                         ),
-                        _pdfTableCell(p.typeLabel),
+                        _pdfTableCell(context.tr(p.typeKey)),
                         _pdfTableCell(
-                          '${p.amount.toStringAsFixed(0)} دج',
+                          '${p.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           color: PdfColors.green800,
                         ),
                       ],
@@ -261,7 +261,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
             pw.SizedBox(height: 24),
             pw.Center(
               child: pw.Text(
-                'تاريخ الطباعة: ${DateFormat('yyyy/MM/dd HH:mm').format(now)}',
+                '${context.tr('reports.printDate')}: ${context.formatDateTime(now)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.grey600,
@@ -364,9 +364,9 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
             child: InkWell(
               onTap: () => _pickDate(true),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'من',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.fromDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -381,9 +381,9 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
             child: InkWell(
               onTap: () => _pickDate(false),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'إلى',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.toDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -405,7 +405,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
         children: [
           Expanded(
             child: _StatCard(
-              label: 'عدد الدفعات',
+              label: context.tr('reports.paymentsCount'),
               value: '$count',
               color: colors.primary,
               icon: Icons.receipt_long,
@@ -415,8 +415,9 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
           Expanded(
             flex: 2,
             child: _StatCard(
-              label: 'إجمالي الإيرادات',
-              value: '${total.toStringAsFixed(0)} دج',
+              label: context.tr('reports.totalRevenueLabel'),
+              value:
+                  '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
               color: colors.secondary,
               icon: Icons.trending_up,
             ),
@@ -443,7 +444,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
             ),
             SizedBox(height: 12.h),
             Text(
-              'لا توجد دفعات في هذه الفترة',
+              context.tr('reports.noDataPeriod'),
               style: TextStyle(color: colors.onSurfaceVariant),
             ),
           ],
@@ -482,11 +483,11 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                   style: const TextStyle(fontSize: 13),
                 ),
                 subtitle: Text(
-                  '${p.typeLabel} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
+                  '${context.tr(p.typeKey)} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
                   style: const TextStyle(fontSize: 11),
                 ),
                 trailing: Text(
-                  '${p.amount.toStringAsFixed(0)} دج',
+                  '${p.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
@@ -531,7 +532,7 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                     );
                   },
                   icon: const Icon(Icons.print, size: 18),
-                  label: const Text('طباعة'),
+                  label: Text(context.tr('reports.print')),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),
@@ -553,7 +554,10 @@ class _RevenueReportPageState extends State<RevenueReportPage> {
                     );
                   },
                   icon: const Icon(Icons.share, size: 16),
-                  label: const Text('مشاركة', style: TextStyle(fontSize: 12)),
+                  label: Text(
+                    context.tr('reports.share'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),

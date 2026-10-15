@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
-import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/core/widgets/custom_date_picker.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
@@ -128,7 +128,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'تقرير الإعفاءات والتخفيضات',
+                        context.tr('reports.exemptionsReport'),
                         style: pw.TextStyle(
                           fontSize: 20,
                           fontWeight: pw.FontWeight.bold,
@@ -148,14 +148,14 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'من: ${DateFormat('yyyy/MM/dd').format(_fromDate)}',
+                        '${context.tr('reports.fromDate')}: ${context.formatDate(_fromDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'إلى: ${DateFormat('yyyy/MM/dd').format(_toDate)}',
+                        '${context.tr('reports.toDate')}: ${context.formatDate(_toDate)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
@@ -178,14 +178,14 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
               child: pw.Column(
                 children: [
                   _pdfSummaryRow(
-                    'عدد الإعفاءات/التخفيضات',
+                    context.tr('reports.countExemptions'),
                     '${payments.length}',
                     PdfColors.blue800,
                   ),
                   pw.SizedBox(height: 4),
                   _pdfSummaryRow(
-                    'إجمالي المبالغ المعفاة',
-                    '${total.toStringAsFixed(0)} دج',
+                    context.tr('reports.totalExempted'),
+                    '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     PdfColors.orange800,
                   ),
                 ],
@@ -195,7 +195,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
 
             // الجدول
             pw.Text(
-              'تفاصيل الإعفاءات',
+              context.tr('reports.details'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -209,7 +209,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                 padding: const pw.EdgeInsets.all(20),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  'لا توجد إعفاءات في الفترة',
+                  context.tr('reports.noDataPeriod'),
                   style: const pw.TextStyle(color: PdfColors.grey600),
                 ),
               )
@@ -233,10 +233,12 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     ),
                     children: [
                       _pdfTableHeader('#'),
-                      _pdfTableHeader('الطالب'),
-                      _pdfTableHeader('النوع'),
-                      _pdfTableHeader('المطلوب'),
-                      _pdfTableHeader('المبلغ المعفى'),
+                      _pdfTableHeader(context.tr('reports.studentLabel')),
+                      _pdfTableHeader(context.tr('reports.typeLabel')),
+                      _pdfTableHeader(context.tr('reports.dueLabel')),
+                      _pdfTableHeader(
+                        context.tr('reports.exemptedAmountLabel'),
+                      ),
                     ],
                   ),
                   ...payments.asMap().entries.map((entry) {
@@ -254,12 +256,12 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                           student?.fullName ?? '-',
                           align: pw.TextAlign.right,
                         ),
-                        _pdfTableCell(p.typeLabel),
+                        _pdfTableCell(context.tr(p.typeKey)),
                         _pdfTableCell(
-                          '${p.originalAmount.toStringAsFixed(0)} دج',
+                          '${p.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         ),
                         _pdfTableCell(
-                          '${exemptedAmount.toStringAsFixed(0)} دج',
+                          '${exemptedAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                           color: PdfColors.orange800,
                         ),
                       ],
@@ -271,7 +273,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
             pw.SizedBox(height: 24),
             pw.Center(
               child: pw.Text(
-                'تاريخ الطباعة: ${DateFormat('yyyy/MM/dd HH:mm').format(now)}',
+                '${context.tr('reports.printDate')}: ${context.formatDateTime(now)}',
                 style: const pw.TextStyle(
                   fontSize: 9,
                   color: PdfColors.grey600,
@@ -373,9 +375,9 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
             child: InkWell(
               onTap: () => _pickDate(true),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'من',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.fromDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -390,9 +392,9 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
             child: InkWell(
               onTap: () => _pickDate(false),
               child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'إلى',
-                  prefixIcon: Icon(Icons.calendar_today, size: 16),
+                decoration: InputDecoration(
+                  labelText: context.tr('reports.toDate'),
+                  prefixIcon: const Icon(Icons.calendar_today, size: 16),
                   isDense: true,
                 ),
                 child: Text(
@@ -414,7 +416,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
         children: [
           Expanded(
             child: _StatCard(
-              label: 'عدد الإعفاءات',
+              label: context.tr('reports.countExemptions'),
               value: '$count',
               color: colors.primary,
               icon: Icons.card_giftcard,
@@ -424,8 +426,9 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
           Expanded(
             flex: 2,
             child: _StatCard(
-              label: 'إجمالي المعفى',
-              value: '${total.toStringAsFixed(0)} دج',
+              label: context.tr('reports.totalExempted'),
+              value:
+                  '${total.toStringAsFixed(0)} ${context.tr('common.currency')}',
               color: colors.tertiary,
               icon: Icons.redeem,
             ),
@@ -452,7 +455,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
             ),
             SizedBox(height: 12.h),
             Text(
-              'لا توجد إعفاءات في هذه الفترة',
+              context.tr('reports.noDataPeriod'),
               style: TextStyle(color: colors.onSurfaceVariant),
             ),
           ],
@@ -497,7 +500,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                   style: const TextStyle(fontSize: 13),
                 ),
                 subtitle: Text(
-                  '${p.typeLabel} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
+                  '${context.tr(p.typeKey)} • ${DateFormat('yyyy/MM/dd').format(p.paymentDate)}',
                   style: const TextStyle(fontSize: 11),
                 ),
                 trailing: Column(
@@ -505,7 +508,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${exemptedAmount.toStringAsFixed(0)} دج',
+                      '${exemptedAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.bold,
@@ -514,7 +517,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     ),
                     if (!isExemption)
                       Text(
-                        'دفع ${p.amount.toStringAsFixed(0)} دج',
+                        '${context.tr('reports.paidLabel')} ${p.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         style: TextStyle(
                           fontSize: 9.sp,
                           color: colors.onSurfaceVariant,
@@ -560,7 +563,7 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     );
                   },
                   icon: const Icon(Icons.print, size: 18),
-                  label: const Text('طباعة'),
+                  label: Text(context.tr('reports.print')),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),
@@ -582,7 +585,10 @@ class _ExemptionsReportPageState extends State<ExemptionsReportPage> {
                     );
                   },
                   icon: const Icon(Icons.share, size: 16),
-                  label: const Text('مشاركة', style: TextStyle(fontSize: 12)),
+                  label: Text(
+                    context.tr('reports.share'),
+                    style: const TextStyle(fontSize: 12),
+                  ),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(_kRadius),

@@ -68,12 +68,12 @@ class GroupsView extends StatelessWidget {
 
             if (grades.isEmpty) {
               return AlertDialog(
-                title: const Text('تنبيه'),
-                content: const Text('لا توجد صفوف. يرجى إضافة الصفوف أولاً.'),
+                title: Text(context.tr('dialogs.alert')),
+                content: Text(context.tr('groups.noGrades')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
-                    child: const Text('حسناً'),
+                    child: Text(context.tr('common.ok')),
                   ),
                 ],
               );
@@ -109,7 +109,7 @@ class GroupsView extends StatelessWidget {
     final confirmed = await ConfirmDialog.show(
       context: context,
       title: context.tr('groups.deleteTitle'),
-      message: 'groups.deleteMessage "${group.name}"؟',
+      message: '${context.tr('groups.deleteMessage')} "${group.name}"؟',
     );
     if (confirmed && context.mounted) {
       context.read<GroupsBloc>().add(DeleteGroupEvent(group.id!));

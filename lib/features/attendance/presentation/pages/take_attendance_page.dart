@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/states/ui_state.dart';
 import 'package:school_management_system/features/attendance/domain/entities/attendance_entity.dart';
 import 'package:school_management_system/features/attendance/domain/entities/session_entity.dart';
@@ -108,7 +108,9 @@ class _TakeAttendancePageState extends State<TakeAttendancePage> {
     if (_attendanceStatus.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى تسجيل الحضور أولاً')));
+      ).showSnackBar(
+        SnackBar(content: Text(context.tr('prompts.recordAttendanceFirst'))),
+      );
       return;
     }
 

@@ -1,8 +1,9 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:school_management_system/core/database/app_database.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/injection_container.dart';
 
 class _Gap {
@@ -55,7 +56,7 @@ class _SmsLogPageState extends State<SmsLogPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('سجل الرسائل القصيرة'),
+        title: Text(context.tr('sms.logTitle')),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadLogs),
         ],
@@ -74,7 +75,7 @@ class _SmsLogPageState extends State<SmsLogPage> {
                   ),
                   SizedBox(height: 12.h),
                   Text(
-                    'لا توجد رسائل مرسلة',
+                    context.tr('sms.noLogs'),
                     style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ],
@@ -88,7 +89,9 @@ class _SmsLogPageState extends State<SmsLogPage> {
                 final isSent = log.status == 'sent';
                 final statusColor = isSent ? Colors.green : Colors.red;
                 final statusIcon = isSent ? Icons.check_circle : Icons.error;
-                final statusLabel = isSent ? 'تم الإرسال' : 'فشل';
+                final statusLabel = isSent
+                    ? context.tr('sms.smsSent')
+                    : context.tr('sms.failed');
 
                 return Card(
                   margin: EdgeInsets.only(bottom: 6.h),
@@ -149,7 +152,7 @@ class _SmsLogPageState extends State<SmsLogPage> {
                         if (log.errorMessage != null) ...[
                           SizedBox(height: 4.h),
                           Text(
-                            'خطأ: ${log.errorMessage}',
+                            '${context.tr('common.error')}: ${log.errorMessage}',
                             style: TextStyle(
                               fontSize: 10.sp,
                               color: Colors.red,

@@ -118,7 +118,7 @@ class _StickyActionBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(_kRadius),
                   ),
                 ),
-                child: const Text('إلغاء'),
+                child: Text(context.tr('common.cancel')),
               ),
             ),
             SizedBox(width: 10.w),
@@ -137,7 +137,7 @@ class _StickyActionBar extends StatelessWidget {
                       )
                     : Icon(Icons.save, size: 18.sp),
                 label: Text(
-                  'حفظ التعديلات',
+                  context.tr('students.saveChanges'),
                   style: TextStyle(
                     fontSize: 14.sp,
                     fontWeight: FontWeight.w700,
@@ -306,9 +306,9 @@ class _EditStudentViewState extends State<EditStudentView> {
                       TextFormField(
                         controller: _lastNameController,
                         textInputAction: TextInputAction.next,
-                        decoration: const InputDecoration(
-                          labelText: 'اللقب *',
-                          prefixIcon: Icon(Icons.person, size: 18),
+                        decoration: InputDecoration(
+                          labelText: '${context.tr('students.lastName')} *',
+                          prefixIcon: const Icon(Icons.person, size: 18),
                           isDense: true,
                         ),
                         validator: (v) => v == null || v.trim().isEmpty
@@ -349,9 +349,9 @@ class _EditStudentViewState extends State<EditStudentView> {
                       DropdownButtonFormField<String>(
                         initialValue: _gender,
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'الجنس',
-                          prefixIcon: Icon(Icons.wc, size: 18),
+                        decoration: InputDecoration(
+                          labelText: context.tr('students.gender'),
+                          prefixIcon: const Icon(Icons.wc, size: 18),
                           isDense: true,
                         ),
                         items: [

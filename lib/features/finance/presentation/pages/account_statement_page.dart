@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:school_management_system/core/states/ui_state.dart';
+import 'package:school_management_system/core/utils/translation_extension.dart';
 import 'package:school_management_system/features/finance/domain/entities/payment_entity.dart';
 import 'package:school_management_system/features/finance/presentation/bloc/finance_bloc.dart';
 import 'package:school_management_system/features/groups/domain/entities/group_entity.dart';
@@ -95,7 +95,7 @@ class AccountStatementPage extends StatelessWidget {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        'كشف حساب',
+                        context.tr('reports.accountStatement'),
                         style: pw.TextStyle(
                           fontSize: 22,
                           fontWeight: pw.FontWeight.bold,
@@ -115,14 +115,14 @@ class AccountStatementPage extends StatelessWidget {
                     crossAxisAlignment: pw.CrossAxisAlignment.end,
                     children: [
                       pw.Text(
-                        'تاريخ الطباعة: ${DateFormat('yyyy/MM/dd').format(now)}',
+                        '${context.tr('reports.printDate')}: ${context.formatDate(now)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
                         ),
                       ),
                       pw.Text(
-                        'الوقت: ${DateFormat('HH:mm').format(now)}',
+                        '${context.tr('reports.printTime')}: ${context.formatTime(now)}',
                         style: const pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.white,
@@ -147,7 +147,7 @@ class AccountStatementPage extends StatelessWidget {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    'معلومات الطالب',
+                    context.tr('reports.studentInfo'),
                     style: pw.TextStyle(
                       fontSize: 12,
                       fontWeight: pw.FontWeight.bold,
@@ -161,8 +161,14 @@ class AccountStatementPage extends StatelessWidget {
                         child: pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            _pdfInfoRow('الاسم', student.fullName),
-                            _pdfInfoRow('الرقم', student.studentCode),
+                            _pdfInfoRow(
+                              context.tr('reports.nameLabel'),
+                              student.fullName,
+                            ),
+                            _pdfInfoRow(
+                              context.tr('reports.codeLabel'),
+                              student.studentCode,
+                            ),
                           ],
                         ),
                       ),
@@ -170,10 +176,13 @@ class AccountStatementPage extends StatelessWidget {
                         child: pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            _pdfInfoRow('الفوج', group.name),
                             _pdfInfoRow(
-                              'الرسوم الشهرية',
-                              '${group.monthlyFee.toStringAsFixed(0)} دج',
+                              context.tr('reports.groupLabel'),
+                              group.name,
+                            ),
+                            _pdfInfoRow(
+                              context.tr('groups.monthlyFee'),
+                              '${group.monthlyFee.toStringAsFixed(0)} ${context.tr('common.currency')}',
                             ),
                           ],
                         ),
@@ -188,7 +197,7 @@ class AccountStatementPage extends StatelessWidget {
 
             // ====== جدول الدفعات ======
             pw.Text(
-              'تفاصيل الدفعات',
+              context.tr('reports.details'),
               style: pw.TextStyle(
                 fontSize: 13,
                 fontWeight: pw.FontWeight.bold,
@@ -202,7 +211,7 @@ class AccountStatementPage extends StatelessWidget {
                 padding: const pw.EdgeInsets.all(20),
                 alignment: pw.Alignment.center,
                 child: pw.Text(
-                  'لا توجد دفعات مسجلة',
+                  context.tr('reports.noPayments'),
                   style: const pw.TextStyle(color: PdfColors.grey600),
                 ),
               )
@@ -225,12 +234,12 @@ class AccountStatementPage extends StatelessWidget {
                   pw.TableRow(
                     decoration: const pw.BoxDecoration(color: PdfColors.blue50),
                     children: [
-                      _pdfTableHeader('التاريخ'),
-                      _pdfTableHeader('النوع'),
-                      _pdfTableHeader('الشهر'),
-                      _pdfTableHeader('المطلوب'),
-                      _pdfTableHeader('المدفوع'),
-                      _pdfTableHeader('المتبقي'),
+                      _pdfTableHeader(context.tr('common.date')),
+                      _pdfTableHeader(context.tr('reports.typeLabel')),
+                      _pdfTableHeader(context.tr('reports.monthLabel')),
+                      _pdfTableHeader(context.tr('reports.dueLabel')),
+                      _pdfTableHeader(context.tr('reports.paidLabel')),
+                      _pdfTableHeader(context.tr('reports.remainingLabel')),
                     ],
                   ),
                   // الصفوف
@@ -240,19 +249,19 @@ class AccountStatementPage extends StatelessWidget {
                         _pdfTableCell(
                           DateFormat('yyyy/MM/dd').format(p.paymentDate),
                         ),
-                        _pdfTableCell(p.typeLabel),
+                        _pdfTableCell(context.tr(p.typeKey)),
                         _pdfTableCell(p.monthYear ?? '-'),
                         _pdfTableCell(
-                          '${p.originalAmount.toStringAsFixed(0)} دج',
+                          '${p.originalAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         ),
                         _pdfTableCell(
                           p.type == 'exemption'
-                              ? 'معفى'
-                              : '${p.amount.toStringAsFixed(0)} دج',
+                              ? context.tr('reports.exempted')
+                              : '${p.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                         ),
                         _pdfTableCell(
                           p.remainingAmount > 0
-                              ? '${p.remainingAmount.toStringAsFixed(0)} دج'
+                              ? '${p.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}'
                               : '-',
                         ),
                       ],
@@ -273,20 +282,20 @@ class AccountStatementPage extends StatelessWidget {
               child: pw.Column(
                 children: [
                   _pdfSummaryRow(
-                    'إجمالي المدفوع',
-                    '${totalPaid.toStringAsFixed(0)} دج',
+                    context.tr('reports.totalPaidLabel'),
+                    '${totalPaid.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     PdfColors.green800,
                   ),
                   pw.SizedBox(height: 4),
                   _pdfSummaryRow(
-                    'إجمالي الإعفاءات/التخفيضات',
-                    '${totalExempted.toStringAsFixed(0)} دج',
+                    context.tr('reports.totalExempted'),
+                    '${totalExempted.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     PdfColors.orange800,
                   ),
                   pw.Divider(color: PdfColors.blue800, thickness: 1),
                   _pdfSummaryRow(
-                    'المتبقي',
-                    '${totalRemaining.toStringAsFixed(0)} دج',
+                    context.tr('reports.remainingLabel'),
+                    '${totalRemaining.toStringAsFixed(0)} ${context.tr('common.currency')}',
                     totalRemaining > 0 ? PdfColors.red800 : PdfColors.green800,
                     isBold: true,
                   ),
@@ -313,7 +322,7 @@ class AccountStatementPage extends StatelessWidget {
                       padding: const pw.EdgeInsets.only(top: 4),
                       child: pw.Center(
                         child: pw.Text(
-                          'توقيع المحاسب',
+                          context.tr('reports.accountantSignature'),
                           style: const pw.TextStyle(
                             fontSize: 10,
                             color: PdfColors.grey700,
@@ -336,7 +345,7 @@ class AccountStatementPage extends StatelessWidget {
                       padding: const pw.EdgeInsets.only(top: 4),
                       child: pw.Center(
                         child: pw.Text(
-                          'ختم المؤسسة',
+                          context.tr('reports.schoolStamp'),
                           style: const pw.TextStyle(
                             fontSize: 10,
                             color: PdfColors.grey700,
@@ -437,7 +446,7 @@ class AccountStatementPage extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('كشف الحساب')),
+      appBar: AppBar(title: Text(context.tr('reports.accountStatement'))),
       body: BlocBuilder<FinanceBloc, FinanceState>(
         builder: (context, state) {
           final payments = _getPayments(state);
@@ -496,7 +505,7 @@ class AccountStatementPage extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                  'الرقم: ${student.studentCode}',
+                                  '${context.tr('reports.codeLabel')}: ${student.studentCode}',
                                   style: TextStyle(
                                     fontSize: 11.sp,
                                     color: Colors.white70,
@@ -504,7 +513,7 @@ class AccountStatementPage extends StatelessWidget {
                                 ),
                                 SizedBox(width: 12.w),
                                 Text(
-                                  'الفوج: ${group.name}',
+                                  '${context.tr('reports.groupLabel')}: ${group.name}',
                                   style: TextStyle(
                                     fontSize: 11.sp,
                                     color: Colors.white70,
@@ -522,8 +531,9 @@ class AccountStatementPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _SummaryCard(
-                              label: 'المدفوع',
-                              value: '${totalPaid.toStringAsFixed(0)} دج',
+                              label: context.tr('reports.paidLabel'),
+                              value:
+                                  '${totalPaid.toStringAsFixed(0)} ${context.tr('common.currency')}',
                               color: colors.secondary,
                               icon: Icons.check_circle,
                             ),
@@ -531,8 +541,9 @@ class AccountStatementPage extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: _SummaryCard(
-                              label: 'الإعفاءات',
-                              value: '${totalExempted.toStringAsFixed(0)} دج',
+                              label: context.tr('reports.exemptedLabel'),
+                              value:
+                                  '${totalExempted.toStringAsFixed(0)} ${context.tr('common.currency')}',
                               color: colors.tertiary,
                               icon: Icons.card_giftcard,
                             ),
@@ -540,8 +551,9 @@ class AccountStatementPage extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Expanded(
                             child: _SummaryCard(
-                              label: 'المتبقي',
-                              value: '${totalRemaining.toStringAsFixed(0)} دج',
+                              label: context.tr('reports.remainingLabel'),
+                              value:
+                                  '${totalRemaining.toStringAsFixed(0)} ${context.tr('common.currency')}',
                               color: totalRemaining > 0
                                   ? colors.error
                                   : colors.secondary,
@@ -568,7 +580,7 @@ class AccountStatementPage extends StatelessWidget {
                                   ),
                                   SizedBox(width: 6.w),
                                   Text(
-                                    'تفاصيل الدفعات',
+                                    context.tr('reports.details'),
                                     style: TextStyle(
                                       fontSize: 13.sp,
                                       fontWeight: FontWeight.bold,
@@ -582,7 +594,7 @@ class AccountStatementPage extends StatelessWidget {
                                 Padding(
                                   padding: EdgeInsets.all(20.w),
                                   child: Text(
-                                    'لا توجد دفعات مسجلة',
+                                    context.tr('reports.noPayments'),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: colors.onSurfaceVariant,
@@ -632,7 +644,7 @@ class AccountStatementPage extends StatelessWidget {
                               );
                             },
                             icon: const Icon(Icons.print, size: 18),
-                            label: const Text('طباعة'),
+                            label: Text(context.tr('reports.print')),
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(_kRadius),
@@ -658,8 +670,8 @@ class AccountStatementPage extends StatelessWidget {
                               );
                             },
                             icon: const Icon(Icons.share, size: 16),
-                            label: const Text(
-                              'مشاركة',
+                            label: Text(
+                              context.tr('reports.share'),
                               style: TextStyle(fontSize: 12),
                             ),
                             style: OutlinedButton.styleFrom(
@@ -761,7 +773,7 @@ class _PaymentRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  payment.typeLabel,
+                  context.tr(payment.typeKey),
                   style: TextStyle(
                     fontSize: 12.sp,
                     fontWeight: FontWeight.w600,
@@ -781,7 +793,7 @@ class _PaymentRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${payment.amount.toStringAsFixed(0)} دج',
+                '${payment.amount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
@@ -790,7 +802,7 @@ class _PaymentRow extends StatelessWidget {
               ),
               if (payment.remainingAmount > 0)
                 Text(
-                  'متبقي: ${payment.remainingAmount.toStringAsFixed(0)} دج',
+                  '${context.tr('reports.remainingLabel')}: ${payment.remainingAmount.toStringAsFixed(0)} ${context.tr('common.currency')}',
                   style: TextStyle(fontSize: 9.sp, color: colors.error),
                 ),
             ],

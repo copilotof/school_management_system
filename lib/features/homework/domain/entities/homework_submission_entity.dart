@@ -22,17 +22,17 @@ class HomeworkSubmissionEntity extends Equatable {
     this.createdAt,
   });
 
-  /// تسمية الحالة
-  String get statusLabel {
+  /// ✅ مفتاح الحالة — يُترجَم في الواجهة عبر `context.tr(...)`
+  String get statusKey {
     switch (status) {
       case 'submitted':
-        return 'سلّم';
+        return 'homework.submitted';
       case 'late':
-        return 'متأخر';
+        return 'homework.late';
       case 'missing':
-        return 'لم يسلّم';
+        return 'homework.missing';
       default:
-        return 'معلّق';
+        return 'homework.pending';
     }
   }
 

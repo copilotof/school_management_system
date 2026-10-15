@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/database/app_database.dart';
+import '../../../core/services/translation_service.dart';
 import '../../../injection_container.dart';
 
 /// 📁 خدمة إرسال SMS عبر فتح تطبيق الرسائل
@@ -27,12 +28,16 @@ class SmsService {
           phone: phone,
           body: body,
           status: 'failed',
-          errorMessage: 'رقم غير صالح',
+          errorMessage: TranslationService.instance.tr('sms.invalidNumber'),
           recipientId: recipientId,
           recipientName: recipientName,
           eventCode: eventCode,
         );
-        return SmsResult(success: false, phone: phone, error: 'رقم غير صالح');
+        return SmsResult(
+          success: false,
+          phone: phone,
+          error: TranslationService.instance.tr('sms.invalidNumber'),
+        );
       }
 
       final uri = Uri(
@@ -60,7 +65,7 @@ class SmsService {
           phone: phone,
           body: body,
           status: 'failed',
-          errorMessage: 'لا يمكن فتح تطبيق الرسائل',
+          errorMessage: TranslationService.instance.tr('sms.cannotOpenApp'),
           recipientId: recipientId,
           recipientName: recipientName,
           eventCode: eventCode,
@@ -68,7 +73,7 @@ class SmsService {
         return SmsResult(
           success: false,
           phone: phone,
-          error: 'لا يمكن فتح تطبيق الرسائل',
+          error: TranslationService.instance.tr('sms.cannotOpenApp'),
         );
       }
     } catch (e) {

@@ -286,7 +286,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                           isDense: true,
                         ),
                         validator: (v) => v == null || v.trim().isEmpty
-                            ? 'يرجى إدخال الاسم'
+                            ? context.tr('students.firstNameRequired')
                             : null,
                       ),
                       SizedBox(height: _Gap.md),
@@ -299,7 +299,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                           isDense: true,
                         ),
                         validator: (v) => v == null || v.trim().isEmpty
-                            ? 'يرجى إدخال اللقب'
+                            ? context.tr('students.lastNameRequired')
                             : null,
                       ),
                       SizedBox(height: _Gap.md),
@@ -318,7 +318,7 @@ class _AddStudentViewState extends State<AddStudentView> {
                                 isDense: true,
                               ),
                               validator: (v) => v == null || v.trim().isEmpty
-                                  ? 'مطلوب'
+                                  ? context.tr('validators.required')
                                   : null,
                             ),
                           ),
