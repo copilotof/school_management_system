@@ -51,7 +51,7 @@ class GradesView extends StatelessWidget {
             if (allSubjects.isEmpty) {
               return AlertDialog(
                 title: Text(context.tr('grades.manageSubjects')),
-                content: Text(context.tr('grades.no_subjects')),
+                content: Text(context.tr('subjects.empty')),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(),
@@ -84,9 +84,10 @@ class GradesView extends StatelessWidget {
   Future<void> _deleteGrade(BuildContext context, GradeEntity grade) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: context.tr('common.confirm'),
+      title: context.tr('dialogs.confirmDelete'),
       message: context.tr(
-        '${context.tr('dialogs.confirmDelete')} ${grade.name}"؟',
+        'grades.deleteMessage',
+        params: {'name': grade.name},
       ),
     );
     if (confirmed && context.mounted) {
@@ -103,7 +104,7 @@ class GradesView extends StatelessWidget {
           return switch (state.gradesState) {
             Initial() => const SizedBox.shrink(),
             Loading() => const Center(child: CircularProgressIndicator()),
-            Empty() => Center(child: Text(context.tr('grades.no_grades'))),
+            Empty() => Center(child: Text(context.tr('grades.empty'))),
             Error(message: final msg) => Center(child: Text(msg)),
             Success(data: final grades) => ListView.builder(
               padding: const EdgeInsets.all(12),
@@ -364,7 +365,7 @@ class _GradeCard extends StatelessWidget {
                 _IconActionButton(
                   icon: Icons.delete_outline,
                   color: colors.error,
-                  tooltip: context.tr('grades.delete_grade'),
+                  tooltip: context.tr('common.delete'),
                   onTap: onDelete,
                 ),
               ],
@@ -479,7 +480,7 @@ class _ManageSubjectsDialogState extends State<_ManageSubjectsDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.tr('grades.cancel')),
+          child: Text(context.tr('common.cancel')),
         ),
         ElevatedButton(
           onPressed: () {
@@ -491,7 +492,7 @@ class _ManageSubjectsDialogState extends State<_ManageSubjectsDialog> {
             );
             Navigator.of(context).pop();
           },
-          child: Text(context.tr('grades.save')),
+          child: Text(context.tr('common.save')),
         ),
       ],
     );

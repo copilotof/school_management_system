@@ -274,7 +274,7 @@ class _AddStudentViewState extends State<AddStudentView> {
               children: [
                 _FormCard(
                   icon: Icons.person_outline,
-                  title: context.tr('students.basicInfo'),
+                  title: context.tr('students.personalInfo'),
                   child: Column(
                     children: [
                       TextFormField(

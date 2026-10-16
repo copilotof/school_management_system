@@ -85,7 +85,7 @@ class _BackupPageState extends State<BackupPage> {
       await _loadData();
     } else {
       _showSnack(
-        'فشل: ${result.error}',
+        context.tr('errors.generic', params: {'error': '${result.error}'}),
         color: Theme.of(context).colorScheme.error,
       );
     }
@@ -119,7 +119,7 @@ class _BackupPageState extends State<BackupPage> {
             SizedBox(width: 10.w),
             Expanded(
               child: Text(
-                'تم إنشاء النسخة',
+                context.tr('backup.backupCreated'),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -134,7 +134,7 @@ class _BackupPageState extends State<BackupPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'تم إنشاء نسخة احتياطية بنجاح.',
+              context.tr('backup.backupSuccess'),
               style: TextStyle(fontSize: 13.sp),
             ),
             SizedBox(height: 12.h),
@@ -150,21 +150,21 @@ class _BackupPageState extends State<BackupPage> {
                 children: [
                   _successRow(
                     icon: Icons.calendar_today,
-                    label: 'التاريخ',
+                    label: context.tr('backup.dateLabel'),
                     value: DateFormat('yyyy/MM/dd').format(createdAt),
                     colors: colors,
                   ),
                   Divider(height: 12.h, color: colors.outlineVariant),
                   _successRow(
                     icon: Icons.access_time,
-                    label: 'الوقت',
+                    label: context.tr('backup.timeLabel'),
                     value: DateFormat('HH:mm:ss').format(createdAt),
                     colors: colors,
                   ),
                   Divider(height: 12.h, color: colors.outlineVariant),
                   _successRow(
                     icon: Icons.storage,
-                    label: 'الحجم',
+                    label: context.tr('backup.sizeLabel'),
                     value: _formatBytes(sizeInBytes),
                     colors: colors,
                   ),
@@ -306,7 +306,7 @@ class _BackupPageState extends State<BackupPage> {
       );
     } else {
       _showSnack(
-        'فشل: ${result.error}',
+        context.tr('errors.generic', params: {'error': '${result.error}'}),
         color: Theme.of(context).colorScheme.error,
       );
     }

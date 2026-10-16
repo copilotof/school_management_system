@@ -193,7 +193,8 @@
     "name": "Subject Name",
     "code": "Code",
     "description": "Description",
-    "empty": "No subjects"
+    "empty": "No subjects",
+    "deleteMessage": "Are you sure you want to delete the subject \"{name}\"?"
   },
   "grades": {
     "title": "Grades",
@@ -203,7 +204,8 @@
     "orderIndex": "Order",
     "manageSubjects": "Link Subjects",
     "subjectsCount": "Subjects Count",
-    "empty": "No grades"
+    "empty": "No grades",
+    "deleteMessage": "Are you sure you want to delete the grade \"{name}\"?"
   },
   "levels": {
     "title": "Academic Levels",
@@ -211,7 +213,8 @@
     "edit": "Edit Level",
     "name": "Level Name",
     "orderIndex": "Order",
-    "empty": "No levels"
+    "empty": "No levels",
+    "deleteMessage": "Are you sure you want to delete the level \"{name}\"?"
   },
   "groups": {
     "title": "Groups",
@@ -244,7 +247,8 @@
     "deleteMessage": "Are you sure you want to delete the group",
     "deleteTimeSlotConfirm": "Are you sure you want to delete the {day} slot?",
     "noGrades": "No grades found. Please add grades first.",
-    "studentsCountValue": "{count} students"
+    "studentsCountValue": "{count} students",
+    "noTeacher": "No teacher"
   },
   "enrollment": {
     "title": "Student Enrollment",
@@ -797,7 +801,8 @@
     "selectExtraSession": "Please select the extra session",
     "enterValidAmount": "Please enter a valid amount",
     "selectRecipient": "Please select at least one recipient",
-    "restartToApply": "The app must be restarted to apply the changes."
+    "restartToApply": "The app must be restarted to apply the changes.",
+    "selectGradeFirst": "Please select a grade first"
   },
   "paymentMethods": {
     "cash": "Cash",

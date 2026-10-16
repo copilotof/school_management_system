@@ -515,7 +515,7 @@ class _HomeworkReportCard extends StatelessWidget {
                     size: 18.sp,
                     color: colors.primary,
                   ),
-                  tooltip: context.tr('homework.submissions'),
+                  tooltip: context.tr('homework.submissionsList'),
                   onPressed: () {
                     _showSubmissionsDialog(context, homework, homeworkBloc);
                   },

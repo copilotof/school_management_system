@@ -193,7 +193,8 @@
     "name": "اسم المادة",
     "code": "الرمز",
     "description": "الوصف",
-    "empty": "لا توجد مواد"
+    "empty": "لا توجد مواد",
+    "deleteMessage": "هل أنت متأكد من حذف المادة \"{name}\"؟"
   },
   "grades": {
     "title": "الصفوف الدراسية",
@@ -203,7 +204,8 @@
     "orderIndex": "الترتيب",
     "manageSubjects": "ربط المواد",
     "subjectsCount": "عدد المواد",
-    "empty": "لا توجد صفوف"
+    "empty": "لا توجد صفوف",
+    "deleteMessage": "هل أنت متأكد من حذف الصف \"{name}\"؟"
   },
   "levels": {
     "title": "المستويات الدراسية",
@@ -211,7 +213,8 @@
     "edit": "تعديل المستوى",
     "name": "اسم المستوى",
     "orderIndex": "الترتيب",
-    "empty": "لا توجد مستويات"
+    "empty": "لا توجد مستويات",
+    "deleteMessage": "هل أنت متأكد من حذف المستوى \"{name}\"؟"
   },
   "groups": {
     "title": "الأفواج",
@@ -244,7 +247,8 @@
     "deleteMessage": "هل أنت متأكد من حذف الفوج",
     "deleteTimeSlotConfirm": "هل أنت متأكد من حذف موعد {day}؟",
     "noGrades": "لا توجد صفوف. يرجى إضافة الصفوف أولاً.",
-    "studentsCountValue": "{count} طالب"
+    "studentsCountValue": "{count} طالب",
+    "noTeacher": "بدون معلم"
   },
   "enrollment": {
     "title": "تسجيل الطلاب في الأفواج",
@@ -797,7 +801,8 @@
     "selectExtraSession": "يرجى اختيار الحصة الإضافية",
     "enterValidAmount": "يرجى إدخال مبلغ صحيح",
     "selectRecipient": "يرجى اختيار مستلم واحد على الأقل",
-    "restartToApply": "يجب إعادة تشغيل التطبيق لتطبيق التغييرات."
+    "restartToApply": "يجب إعادة تشغيل التطبيق لتطبيق التغييرات.",
+    "selectGradeFirst": "يرجى اختيار الصف أولاً"
   },
   "paymentMethods": {
     "cash": "نقداً",

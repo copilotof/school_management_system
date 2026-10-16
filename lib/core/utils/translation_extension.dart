@@ -30,7 +30,7 @@ extension TranslationExtension on BuildContext {
 
   /// ترجمة مفتاح
   /// مثال: `context.tr('students.title')`
-  /// مع متغيرات: `context.tr('messages.countItems', params: {'count': '5'})`
+  /// مع متغيرات: `context.tr('common.countItems', params: {'count': '5'})`
   String tr(String key, {Map<String, String>? params}) {
     return TranslationService.instance.tr(key, params: params);
   }

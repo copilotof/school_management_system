@@ -109,7 +109,16 @@ class _SettingsPageState extends State<SettingsPage> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('تم حفظ الحد: $result غيابات')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.tr(
+                'settings.absenceLimitSaved',
+                params: {'count': '$result'},
+              ),
+            ),
+          ),
+        );
         _loadAbsenceLimit();
       }
     }
@@ -121,7 +130,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإعدادات'),
+        title: Text(context.tr('settings.title')),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -129,14 +138,17 @@ class _SettingsPageState extends State<SettingsPage> {
           padding: context.smartPadding(mobile: 16, tablet: 24, desktop: 32),
           children: [
             // ====== قسم المظهر ======
-            _SectionTitle(title: 'المظهر', colors: colors),
+            _SectionTitle(
+              title: context.tr('settings.appearance'),
+              colors: colors,
+            ),
             SizedBox(height: 8.h),
 
             // تبديل الثيم
             Card(
               child: ListTile(
                 leading: Icon(Icons.dark_mode_outlined, color: colors.primary),
-                title: const Text('الوضع الداكن'),
+                title: Text(context.tr('settings.darkMode')),
                 trailing: BlocBuilder<ThemeCubit, ThemeMode>(
                   builder: (context, state) {
                     return Switch(
@@ -152,7 +164,7 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 16.h),
 
             // ====== قسم اللغة ======
-            _SectionTitle(title: 'اللغة', colors: colors),
+            _SectionTitle(title: context.tr('settings.language'), colors: colors),
             SizedBox(height: 8.h),
 
             Card(
@@ -161,7 +173,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   return Column(
                     children: [
                       _LanguageTile(
-                        title: 'العربية',
+                        title: context.tr('settings.arabic'),
                         code: 'ar',
                         currentLocale: locale,
                         colors: colors,
@@ -188,7 +200,10 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 16.h),
 
             // ====== قسم الإشعارات ======
-            _SectionTitle(title: 'الإشعارات', colors: colors),
+            _SectionTitle(
+              title: context.tr('settings.notifications'),
+              colors: colors,
+            ),
             SizedBox(height: 8.h),
 
             Card(
@@ -196,8 +211,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   ListTile(
                     leading: Icon(Icons.backup_outlined, color: colors.primary),
-                    title: const Text('النسخ الاحتياطي'),
-                    subtitle: const Text('نسخ واستعادة قاعدة البيانات'),
+                    title: Text(context.tr('settings.backup')),
+                    subtitle: Text(context.tr('settings.backupSubtitle')),
                     trailing: const Icon(Icons.chevron_left),
                     onTap: () {
                       Navigator.of(context).push(
@@ -208,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   // ✅ جديد: سجل SMS
                   ListTile(
                     leading: Icon(Icons.sms_outlined, color: colors.primary),
-                    title: const Text('سجل الرسائل القصيرة'),
+                    title: Text(context.tr('settings.smsLog')),
                     trailing: const Icon(Icons.chevron_left),
                     onTap: () {
                       Navigator.of(context).push(
@@ -219,8 +234,13 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   ListTile(
                     leading: Icon(Icons.event_busy, color: colors.primary),
-                    title: const Text('حد الغيابات المسموح'),
-                    subtitle: Text('$_absenceLimit غيابات'),
+                    title: Text(context.tr('settings.absenceLimit')),
+                    subtitle: Text(
+                      context.tr(
+                        'settings.absenceLimitValue',
+                        params: {'count': '$_absenceLimit'},
+                      ),
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.edit_outlined, size: 18),
                       onPressed: () => _showAbsenceLimitDialog(context),
@@ -232,7 +252,10 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(height: 16.h),
 
             // ====== قسم الإدارة ======
-            _SectionTitle(title: 'الإدارة', colors: colors),
+            _SectionTitle(
+              title: context.tr('settings.administration'),
+              colors: colors,
+            ),
             SizedBox(height: 8.h),
 
             Card(

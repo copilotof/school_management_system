@@ -53,7 +53,7 @@ class StudentDetailsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.badge_outlined, size: 20.sp),
-            tooltip: context.tr('students.card'),
+            tooltip: context.tr('students.cardTitle'),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -250,7 +250,7 @@ class StudentDetailsPage extends StatelessWidget {
                       ? context.tr('students.male')
                       : student.gender == 'female'
                       ? context.tr('students.female')
-                      : context.tr('students.notSpecified'),
+                      : context.tr('common.notSpecified'),
                 ),
               ],
             ),
@@ -264,13 +264,13 @@ class StudentDetailsPage extends StatelessWidget {
                 _InfoRow(
                   icon: Icons.phone,
                   label: context.tr('students.phone'),
-                  value: student.phone ?? context.tr('students.notSpecified'),
+                  value: student.phone ?? context.tr('common.notSpecified'),
                 ),
                 Divider(height: 1, color: colors.surfaceVariant),
                 _InfoRow(
                   icon: Icons.location_on_outlined,
                   label: context.tr('students.address'),
-                  value: student.address ?? context.tr('students.notSpecified'),
+                  value: student.address ?? context.tr('common.notSpecified'),
                 ),
               ],
             ),

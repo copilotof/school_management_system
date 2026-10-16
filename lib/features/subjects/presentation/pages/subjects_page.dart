@@ -42,9 +42,10 @@ class SubjectsView extends StatelessWidget {
   ) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: context.tr('common.confirm'),
+      title: context.tr('dialogs.confirmDelete'),
       message: context.tr(
-        '${context.tr('dialogs.confirmDelete')} ${subject.name}"؟',
+        'subjects.deleteMessage',
+        params: {'name': subject.name},
       ),
     );
     if (confirmed && context.mounted) {
@@ -67,7 +68,7 @@ class SubjectsView extends StatelessWidget {
                 context.read<SubjectsBloc>().add(SearchSubjectsEvent(query));
               },
               decoration: InputDecoration(
-                hintText: context.tr('subjects.search_hint'),
+                hintText: context.tr('subjects.searchHint'),
                 prefixIcon: const Icon(Icons.search),
               ),
             ),

@@ -287,7 +287,7 @@ class _EditStudentViewState extends State<EditStudentView> {
               children: [
                 _FormCard(
                   icon: Icons.person_outline,
-                  title: context.tr('students.basicInfo'),
+                  title: context.tr('students.personalInfo'),
                   child: Column(
                     children: [
                       TextFormField(

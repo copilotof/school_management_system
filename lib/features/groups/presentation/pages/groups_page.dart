@@ -165,7 +165,7 @@ class GroupsView extends StatelessWidget {
                           onPressed: () => context.read<GroupsBloc>().add(
                             const FetchGroups(),
                           ),
-                          child: Text(context.tr('groups.retry')),
+                          child: Text(context.tr('common.retry')),
                         ),
                       ],
                     ),
@@ -608,7 +608,7 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
               // المادة (فقط مواد الصف)
               if (_selectedGradeId == null)
                 Text(
-                  context.tr('groups.selectGradeFirst'),
+                  context.tr('prompts.selectGradeFirst'),
                   style: TextStyle(
                     fontSize: 11.sp,
                     color: colors.onSurfaceVariant,
@@ -620,7 +620,7 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                     final filtered = _filteredSubjects;
                     if (filtered.isEmpty) {
                       return Text(
-                        context.tr('groups.noSubjectsAvailable'),
+                        context.tr('subjects.empty'),
                         style: TextStyle(fontSize: 11.sp, color: colors.error),
                       );
                     }
@@ -747,7 +747,7 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: Text(context.tr('groups.cancel')),
+                      child: Text(context.tr('common.cancel')),
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -757,7 +757,7 @@ class _AddGroupDialogState extends State<_AddGroupDialog> {
                       child: Text(
                         widget.group == null
                             ? context.tr('groups.add')
-                            : context.tr('groups.save'),
+                            : context.tr('common.save'),
                       ),
                     ),
                   ),

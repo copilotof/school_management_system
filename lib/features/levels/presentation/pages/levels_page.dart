@@ -37,8 +37,8 @@ class LevelsView extends StatelessWidget {
         return AlertDialog(
           title: Text(
             level == null
-                ? context.tr('levels.add_level')
-                : context.tr('levels.edit_level'),
+                ? context.tr('levels.add')
+                : context.tr('levels.edit'),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -55,7 +55,7 @@ class LevelsView extends StatelessWidget {
                   controller: orderController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: context.tr('levels.order'),
+                    labelText: context.tr('levels.orderIndex'),
                   ),
                 ),
               ],
@@ -64,7 +64,7 @@ class LevelsView extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(context.tr('levels.cancel')),
+              child: Text(context.tr('common.cancel')),
             ),
             ElevatedButton(
               onPressed: () {
@@ -97,10 +97,10 @@ class LevelsView extends StatelessWidget {
   Future<void> _deleteLevel(BuildContext context, LevelEntity level) async {
     final confirmed = await ConfirmDialog.show(
       context: context,
-      title: context.tr('levels.delete_level'),
+      title: context.tr('dialogs.confirmDelete'),
       message: context.tr(
-        'dialogs.confirmDelete',
-        params: {'level_name': level.name},
+        'levels.deleteMessage',
+        params: {'name': level.name},
       ),
     );
     if (confirmed && context.mounted) {
@@ -122,7 +122,7 @@ class LevelsView extends StatelessWidget {
           return switch (state.levelsState) {
             Initial() => const SizedBox.shrink(),
             Loading() => const Center(child: CircularProgressIndicator()),
-            Empty() => const Center(child: Text('levels.no_levels')),
+            Empty() => Center(child: Text(context.tr('levels.empty'))),
             Error(message: final msg) => Center(child: Text(msg)),
             Success(data: final levels) => ListView.builder(
               padding: const EdgeInsets.all(12),
@@ -141,7 +141,9 @@ class LevelsView extends StatelessWidget {
                       ),
                     ),
                     title: Text(level.name),
-                    subtitle: Text('levels.order_value: ${level.orderIndex}'),
+                    subtitle: Text(
+                      '${context.tr('levels.orderIndex')}: ${level.orderIndex}',
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

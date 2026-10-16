@@ -193,7 +193,8 @@
     "name": "Nom de la matière",
     "code": "Code",
     "description": "Description",
-    "empty": "Aucune matière"
+    "empty": "Aucune matière",
+    "deleteMessage": "Voulez-vous vraiment supprimer la matière \"{name}\"?"
   },
   "grades": {
     "title": "Niveaux",
@@ -203,7 +204,8 @@
     "orderIndex": "Ordre",
     "manageSubjects": "Lier les matières",
     "subjectsCount": "Nombre de matières",
-    "empty": "Aucun niveau"
+    "empty": "Aucun niveau",
+    "deleteMessage": "Voulez-vous vraiment supprimer le niveau \"{name}\"?"
   },
   "levels": {
     "title": "Niveaux académiques",
@@ -211,7 +213,8 @@
     "edit": "Modifier le niveau",
     "name": "Nom du niveau",
     "orderIndex": "Ordre",
-    "empty": "Aucun niveau"
+    "empty": "Aucun niveau",
+    "deleteMessage": "Voulez-vous vraiment supprimer le niveau \"{name}\"?"
   },
   "groups": {
     "title": "Groupes",
@@ -244,7 +247,8 @@
     "deleteMessage": "Voulez-vous vraiment supprimer le groupe",
     "deleteTimeSlotConfirm": "Voulez-vous vraiment supprimer le créneau {day} ?",
     "noGrades": "Aucun niveau. Veuillez d'abord ajouter des niveaux.",
-    "studentsCountValue": "{count} étudiants"
+    "studentsCountValue": "{count} étudiants",
+    "noTeacher": "Sans enseignant"
   },
   "enrollment": {
     "title": "Inscription des étudiants",
@@ -797,7 +801,8 @@
     "selectExtraSession": "Veuillez sélectionner la séance supplémentaire",
     "enterValidAmount": "Veuillez saisir un montant valide",
     "selectRecipient": "Veuillez sélectionner au moins un destinataire",
-    "restartToApply": "L'application doit être redémarrée pour appliquer les modifications."
+    "restartToApply": "L'application doit être redémarrée pour appliquer les modifications.",
+    "selectGradeFirst": "Veuillez d'abord sélectionner un niveau"
   },
   "paymentMethods": {
     "cash": "Espèces",
